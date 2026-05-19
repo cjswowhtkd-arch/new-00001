@@ -164,7 +164,6 @@
         .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; margin-top: 2px; }
         .stock-price { font-weight: bold; text-align: right; min-width: 110px; color: #ffb199; transition: color 0.2s ease; }
         
-        /* 변동 보정 컬러 래퍼 클래스 */
         .price-up { color: #ff0844 !important; text-shadow: 0 0 5px rgba(255,8,68,0.4); }
         .price-down { color: #00f2fe !important; text-shadow: 0 0 5px rgba(0,242,254,0.4); }
 
@@ -227,7 +226,7 @@
         
         <div class="stats">
             <div>남은 시간: <span id="stock-timer" class="red-text">90</span> 초</div>
-            <div>보유 자산: <span id="stock-asset" class="red-text">50,000,000</span> 원</div>
+            <div>보유 자산: <span id="stock-asset" class="red-text">2,000,000</span> 원</div>
             <div>보유 주식: <span id="stock-owned">0</span> 주</div>
         </div>
 
@@ -235,7 +234,7 @@
             <!-- 5개 종목 동적 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">상단 계정 정보를 입력하고 거래를 시작해 주세요. 제한시간은 90초입니다!</div>
+        <div class="message" id="stock-message">상단 계정 정보를 입력하고 시작 버튼을 누르세요! 제한시간은 90초입니다.</div>
         <button id="start-stock-btn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color:#000;">🕹️ 실시간 게임 시작하기</button>
         <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
     </div>
@@ -355,9 +354,10 @@
     /* ----------------------------------------------------
        [게임 2] 실시간 주식 투자 게임 로직
     ---------------------------------------------------- */
-    let stockTimeLeft = 90, stockAsset = 50000000, stockGameActive = false;
+    let stockTimeLeft = 90, stockAsset = 2000000, stockGameActive = false; // 대폭 하향: 2,000,000원(200만 원)으로 설정
     let priceInterval, clockInterval;
     
+    // 자산 하향에 맞추어 적절하게 시작 주가 밸런싱 수정
     let stocks = [
         { name: "리가켐바이오 테마", price: 65000, oldPrice: 65000, cap: "시총 4,200억", owned: 0 },
         { name: "한스바이오메드 테마", price: 14000, oldPrice: 14000, cap: "시총 1,500억", owned: 0 },
@@ -377,20 +377,21 @@
     function initStockGame() {
         clearInterval(priceInterval);
         clearInterval(clockInterval);
-        stockTimeLeft = 90; stockAsset = 50000000; stockGameActive = false;
+        stockTimeLeft = 90; stockAsset = 2000000; stockGameActive = false;
         stocks.forEach(s => { s.owned = 0; s.price = s.oldPrice; });
         startStockBtn.disabled = false;
         startStockBtn.style.display = "inline-block";
         stockRestartBtn.style.display = "none";
         userIdInput.disabled = false; userPwInput.disabled = false;
-        renderStockMarket();
+        
+        // 초기 렌더링 시에는 비어있는 상태이거나 기본 UI 그리기
+        renderStockMarket(true); 
         timerEl.textContent = stockTimeLeft;
         assetEl.textContent = stockAsset.toLocaleString();
         ownedEl.textContent = 0;
-        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 제한시간은 90초입니다.";
+        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 초기자산은 200만 원, 제한시간은 90초입니다.";
     }
 
-    // 실시간 주가 변동 루프 가동
     function startRealtimeStockGame() {
         const userId = userIdInput.value.trim();
         const userPw = userPwInput.value.trim();
@@ -399,19 +400,19 @@
         userIdInput.disabled = true; userPwInput.disabled = true;
         stockGameActive = true;
         startStockBtn.style.display = "none";
-        stockMsg.textContent = "🚀 실시간 주식 레이스가 시작되었습니다! 호가창 동향을 주시하세요.";
+        stockMsg.textContent = "🚀 실시간 주식 레이스가 시작되었습니다! 단타 타이밍을 잡으세요!";
 
-        // 1. 1.5초마다 무작위 주가 폭등락 변동 루프
+        // 1.5초마다 무작위 주가 폭등락 변동 루프
         priceInterval = setInterval(() => {
             stocks.forEach(stock => {
                 stock.oldPrice = stock.price;
-                let changePercent = (Math.random() * 34 - 16) / 100; // -16% ~ +18% 변동폭 실시간 적용
+                let changePercent = (Math.random() * 34 - 16) / 100; 
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
             });
-            renderStockMarket();
+            renderStockMarket(false); // 수량창 값을 유지하기 위해 false 전달
         }, 1500);
 
-        // 2. 1초마다 시한 카운트다운 타이머 구동
+        // 1초마다 타이머 구동
         clockInterval = setInterval(() => {
             stockTimeLeft--;
             timerEl.textContent = stockTimeLeft;
@@ -420,34 +421,51 @@
                 endStockGame();
             }
         }, 1000);
+
+        renderStockMarket(true); // 처음 시작할 때 한 번 인풋 생성
     }
 
-    function renderStockMarket() {
-        marketBoard.innerHTML = "";
-        stocks.forEach((stock, index) => {
-            // 가격 전회 대비 변동 색상 묘사 전처리
-            let colorClass = "";
-            if (stock.price > stock.oldPrice) colorClass = "price-up";
-            else if (stock.price < stock.oldPrice) colorClass = "price-down";
+    // [핵심 버그 수정]: isInit 변수를 도입하여, 실시간 주가 리프레시 시 HTML을 통째로 갈아끼우지 않고 가격과 텍스트만 콕 집어서 업데이트합니다.
+    function renderStockMarket(isInit = false) {
+        if (isInit || marketBoard.children.length === 0) {
+            marketBoard.innerHTML = "";
+            stocks.forEach((stock, index) => {
+                const item = document.createElement('div');
+                item.className = 'stock-item';
+                item.id = `stock-row-${index}`;
+                item.innerHTML = `
+                    <div class="stock-info">
+                        <div class="name">${stock.name}</div>
+                        <div class="cap" id="stock-cap-${index}">${stock.cap} | 보유: ${stock.owned}주</div>
+                    </div>
+                    <div class="stock-price" id="stock-price-${index}">${stock.price.toLocaleString()} 원</div>
+                    <div class="stock-trade-zone">
+                        <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
+                        <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
+                        <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
+                    </div>
+                `;
+                marketBoard.appendChild(item);
+            });
+        } else {
+            // 게임 진행 중 실시간 루프가 돌 때는 입력창 요소를 건드리지 않고 '가격'과 '보유 수량 텍스트'만 바꿈으로써 수량 초기화 버그 전면 해결!
+            stocks.forEach((stock, index) => {
+                const priceEl = document.getElementById(`stock-price-${index}`);
+                const capEl = document.getElementById(`stock-cap-${index}`);
+                
+                if (priceEl && capEl) {
+                    priceEl.textContent = `${stock.price.toLocaleString()} 원`;
+                    capEl.textContent = `${stock.cap} | 보유: ${stock.owned}주`;
 
-            const item = document.createElement('div');
-            item.className = 'stock-item';
-            item.innerHTML = `
-                <div class="stock-info">
-                    <div class="name">${stock.name}</div>
-                    <div class="cap">${stock.cap} | 보유: ${stock.owned}주</div>
-                </div>
-                <div class="stock-price ${colorClass}">${stock.price.toLocaleString()} 원</div>
-                <div class="stock-trade-zone">
-                    <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
-                    <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
-                    <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
-                </div>
-            `;
-            marketBoard.appendChild(item);
-        });
+                    // 등락 색상 클래스 제어
+                    priceEl.className = "stock-price";
+                    if (stock.price > stock.oldPrice) priceEl.classList.add("price-up");
+                    else if (stock.price < stock.oldPrice) priceEl.classList.add("price-down");
+                }
+            });
+        }
 
-        // 보유 총 주식 및 자산 지표 동기화 리프레시
+        // 보유 자산 및 총 지표 새로고침
         assetEl.textContent = stockAsset.toLocaleString();
         let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
         ownedEl.textContent = totalOwned;
@@ -468,35 +486,33 @@
                 stockAsset -= totalCost;
                 stock.owned += qty;
                 stockMsg.textContent = `🎯 [${stock.name}] ${qty}주 실시간 매수 체결 완료.`;
-            } else { alert("증거금(보유 자산)이 부족합니다!"); }
+            } else { alert("예수금이 부족합니다! 자산 규모에 맞게 수량을 조절하세요."); }
         } else {
             if (stock.owned >= qty) {
                 stockAsset += totalCost;
                 stock.owned -= qty;
-                stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 청산(매도) 완료.`;
-            } else { alert("방출 가능한 보유 주식 수량이 결핍되었습니다."); }
+                stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 매도(익절/손절) 완료.`;
+            } else { alert("방출 가능한 보유 주식 수량이 부족합니다."); }
         }
-        renderStockMarket();
+        renderStockMarket(false); // 인풋박스를 유지하며 데이터 동기화
     }
-
-    function test() {}
 
     function endStockGame() {
         stockGameActive = false;
         clearInterval(priceInterval);
         clearInterval(clockInterval);
 
-        // 정규 장마감 후 보유 종목 현재가로 전량 전적 자동 매도 처리
+        // 장마감 후 보유 종목 전량 자동 전적 매도 청산
         stocks.forEach(stock => {
             stockAsset += stock.owned * stock.price;
             stock.owned = 0;
         });
 
         stockRestartBtn.style.display = "inline-block";
-        stockMsg.textContent = `🏁 MARKET CLOSED! 장마감 최종 평가액: ${stockAsset.toLocaleString()} 원`;
-        renderStockMarket();
+        stockMsg.textContent = `🏁 장마감! 최종 평가금액: ${stockAsset.toLocaleString()} 원`;
+        renderStockMarket(true); // 종료 시에는 전체 리셋 구조로 한 번 리렌더링
         
-        // 최종 마감 전적 백엔드 전송
+        // 최종 스코어 백엔드 업로드
         saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
     }
 
