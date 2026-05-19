@@ -53,7 +53,7 @@
         .main-wrapper {
             display: flex;
             gap: 30px;
-            max-width: 1000px;
+            max-width: 1050px;
             width: 100%;
             flex-wrap: wrap;
             background: rgba(10, 15, 30, 0.85);
@@ -67,21 +67,22 @@
             box-shadow: 0 0 30px rgba(0, 242, 254, 0.25), inset 0 0 20px rgba(255, 8, 68, 0.15);
         }
 
-        /* 컨테이너 공통: 아케이드 스크린 느낌 */
+        /* 컨테이너 공통 */
         .game-container, .ranking-container {
             background: rgba(20, 26, 46, 0.7);
             padding: 30px;
             border-radius: 15px;
             border: 1px solid rgba(0, 242, 254, 0.3);
-            flex: 1;
-            min-width: 320px;
+            flex: 1.2;
+            min-width: 340px;
             text-align: center;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             backdrop-filter: blur(4px);
         }
 
         .ranking-container {
-            max-height: 550px;
+            flex: 0.8;
+            max-height: 620px;
             overflow-y: auto;
         }
 
@@ -119,7 +120,7 @@
         input:focus { outline: none; border-color: #ff0844; box-shadow: 0 0 10px rgba(255, 8, 68, 0.5); }
         input::placeholder { color: #53658a; }
         
-        input[type="number"] { width: 100px; margin-right: 8px; }
+        input[type="number"] { width: 100px; }
         .auth-area input { width: 80%; max-width: 260px; }
         
         button {
@@ -141,7 +142,7 @@
         .ranking-item:nth-child(2) { font-weight: bold; color: #e0e0e0; } 
         .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } 
 
-        /* 📈 주식 게임 전용 UI UI */
+        /* 📈 주식 게임 전용 UI */
         .stock-screen { display: none; }
         .stock-market-board {
             background: rgba(10, 14, 28, 0.8);
@@ -155,13 +156,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .stock-info .name { font-weight: bold; color: #fff; }
-        .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; }
-        .stock-price { font-weight: bold; text-align: right; }
-        .stock-actions button { padding: 6px 12px; font-size: 0.9rem; margin-left: 5px; }
+        .stock-item:last-child { border-bottom: none; }
+        .stock-info .name { font-weight: bold; color: #fff; font-size: 1.05rem; }
+        .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; margin-top: 2px; }
+        .stock-price { font-weight: bold; text-align: right; min-width: 100px; color: #ffb199; }
+        
+        /* 수량 입력 및 거래 버튼 레이아웃 */
+        .stock-trade-zone {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stock-trade-zone input[type="number"] {
+            width: 70px;
+            padding: 6px;
+            font-size: 0.95rem;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .stock-trade-zone button { padding: 8px 14px; font-size: 0.9rem; }
         .btn-buy { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); color: white; box-shadow: 0 2px 8px rgba(255,8,68,0.3); }
         .btn-sell { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; box-shadow: 0 2px 8px rgba(48,207,208,0.3); }
     </style>
@@ -176,7 +191,7 @@
 
 <div class="main-wrapper">
     
-    <!-- 공통 계정 설정 영역 (상단 고정 배치) -->
+    <!-- 공통 계정 설정 영역 -->
     <div style="width:100%; display:flex; justify-content:center; margin-bottom:10px;">
         <div class="auth-area" style="margin-bottom: 0; flex-direction: row; gap: 15px;">
             <input type="text" id="user-id-input" placeholder="닉네임(아이디)" maxlength="12">
@@ -195,7 +210,7 @@
         </div>
         <div class="message" id="number-message">조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.</div>
         <div id="input-area">
-            <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
+            <input type="number" id="guess-input" min="1" max="100" placeholder="1-100" style="margin-right:8px;">
             <button id="guess-btn">확인</button>
         </div>
         <button class="restart-btn" id="restart-btn">다시 시작하기</button>
@@ -204,19 +219,19 @@
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
         <h1>📈 조상희 가치주 레이스</h1>
-        <p class="description">시총 1조 미만 가치주를 발굴해 자산을 증식하라! (총 5턴)</p>
+        <p class="description">가치주 테마를 발굴해 자산을 증식하라! (총 5턴)</p>
         
         <div class="stats">
             <div>현재 턴: <span id="stock-turn">1</span> / 5</div>
-            <div>보유 자산: <span id="stock-asset" class="red-text">10,000,000</span> 원</div>
+            <div>보유 자산: <span id="stock-asset" class="red-text">50,000,000</span> 원</div>
             <div>보유 주식: <span id="stock-owned">0</span> 주</div>
         </div>
 
         <div class="stock-market-board" id="market-board">
-            <!-- 주식 종목들이 자바스크립트로 동적 생성됨 -->
+            <!-- 5개 종목이 동적으로 이곳에 렌더링됩니다 -->
         </div>
 
-        <div class="message" id="stock-message">종목을 분석하고 매수/매도 하세요. 다음 턴에 가격이 변동합니다.</div>
+        <div class="message" id="stock-message">원하는 수량을 치고 매수/매도를 누르세요. 다음 턴에 가격이 변동합니다.</div>
         <button id="next-turn-btn" style="width: 100%; margin-bottom: 10px;">다음 턴 넘어가기 (시세 변동)</button>
         <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
     </div>
@@ -249,7 +264,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 글로벌 환경 변수
     let activeTab = 'number'; 
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
@@ -335,14 +349,17 @@
     }
 
     /* ----------------------------------------------------
-       [게임 2] 주식 가치주 투자 게임 로직
+       [게임 2] 주식 가치주 투자 게임 로직 (종목 5개 확장 및 수량 기능)
     ---------------------------------------------------- */
-    let stockTurn = 1, stockAsset = 10000000, stockOwned = 0;
-    // 가상의 시총 1조 미만 저평가 바이오 및 테마 기업 테마 리스트
+    let stockTurn = 1, stockAsset = 50000000, stockOwned = 0; // 투자금 5천만원으로 상향 조정
+    
+    // 조상희 스페셜 엄선 5대 바이오/테마 종목 라인업
     let stocks = [
-        { name: "리가켐바이오 테마", price: 50000, cap: "시총 4,200억", owned: 0 },
-        { name: "한스바이오메드 테마", price: 12000, cap: "시총 1,500억", owned: 0 },
-        { name: "휴젤 바이오테마", price: 180000, cap: "시총 8,900억", owned: 0 }
+        { name: "리가켐바이오 테마", price: 65000, cap: "시총 4,200억", owned: 0 },
+        { name: "한스바이오메드 테마", price: 14000, cap: "시총 1,500억", owned: 0 },
+        { name: "휴젤 헬스케어테마", price: 195000, cap: "시총 8,900억", owned: 0 },
+        { name: "KOSDAQ 150 바이오 ETF", price: 22000, cap: "지수 연동형 테마", owned: 0 },
+        { name: "상희 디바이스 자산가치", price: 45000, cap: "시총 3,100억", owned: 0 }
     ];
 
     const turnEl = document.getElementById('stock-turn');
@@ -354,10 +371,12 @@
     const stockRestartBtn = document.getElementById('stock-restart-btn');
 
     function initStockGame() {
-        stockTurn = 1; stockAsset = 10000000; stockOwned = 0;
-        stocks[0].price = 50000; stocks[0].owned = 0;
-        stocks[1].price = 12000; stocks[1].owned = 0;
-        stocks[2].price = 180000; stocks[2].owned = 0;
+        stockTurn = 1; stockAsset = 50000000; stockOwned = 0;
+        stocks[0].price = 65000; stocks[0].owned = 0;
+        stocks[1].price = 14000; stocks[1].owned = 0;
+        stocks[2].price = 195000; stocks[2].owned = 0;
+        stocks[3].price = 22000; stocks[3].owned = 0;
+        stocks[4].price = 45000; stocks[4].owned = 0;
         nextTurnBtn.disabled = false;
         stockRestartBtn.style.display = "none";
         userIdInput.disabled = false; userPwInput.disabled = false;
@@ -381,7 +400,8 @@
                     <div class="cap">${stock.cap} | 보유: ${stock.owned}주</div>
                 </div>
                 <div class="stock-price">${stock.price.toLocaleString()} 원</div>
-                <div class="stock-actions">
+                <div class="stock-trade-zone">
+                    <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
                     <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
                     <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
                 </div>
@@ -393,26 +413,36 @@
     window.tradeStock = function(index, type) {
         const userId = userIdInput.value.trim();
         const userPw = userPwInput.value.trim();
-        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 입력해야 거래가 가능합니다."); return; }
+        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 상단에 입력해야 거래가 가능합니다."); return; }
         
         userIdInput.disabled = true; userPwInput.disabled = true;
+        
         let stock = stocks[index];
+        const qtyInput = document.getElementById(`quantity-${index}`);
+        let qty = parseInt(qtyInput.value);
+
+        if (isNaN(qty) || qty <= 0) {
+            alert("정확한 거래 수량을 입력해 주세요!");
+            return;
+        }
+
+        let totalCost = stock.price * qty;
 
         if (type === 'buy') {
-            if (stockAsset >= stock.price) {
-                stockAsset -= stock.price;
-                stock.owned += 1;
-                stockMsg.textContent = `[${stock.name}] 1주 매수 완료!`;
+            if (stockAsset >= totalCost) {
+                stockAsset -= totalCost;
+                stock.owned += qty;
+                stockMsg.textContent = `📈 [${stock.name}] ${qty}주 매수 완료! (총 ${totalCost.toLocaleString()}원)`;
             } else {
-                alert("자산이 부족합니다!");
+                alert("자산이 부족하여 선택한 수량을 전부 매수할 수 없습니다!");
             }
         } else {
-            if (stock.owned > 0) {
-                stockAsset += stock.price;
-                stock.owned -= 1;
-                stockMsg.textContent = `[${stock.name}] 1주 매도 완료!`;
+            if (stock.owned >= qty) {
+                stockAsset += totalCost;
+                stock.owned -= qty;
+                stockMsg.textContent = `📉 [${stock.name}] ${qty}주 매도 완료! (총 ${totalCost.toLocaleString()}원 환전)`;
             } else {
-                alert("보유 주식이 없습니다!");
+                alert(`보유 주식이 부족합니다! (현재 보유: ${stock.owned}주)`);
             }
         }
         updateStockUI();
@@ -420,29 +450,27 @@
 
     nextTurnBtn.addEventListener("click", () => {
         if(stockTurn >= 5) {
-            // 게임 종료 처리 및 최종 전량 강제 매도 자산 환산
             stocks.forEach(stock => {
                 stockAsset += stock.owned * stock.price;
                 stock.owned = 0;
             });
             nextTurnBtn.disabled = true;
             stockRestartBtn.style.display = "inline-block";
-            stockMsg.textContent = `🏁 최종 게임 종료! 최종 환산 자산: ${stockAsset.toLocaleString()} 원`;
+            stockMsg.textContent = `🏁 최종 게임 종료! 최종 자산: ${stockAsset.toLocaleString()} 원`;
             updateStockUI();
             
-            // 주식 랭킹전 DB 저장 호출
             saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
             return;
         }
 
-        // 시세 변동 알고리즘 (상승/하락 변동폭 폭등락 부여)
+        // 시세 변동 알고리즘
         stocks.forEach(stock => {
-            let changePercent = (Math.random() * 60 - 28) / 100; // -28% ~ +32% 변동
+            let changePercent = (Math.random() * 66 - 30) / 100; // 변동폭 미세 조정 (-30% ~ +36% 폭등락)
             stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
         });
 
         stockTurn++;
-        stockMsg.textContent = `턴이 변경되었습니다! 가격 변동 완료.`;
+        stockMsg.textContent = `시세 판도가 변경되었습니다! 변동 수치를 확인하고 대응하세요.`;
         updateStockUI();
     });
 
@@ -457,11 +485,11 @@
             if (!querySnapshot.empty) {
                 let existingData = querySnapshot.docs[0].data();
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 보안 경고: 기존 계정 비밀번호와 일치하지 않아 랭킹 등록이 보류되었습니다!");
+                    alert("⚠️ 보안 시스템: 기존 계정 비밀번호와 불일치하여 명예의 전당 등록이 거부되었습니다.");
                     return;
                 }
                 if (parseInt(score) <= existingData.score) {
-                    console.log("이전 최고 기록이 더 높아 업데이트 보류.");
+                    console.log("이전 최고 기록이 더 높음.");
                     return;
                 }
             }
@@ -471,7 +499,7 @@
             });
             
             let unit = colName === 'rankings' ? '연승' : '원 자산';
-            alert(`🎉 조상희 서버 통보: '${userId}'님의 새로운 마스터 기록(${score.toLocaleString()} ${unit})이 갱신되었습니다.`);
+            alert(`🎉 명예의 전당 등극: '${userId}'님의 대기록이 주식 서버에 박제되었습니다.`);
             loadRanking(colName, colName === 'rankings' ? '연승' : '원'); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
@@ -489,7 +517,7 @@
             descEl.textContent = "가장 높은 연속 정답 기록 리스트";
         } else {
             titleEl.textContent = "🏆 조상희 가치주 명예의 전당 (TOP 20)";
-            descEl.textContent = "가장 많은 자산을 달성한 자산가 리스트";
+            descEl.textContent = "가장 많은 자산을 달성한 가치투자자 리스트";
         }
 
         try {
@@ -516,7 +544,7 @@
         }
     }
 
-    // 초기 이벤트 설정 및 셋업
+    // 초기 이벤트 설정
     guessBtn.addEventListener("click", checkGuess);
     restartBtn.addEventListener("click", initNumberGame);
     stockRestartBtn.addEventListener("click", initStockGame);
