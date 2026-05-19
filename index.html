@@ -222,10 +222,9 @@
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
         <h1>📈 조상희 가치주 레이스 (REALTIME)</h1>
-        <p class="description">1.5초마다 변하는 실시간 시세! 최적의 타이밍에 매매하라!</p>
+        <p class="description">5초마다 변하는 실시간 시세! 최적의 타이밍에 매매하라!</p>
         
         <div class="stats">
-            <!-- [업데이트] 제한시간 기본 노출 30초로 변경 -->
             <div>남은 시간: <span id="stock-timer" class="red-text">30</span> 초</div>
             <div>보유 자산: <span id="stock-asset" class="red-text">2,000,000</span> 원</div>
             <div>보유 주식: <span id="stock-owned">0</span> 주</div>
@@ -355,7 +354,7 @@
     /* ----------------------------------------------------
        [게임 2] 실시간 주식 투자 게임 로직
     ---------------------------------------------------- */
-    let stockTimeLeft = 30, stockAsset = 2000000, stockGameActive = false; // [업데이트] 제한시간 변수 30초로 설정
+    let stockTimeLeft = 30, stockAsset = 2000000, stockGameActive = false; 
     let priceInterval, clockInterval;
     
     let stocks = [
@@ -377,7 +376,7 @@
     function initStockGame() {
         clearInterval(priceInterval);
         clearInterval(clockInterval);
-        stockTimeLeft = 30; // [업데이트] 리셋 시 제한시간 30초 설정
+        stockTimeLeft = 30; 
         stockAsset = 2000000; stockGameActive = false;
         stocks.forEach(s => { s.owned = 0; s.price = s.oldPrice; });
         startStockBtn.disabled = false;
@@ -402,6 +401,7 @@
         startStockBtn.style.display = "none";
         stockMsg.textContent = "🚀 실시간 주식 레이스가 시작되었습니다! 단타 타이밍을 잡으세요!";
 
+        // [업데이트] 주가 변동 주기를 1500ms(1.5초)에서 5000ms(5초)로 변경
         priceInterval = setInterval(() => {
             stocks.forEach(stock => {
                 stock.oldPrice = stock.price;
@@ -409,7 +409,7 @@
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
             });
             renderStockMarket(false); 
-        }, 1500);
+        }, 5000);
 
         clockInterval = setInterval(() => {
             stockTimeLeft--;
