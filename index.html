@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조상희 숫자게임랭킹전</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .main-wrapper {
+            display: flex;
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        .game-container, .ranking-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+        h1, h2 { color: #333; margin-bottom: 10px; }
+        .description { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .stats span { color: #007bff; }
+        .message { font-size: 1.2rem; font-weight: bold; margin: 20px 0; min-height: 30px; color: #28a745; }
+        input[type="number"], input[type="text"] {
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        input[type="number"] { width: 80px; margin-right: 10px; }
+        input[type="text"] { width: 150px; margin-bottom: 10px; }
+        button {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #0056b3; }
+        .restart-btn { background-color: #6c757d; margin-top: 15px; display: none; }
+        
+        /* 랭킹 스타일 */
+        .ranking-list { text-align: left; margin-top: 20px; padding-left: 0; list-style: none; }
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+        }
+        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } /* 1등 금색 */
+        .ranking-item:nth-child(2) { font-weight: bold; color: #c0c0c0; } /* 2등 은색 */
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <!-- 왼쪽: 게임 화면 -->
+    <div class="game-container">
+        <h1>🔢 조상희숫자 랭킹전</h1>
+        <p class="description">서버에 실시간으로 기록되는 백엔드 연동 게임!</p>
+        
+        <input type="text" id="nickname-input" placeholder="닉네임 입력 (필수)" maxlength="10"><br>
+
+        <div class="stats">
+            <div>남은 기회: <span id="chances">5</span>회</div>
+            <div>현재 연승: <span id="current-streak">0</span>승</div>
+        </div>
+
+        <div class="message" id="message">닉네임을 입력하고 숫자를 맞춰!</div>
+
+        <div id="input-area">
+            <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
+            <button id="guess-btn" onclick="checkGuess()">확인</button>
+        </div>
+
+        <button class="restart-btn" id="restart-btn" onclick="initGame()">다시 시작하기</button>
+    </div>
+
+    <!-- 오른쪽: 실시간 백엔드 랭킹 보드 -->
+    <div class="ranking-container">
+        <h2>🏆 실시간 랭킹 명예의 전당</h2>
+        <p class="description">전체 플레이어의 최고 연승 기록</p>
+        <ul class="ranking-list" id="ranking-list">
+            <li class="ranking-item">불러오는 중...</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Firebase 라이브러리 로드 -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 🔒 질문해주신 본인의 Firebase 설정값들이 여기에 안전하게 합쳐졌습니다!
+    const firebaseConfig = {
+        apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
+        authDomain: "chosanghee00001.firebaseapp.com",
+        projectId: "chosanghee00001",
+        storageBucket: "chosanghee00001.firebasestorage.app",
+        messagingSenderId: "705786109560",
+        appId: "1:705786109560:web:01b69c754e13df96e8978d",
+        measurementId: "G-E566V33J74"
+    };
+
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 게임 변수
+    let targetNumber;
+    let remainingChances;
+    let currentStreak = 0;
+
+    const messageEl = document.getElementById('message');
+    const chancesEl = document.getElementById('chances');
+    const currentStreakEl = document.getElementById('current-streak');
+    const guessInput = document.getElementById('guess-input');
+    const nicknameInput = document.getElementById('nickname-input');
+    const guessBtn = document.getElementById('guess-btn');
+    const restartBtn = document.getElementById('restart-btn');
+
+    function initGame() {
+        targetNumber = Math.floor(Math.random() * 100) + 1;
+        remainingChances = 6;
+        chancesEl.textContent = remainingChances;
+        currentStreakEl.textContent = currentStreak;
+        messageEl.textContent = "숫자를 입력하고 확인을 눌러주세요.";
+        messageEl.style.color = "#28a745";
+        guessInput.value = "";
+        guessInput.disabled = false;
+        guessBtn.disabled = false;
+        restartBtn.style.display = "none";
+        loadRanking(); 
+    }
+
+    // 백엔드로 점수 전송
+    async function saveScoreToBackend(nickname, score) {
+        if (!nickname) return;
+        try {
+            await addDoc(collection(db, "rankings"), {
+                nickname: nickname,
+                score: parseInt(score),
+                timestamp: new Date()
+            });
+            console.log("백엔드 서버에 점수 저장 완료!");
+            loadRanking(); 
+        } catch (e) {
+            console.error("점수 저장 실패: ", e);
+        }
+    }
+
+    // 백엔드에서 랭킹 데이터 긁어오기
+    async function loadRanking() {
+        const rankingListEl = document.getElementById('ranking-list');
+        rankingListEl.innerHTML = "";
+
+        try {
+            const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(5));
+            const querySnapshot = await getDocs(q);
+            
+            if(querySnapshot.empty) {
+                rankingListEl.innerHTML = "<li class='ranking-item'>아직 등록된 랭킹이 없습니다. 첫 주인공이 되어보세요!</li>";
+                return;
+            }
+
+            let rank = 1;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.className = 'ranking-item';
+                li.innerHTML = `<span>${rank}위. ${data.nickname}</span> <span>${data.score}연승</span>`;
+                rankingListEl.appendChild(li);
+                rank++;
+            });
+        } catch (e) {
+            console.error("랭킹 로드 실패: ", e);
+            rankingListEl.innerHTML = "<li class='ranking-item'>랭킹 로드 실패 (Firestore 규칙 설정을 확인하세요)</li>";
+        }
+    }
+
+    // 정답 체크
+    window.checkGuess = function() {
+        const nickname = nicknameInput.value.trim();
+        const userGuess = parseInt(guessInput.value);
+
+        if (!nickname) {
+            alert("게임을 시작하기 전에 닉네임을 먼저 입력해 주세요!");
+            nicknameInput.focus();
+            return;
+        }
+
+        if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+            messageEl.textContent = "1부터 100 사이의 숫자를 입력해주세요!";
+            messageEl.style.color = "#dc3545";
+            return;
+        }
+
+        nicknameInput.disabled = true; 
+        remainingChances--;
+        chancesEl.textContent = remainingChances;
+
+        if (userGuess === targetNumber) {
+            currentStreak++;
+            messageEl.textContent = `🎉 정답입니다! (${targetNumber})`;
+            messageEl.style.color = "#28a745";
+            endGame(true);
+        } else if (remainingChances === 0) {
+            messageEl.textContent = `💥 실패! 정답은 [ ${targetNumber} ] 이었습니다.`;
+            messageEl.style.color = "#dc3545";
+            endGame(false);
+        } else {
+            if (userGuess < targetNumber) {
+                messageEl.textContent = "🔼 UP! 더 큰 숫자입니다.";
+                messageEl.style.color = "#007bff";
+            } else {
+                messageEl.textContent = "🔽 DOWN! 더 작은 숫자입니다.";
+                messageEl.style.color = "#fd7e14";
+            }
+        }
+        guessInput.value = "";
+        guessInput.focus();
+    }
+
+    function endGame(isWin) {
+        guessInput.disabled = true;
+        guessBtn.disabled = true;
+        restartBtn.style.display = "inline-block";
+        currentStreakEl.textContent = currentStreak;
+
+        if (!isWin) {
+            if (currentStreak > 0) {
+                saveScoreToBackend(nicknameInput.value.trim(), currentStreak);
+            }
+            currentStreak = 0; 
+            nicknameInput.disabled = false; 
+        } else {
+            setTimeout(() => {
+                alert(`연승 행진 중! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`);
+                initGame();
+            }, 1000);
+        }
+    }
+
+    guessInput.addEventListener("keyup", function(event) {
+        if (event.key === "Enter") window.checkGuess();
+    });
+
+    initGame();
+</script>
+
+</body>
+</html>
