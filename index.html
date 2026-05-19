@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>조상희 숫자게임랭킹전</title>
     <style>
+        /* 글로벌 사이버 펑크 / 아케이드 테마 스타일 */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -15,98 +17,187 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            overflow-x: hidden;
         }
+
+        /* 메인 프레임: 네온 그라데이션 테두리 효과 */
         .main-wrapper {
             display: flex;
-            gap: 20px;
-            max-width: 900px;
+            gap: 30px;
+            max-width: 1000px;
             width: 100%;
             flex-wrap: wrap;
+            background: rgba(10, 15, 30, 0.85);
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid transparent;
+            background-image: linear-gradient(rgba(10, 15, 30, 0.9), rgba(10, 15, 30, 0.9)), 
+                              linear-gradient(135deg, #00f2fe 0%, #4facfe 40%, #ff0844 70%, #ffb199 100%);
+            background-origin: border-box;
+            background-clip: content-box, border-box;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.25), inset 0 0 20px rgba(255, 8, 68, 0.15);
         }
+
+        /* 컨테이너 공통: 아케이드 스크린 느낌 */
         .game-container, .ranking-container {
-            background-color: white;
+            background: rgba(20, 26, 46, 0.7);
             padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 242, 254, 0.3);
             flex: 1;
             min-width: 320px;
             text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(4px);
         }
+
         .ranking-container {
-            max-height: 80vh;
-            overflow-y: auto; /* 20위까지 스크롤바 제공 */
+            max-height: 520px;
+            overflow-y: auto;
         }
-        h1, h2 { color: #333; margin-bottom: 10px; }
-        .description { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* 스크롤바 커스텀 */
+        .ranking-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ranking-container::-webkit-scrollbar-thumb {
+            background: #00f2fe;
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #00f2fe;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
         
-        /* 로그인/계정 입력 영역 스타일 */
+        h2 {
+            font-size: 1.6rem;
+            color: #ff0844;
+            text-shadow: 0 0 10px rgba(255, 8, 68, 0.6);
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .description { 
+            color: #8fa0dd; 
+            font-size: 0.9rem; 
+            margin-bottom: 25px; 
+        }
+        
+        /* 입력 영역 디자인 */
         .auth-area {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
+        /* 게임 스탯 보드 */
         .stats {
             display: flex;
             justify-content: space-around;
-            background-color: #f8f9fa;
-            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            font-size: 0.95rem;
+            border-left: 4px solid #00f2fe;
         }
-        .stats span { color: #007bff; }
-        .message { font-size: 1.2rem; font-weight: bold; margin: 20px 0; min-height: 30px; color: #28a745; }
+        .stats span { color: #00f2fe; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
+        #current-streak { color: #ff0844; text-shadow: 0 0 5px rgba(255, 8, 68, 0.4); }
+
+        /* 상태 알림 메시지 */
+        .message { 
+            font-size: 1.15rem; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            min-height: 35px; 
+            color: #00f2fe;
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.3);
+        }
         
+        /* 인풋 폼 스타일링 */
         input[type="number"], input[type="text"], input[type="password"] {
-            padding: 10px;
+            padding: 12px;
             font-size: 1.1rem;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            background: rgba(10, 14, 28, 0.9);
+            border: 2px solid rgba(0, 242, 254, 0.4);
+            border-radius: 6px;
+            color: #fff;
             text-align: center;
             box-sizing: border-box;
+            transition: all 0.3s ease;
         }
-        input[type="number"] { width: 90px; margin-right: 10px; }
-        .auth-area input { width: 220px; }
+        input:focus {
+            outline: none;
+            border-color: #ff0844;
+            box-shadow: 0 0 10px rgba(255, 8, 68, 0.5);
+        }
+        input::placeholder {
+            color: #53658a;
+        }
         
+        input[type="number"] { width: 100px; margin-right: 8px; }
+        .auth-area input { width: 80%; max-width: 260px; }
+        
+        /* 미래지향적 버튼 스타일 */
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 1.1rem;
-            background-color: #007bff;
-            color: white;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #090a0f;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+            transition: all 0.2s ease;
         }
-        button:hover { background-color: #0056b3; }
-        .restart-btn { background-color: #6c757d; margin-top: 15px; display: none; }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .restart-btn { 
+            background: linear-gradient(135deg, #f5515f 0%, #9f031b 100%); 
+            color: white;
+            margin-top: 15px; 
+            display: none; 
+            box-shadow: 0 4px 15px rgba(245, 81, 95, 0.4);
+        }
+        .restart-btn:hover {
+            box-shadow: 0 6px 20px rgba(245, 81, 95, 0.6);
+        }
         
-        /* 랭킹 스타일 */
-        .ranking-list { text-align: left; margin-top: 20px; padding-left: 0; list-style: none; }
+        /* 명예의 전당 리스트 스타일 */
+        .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
         .ranking-item {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            font-size: 1rem;
+            padding: 12px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 1.05rem;
         }
-        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } /* 1등 금색 */
-        .ranking-item:nth-child(2) { font-weight: bold; color: #c0c0c0; } /* 2등 은색 */
-        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 */
+        /* 상위 3등 하이라이트 효과 */
+        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); } 
+        .ranking-item:nth-child(2) { font-weight: bold; color: #e0e0e0; text-shadow: 0 0 8px rgba(224, 224, 224, 0.5); } 
+        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; text-shadow: 0 0 8px rgba(205, 127, 50, 0.5); } 
     </style>
 </head>
 <body>
 
 <div class="main-wrapper">
-    <!-- 왼쪽: 게임 화면 -->
+    <!-- 왼쪽: 아케이드 게이밍 스크린 -->
     <div class="game-container">
         <h1>🔢 조상희숫자 랭킹전</h1>
-        <p class="description">서버에 실시간으로 기록되는 백엔드 연동 게임!</p>
+        <p class="description">조상희의 아케이드 에디션 : 백엔드 실시간 연동</p>
         
-        <!-- 아이디(닉네임 겸용)와 비밀번호만 입력 받음 -->
         <div class="auth-area">
             <input type="text" id="user-id-input" placeholder="닉네임(아이디) 입력" maxlength="12">
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리 숫자" maxlength="4">
@@ -117,7 +208,7 @@
             <div>현재 연승: <span id="current-streak">0</span>승</div>
         </div>
 
-        <div class="message" id="message">닉네임과 비밀번호를 입력하고 숫자를 맞춰!</div>
+        <div class="message" id="message">조상희의 숫자 매치에 도전하라! 계정 세팅 후 시작!</div>
 
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
@@ -127,22 +218,22 @@
         <button class="restart-btn" id="restart-btn">다시 시작하기</button>
     </div>
 
-    <!-- 오른쪽: 실시간 백엔드 랭킹 보드 -->
+    <!-- 오른쪽: 네온 랭킹 보드 (TOP 20) -->
     <div class="ranking-container">
-        <h2>🏆 실시간 랭킹 명예의 전당</h2>
-        <p class="description">전체 플레이어의 최고 연승 기록 (TOP 20)</p>
+        <h2>🏆 조상희 명예의 전당 (TOP 20)</h2>
+        <p class="description">실시간 조상희 게임 마스터 랭킹 리스트</p>
         <ul class="ranking-list" id="ranking-list">
-            <li class="ranking-item">불러오는 중...</li>
+            <li class="ranking-item">데이터 로딩 중...</li>
         </ul>
     </div>
 </div>
 
-<!-- Firebase 라이브러리 로드 -->
+<!-- Firebase 라이브러리 모드 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase 설정
+    // Firebase 설정 정보
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
         authDomain: "chosanghee00001.firebaseapp.com",
@@ -153,11 +244,9 @@
         measurementId: "G-E566V33J74"
     };
 
-    // Firebase 초기화
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 게임 변수
     let targetNumber;
     let remainingChances;
     let currentStreak = 0;
@@ -171,14 +260,13 @@
     const guessBtn = document.getElementById('guess-btn');
     const restartBtn = document.getElementById('restart-btn');
 
-    // 게임 초기화 함수
     function initGame() {
         targetNumber = Math.floor(Math.random() * 100) + 1;
         remainingChances = 5; 
         chancesEl.textContent = remainingChances;
         currentStreakEl.textContent = currentStreak;
-        messageEl.textContent = "숫자를 입력하고 확인을 눌러주세요.";
-        messageEl.style.color = "#28a745";
+        messageEl.textContent = "조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.";
+        messageEl.style.color = "#00f2fe";
         guessInput.value = "";
         guessInput.disabled = false;
         guessBtn.disabled = false;
@@ -186,12 +274,10 @@
         loadRanking(); 
     }
 
-    // 백엔드로 점수 전송 (아이디=닉네임 기준으로 검증)
     async function saveScoreToBackend(userId, userPw, score) {
         if (!userId || !userPw) return;
         
         try {
-            // 1. 해당 닉네임(아이디)으로 등록된 기존 기록이 있는지 확인
             const q = query(collection(db, "rankings"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
             
@@ -199,36 +285,31 @@
                 let existingDoc = querySnapshot.docs[0];
                 let existingData = existingDoc.data();
                 
-                // 비밀번호가 틀리면 튕겨내기
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 기존에 등록된 닉네임이지만 비밀번호가 일치하지 않아 기록이 갱신되지 않았습니다!");
+                    alert("⚠️ 조상희 보안관제: 기존 닉네임과 비밀번호가 일치하지 않아 기록이 차단되었습니다!");
                     return;
                 }
                 
-                // 최고 점수보다 낮거나 같으면 저장 안 함
                 if (parseInt(score) <= existingData.score) {
-                    console.log("기존 최고 기록이 더 높거나 같아서 유지합니다.");
+                    console.log("기존 최고 기록이 더 높거나 같음.");
                     return;
                 }
             }
 
-            // 2. 새 점수 기록 추가
             await addDoc(collection(db, "rankings"), {
-                userId: userId, // 닉네임이자 아이디 역할
+                userId: userId,
                 userPw: userPw, 
                 score: parseInt(score),
                 timestamp: new Date()
             });
             
-            console.log("백엔드 서버에 점수 저장 완료!");
-            alert(`🎉 축하합니다! '${userId}'님의 기록이 ${score}연승으로 새롭게 등록되었습니다.`);
+            alert(`🎉 조상희 랭킹전 통보: '${userId}'님의 새로운 랭커 기록(${score}연승)이 박제되었습니다.`);
             loadRanking(); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
     }
 
-    // 백엔드에서 랭킹 데이터 불러오기 (TOP 20)
     async function loadRanking() {
         const rankingListEl = document.getElementById('ranking-list');
         rankingListEl.innerHTML = "";
@@ -238,7 +319,7 @@
             const querySnapshot = await getDocs(q);
             
             if(querySnapshot.empty) {
-                rankingListEl.innerHTML = "<li class='ranking-item'>아직 등록된 랭킹이 없습니다. 첫 주인공이 되어보세요!</li>";
+                rankingListEl.innerHTML = "<li class='ranking-item'>조상희 서버: 등록된 랭커가 없습니다. 첫 챔피언이 되십시오!</li>";
                 return;
             }
 
@@ -247,37 +328,34 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'ranking-item';
-                // 아이디(닉네임) 하나만 깔끔하게 출력
-                li.innerHTML = `<span>${rank}위. ${data.userId}</span> <span>${data.score}연승</span>`;
+                li.innerHTML = `<span>${rank}위. ${data.userId}</span> <span>${data.score} 연승</span>`;
                 rankingListEl.appendChild(li);
                 rank++;
             });
         } catch (e) {
             console.error("랭킹 로드 실패: ", e);
-            rankingListEl.innerHTML = "<li class='ranking-item'>랭킹 로드 실패 (Firestore 규칙 설정을 확인하세요)</li>";
+            rankingListEl.innerHTML = "<li class='ranking-item'>조상희 서버 연결 실패 (보안 규칙을 확인하세요)</li>";
         }
     }
 
-    // 정답 체크 함수
     function checkGuess() {
         const userId = userIdInput.value.trim();
         const userPw = userPwInput.value.trim();
         const userGuess = parseInt(guessInput.value);
 
         if (!userId || !userPw) {
-            alert("게임을 시작하기 전에 닉네임과 비밀번호를 모두 입력해 주세요!");
+            alert("조상희 랭킹전에 참여하려면 닉네임과 비밀번호를 모두 채워야 합니다.");
             if(!userId) userIdInput.focus();
             else userPwInput.focus();
             return;
         }
 
         if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
-            messageEl.textContent = "1부터 100 사이의 숫자를 입력해주세요!";
-            messageEl.style.color = "#dc3545";
+            messageEl.textContent = "조상희 시스템 경고: 범위 초과! (1~100 사이)";
+            messageEl.style.color = "#ff0844";
             return;
         }
 
-        // 게임 진행 중에는 입력창 수정 불가하게 잠금
         userIdInput.disabled = true;
         userPwInput.disabled = true;
         
@@ -286,27 +364,26 @@
 
         if (userGuess === targetNumber) {
             currentStreak++;
-            messageEl.textContent = `🎉 정답입니다! (${targetNumber})`;
-            messageEl.style.color = "#28a745";
+            messageEl.textContent = `🎉 CORRECT! 조상희의 정답은 [ ${targetNumber} ]`;
+            messageEl.style.color = "#00f2fe";
             endGame(true);
         } else if (remainingChances === 0) {
-            messageEl.textContent = `💥 실패! 정답은 [ ${targetNumber} ] 이었습니다.`;
-            messageEl.style.color = "#dc3545";
+            messageEl.textContent = `💥 GAME OVER! 조상희가 숨긴 수는 [ ${targetNumber} ] 이었습니다.`;
+            messageEl.style.color = "#ff0844";
             endGame(false);
         } else {
             if (userGuess < targetNumber) {
-                messageEl.textContent = "🔼 UP! 더 큰 숫자입니다.";
-                messageEl.style.color = "#007bff";
+                messageEl.textContent = "🔼 UP! 조상희 레이더: 더 높은 수입니다.";
+                messageEl.style.color = "#00f2fe";
             } else {
-                messageEl.textContent = "🔽 DOWN! 더 작은 숫자입니다.";
-                messageEl.style.color = "#fd7e14";
+                messageEl.textContent = "🔽 DOWN! 조상희 레이더: 더 낮은 수입니다.";
+                messageEl.style.color = "#ffb199";
             }
         }
         guessInput.value = "";
         guessInput.focus();
     }
 
-    // 게임 종료 처리
     function endGame(isWin) {
         guessInput.disabled = true;
         guessBtn.disabled = true;
@@ -315,32 +392,25 @@
 
         if (!isWin) {
             if (currentStreak > 0) {
-                saveScoreToBackend(
-                    userIdInput.value.trim(), 
-                    userPwInput.value.trim(), 
-                    currentStreak
-                );
+                saveScoreToBackend(userIdInput.value.trim(), userPwInput.value.trim(), currentStreak);
             }
             currentStreak = 0; 
-            // 게임오버 시 다시 입력할 수 있도록 입력창 잠금 해제
             userIdInput.disabled = false;
             userPwInput.disabled = false;
         } else {
             setTimeout(() => {
-                alert(`연승 행진 중! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`);
+                alert(`조상희 연승 컴플리트! 이어서 ${currentStreak + 1}번째 판을 이어갑니다.`);
                 initGame();
             }, 1000);
         }
     }
 
-    // 이벤트 리스너 등록
     guessBtn.addEventListener("click", checkGuess);
     restartBtn.addEventListener("click", initGame);
     guessInput.addEventListener("keyup", function(event) {
         if (event.key === "Enter") checkGuess();
     });
 
-    // 최초 게임 실행
     initGame();
 </script>
 
