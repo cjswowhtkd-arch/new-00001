@@ -183,7 +183,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         
-        /* 종목 행: 클릭할 수 있도록 마우스 포인터 및 선택 효과 지정 */
         .stock-item {
             display: flex;
             justify-content: space-between;
@@ -200,7 +199,8 @@
 
         .stock-info { flex: 1; min-width: 130px; }
         .stock-info .name { font-weight: 500; color: #2d3748; font-size: 0.95rem; }
-        .stock-info .cap { font-size: 0.75rem; color: #718096; margin-top: 3px; font-weight: 300; }
+        
+        .stock-info .cap { font-size: 0.75rem; color: #718096; margin-top: 3px; font-weight: 300; transition: color 0.3s; }
         .stock-info .cap.has-balance { color: #dd6b20; font-weight: 500; }
 
         /* 미니 차트 캔버스 영역 */
@@ -218,7 +218,7 @@
         .price-up { color: #e53e3e !important; } 
         .price-down { color: #3182ce !important; } 
 
-        /* ================= [MTS식 하단 통합 주문 패드] ================= */
+        /* MTS식 하단 통합 주문 패드 */
         .order-panel {
             background: #ffffff;
             border: 1px solid #63b3ed;
@@ -288,6 +288,7 @@
             <div>남은 기회: <span id="chances">6</span>회</div>
             <div>현재 연승: <span id="current-streak" class="red-text">0</span>승</div>
         </div>
+        <div class="description" style="color: #e53e3e; font-weight: 500; margin-bottom: 10px;" id="num-login-notice">⚠️ 숫자 맞추기 전적을 저장하려면 먼저 상단에서 [계정 접속]을 해주세요!</div>
         <div class="message" id="number-message">조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.</div>
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100" style="margin-right:8px;">
@@ -299,23 +300,23 @@
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
         <h1>📈 조상희 우량주 레이스 (REALTIME)</h1>
-        <p class="description">5초마다 시세 변동! 종목을 터치(선택)하여 하단 패드에서 매매하세요.</p>
+        <p class="description">5초마다 주가 자동 변동! 종목을 선택하여 거래하세요.</p>
         
         <div class="stats">
-            <div>시장 상태: <span id="stock-status-text" style="font-weight:700;">로그인 필요</span></div>
+            <div>시장 상태: <span id="stock-status-text" style="font-weight:700; color: #3182ce;">실시간 개장 중</span></div>
             <div>보유 예수금: <span id="stock-cash">2,000,000</span> 원</div>
             <div>총 평가자산: <span id="stock-asset" style="font-weight:700;">2,000,000</span> 원</div>
             <div>평가 손익: <span id="stock-profit" style="font-weight:700;">0 원 (0.00%)</span></div>
         </div>
 
-        <!-- 5대 우량주 종목판 (클릭형으로 진화) -->
+        <!-- 5대 우량주 종목판 -->
         <div class="stock-market-board" id="market-board">
             <!-- 종목 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">원하는 종목을 클릭하면 하단에 매매 패드가 열립니다.</div>
+        <div class="message" id="stock-message">상단에서 계정 접속을 하시면 200만 원 시드로 매매 거래 및 자동 저장이 활성화됩니다!</div>
 
-        <!-- [업데이트] 하단으로 분리 통합된 단일 호가 매매 패드 -->
+        <!-- 하단 통합 주문 패드 -->
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
             <div class="order-title">📌 선택된 종목: <span id="selected-stock-name" class="target">-</span></div>
             <div class="order-inputs">
@@ -333,7 +334,7 @@
     <div class="ranking-container">
         <div class="live-users-panel">
             <strong>🟢 실시간 접속자 목록</strong>
-            <div id="live-users-list-zone" style="margin-top:5px; font-weight:300;">접속 대기 중...</div>
+            <div id="live-users-list-zone" style="margin-top:5px; font-weight:300;">로그인 시 동접자 활성화</div>
         </div>
 
         <h2 id="ranking-title">🏆 조상희 명예의 전당 (TOP 20)</h2>
@@ -366,7 +367,7 @@
     let currentDocId = null; 
     let isUserLoggedIn = false;
     let myLoggedId = ""; 
-    let selectedStockIndex = null; // [업데이트] 현재 사용자가 터치해서 선택한 종목 번호
+    let selectedStockIndex = null; 
 
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
@@ -460,11 +461,11 @@
             currentUserDisplay.textContent = userId;
             loggedInStatusArea.style.display = "flex";
             
-            document.getElementById('stock-status-text').textContent = "실시간 거래 중";
+            document.getElementById('num-login-notice').style.display = "none";
+            document.getElementById('stock-status-text').textContent = "실시간 거래 중 (연동됨)";
             document.getElementById('stock-status-text').style.color = "#e53e3e";
-            document.getElementById('stock-message').textContent = "주가가 5초마다 자동 갱신됩니다. 종목을 터치하여 거래를 개시하세요.";
+            document.getElementById('stock-message').textContent = "계정이 동기화되었습니다. 원하는 종목을 클릭해 매매하세요!";
             
-            startRealtimePrices(); 
             renderStockMarket(false);
             fetchLiveActiveUsers(); 
 
@@ -487,26 +488,31 @@
         isUserLoggedIn = false;
         myLoggedId = "";
         currentDocId = null;
-        selectedStockIndex = null; // 선택 종목 초기화
-        clearInterval(priceInterval);
+        selectedStockIndex = null; 
 
         userIdInput.value = "";
         userPwInput.value = "";
         loggedInStatusArea.style.display = "none";
         loginFormArea.style.display = "flex";
 
-        document.getElementById('stock-status-text').textContent = "로그인 필요";
-        document.getElementById('stock-status-text').style.color = "#4a5568";
-        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 다시 거래하려면 상단 계정 접속을 이용하세요.";
-        document.getElementById('order-panel').style.visibility = "hidden"; // 패드 숨김
+        document.getElementById('num-login-notice').style.display = "block";
+        document.getElementById('stock-status-text').textContent = "실시간 개장 중";
+        document.getElementById('stock-status-text').style.color = "#3182ce";
+        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 거래 및 전적 저장을 원하시면 상단 계정 접속을 진행하세요.";
+        document.getElementById('order-panel').style.visibility = "hidden"; 
         
-        initStockGame();
-        document.getElementById('live-users-list-zone').textContent = "로그인 후 확인 가능";
+        // 보유 현금 및 종목 잔고 초기화 (시세 루프는 계속 돌아감)
+        stockCash = 2000000;
+        stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
+        document.querySelectorAll('.stock-item').forEach(el => el.classList.remove('selected'));
+        
+        renderStockMarket(false);
+        document.getElementById('live-users-list-zone').textContent = "로그인 시 동접자 활성화";
     }
 
     async function fetchLiveActiveUsers() {
         const zone = document.getElementById('live-users-list-zone');
-        if(!isUserLoggedIn) { zone.textContent = "로그인 후 확인 가능"; return; }
+        if(!isUserLoggedIn) { zone.textContent = "로그인 시 동접자 활성화"; return; }
 
         try {
             const snap = await getDocs(collection(db, "stock_rankings"));
@@ -577,7 +583,6 @@
     }
 
     function checkGuess() {
-        if (!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
         const userGuess = parseInt(guessInput.value);
         if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) { numMsg.textContent = "범위 초과! (1~100 사이)"; return; }
 
@@ -601,7 +606,11 @@
         restartBtn.style.display = "inline-block";
         streakEl.textContent = currentStreak;
         if (!isWin) {
-            if (currentStreak > 0) saveScore('rankings', myLoggedId, currentStreak);
+            if (isUserLoggedIn && currentStreak > 0) {
+                saveScore('rankings', myLoggedId, currentStreak);
+            } else if (!isUserLoggedIn && currentStreak > 0) {
+                alert("⚠️ 로그인을 하지 않아 이번 기록은 명예의 전당에 저장되지 않습니다!");
+            }
             currentStreak = 0; 
         } else {
             setTimeout(() => { alert(`연승 성공! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`); initNumberGame(); }, 1000);
@@ -641,6 +650,7 @@
         profitEl.textContent = "0 원 (0.00%)";
     }
 
+    // [핵심 변경] 계정 접속(로그인) 유무와 상관없이 실시간으로 무한 구동되는 시세 루프
     function startRealtimePrices() {
         clearInterval(priceInterval);
         priceInterval = setInterval(() => {
@@ -653,22 +663,22 @@
                 if (stock.history.length > 10) stock.history.shift();
             });
             renderStockMarket(false); 
-            syncAssetToBackend(); 
-            fetchLiveActiveUsers(); 
+            if(isUserLoggedIn) {
+                syncAssetToBackend(); 
+                fetchLiveActiveUsers(); 
+            }
             loadRanking(activeTab === 'number' ? 'rankings' : 'stock_rankings', activeTab === 'number' ? '연승' : '원');
         }, 5000);
     }
 
-    // [업데이트] 종목행 자체를 클릭해서 포커싱하는 핸들러 추가
     window.selectStockItem = function(index) {
-        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
+        if(!isUserLoggedIn) { alert("⚠️ 주식을 주문하고 거래하려면 상단에서 먼저 [계정 접속]을 완료해 주세요!"); return; }
         
         selectedStockIndex = index;
         selectedStockNameEl.textContent = stocks[index].name;
-        orderPanel.style.visibility = "visible"; // 하단 패드 가시화
+        orderPanel.style.visibility = "visible"; 
         stockMsg.textContent = `▶ [${stocks[index].name}] 종목이 타겟으로 지정되었습니다. 주문을 실행하세요.`;
         
-        // 시각적으로 선택 상태 반영
         document.querySelectorAll('.stock-item').forEach(el => el.classList.remove('selected'));
         document.getElementById(`stock-row-${index}`).classList.add('selected');
     }
@@ -680,7 +690,6 @@
                 const item = document.createElement('div');
                 item.className = 'stock-item';
                 item.id = `stock-row-${index}`;
-                // 행 자체에 클릭 바인딩
                 item.setAttribute("onclick", `selectStockItem(${index})`);
                 
                 const textStyleClass = stock.owned > 0 ? "cap has-balance" : "cap";
@@ -766,7 +775,6 @@
         ctx.stroke();
     }
 
-    // [업데이트] 통합 단일 최대 버튼 알고리즘 연동
     window.fillCombinedMaxQuantity = function() {
         if(selectedStockIndex === null) return;
         
@@ -783,7 +791,6 @@
         }
     }
 
-    // [업데이트] 통합 주문창 액션 제어 핸들러
     window.tradeStock = function(type) {
         if(selectedStockIndex === null) { alert("거래할 종목을 리스트에서 먼저 선택해 주세요!"); return; }
         
@@ -882,10 +889,11 @@
     restartBtn.addEventListener("click", initNumberGame);
     guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
 
-    // 첫 실행 세팅
+    // [최초 실행] 로그인 상태 여부와 관계없이 최초 접속 시 주가 실시간 변동 시작 및 랭킹 세팅
     loadRanking('rankings', '연승');
     initNumberGame();
     initStockGame();
+    startRealtimePrices(); // 로딩되자마자 5초 순환 루프 발동!
 </script>
 
 </body>
