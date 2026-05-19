@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>조상희 멀티게임 랭킹전</title>
+    <title>조상희 실시간 주식투자 랭킹전</title>
     <!-- 깔끔하고 세련된 구글 Noto Sans KR 폰트 로드 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,35 +24,6 @@
             overflow-x: hidden;
         }
 
-        /* 게임 전환 탭 영역 */
-        .game-selector {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-            width: 100%;
-            max-width: 1100px;
-            justify-content: center;
-        }
-        .tab-btn {
-            padding: 12px 28px;
-            font-size: 1.05rem;
-            font-weight: 500;
-            background: #ffffff;
-            color: #a0aec0;
-            border: 1px solid #e2e8f0;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
-        .tab-btn.active {
-            color: #63b3ed;
-            background: #ebf8ff;
-            border-color: #bee3f8;
-            font-weight: 700;
-            box-shadow: 0 4px 10px rgba(99, 179, 237, 0.15);
-        }
-
         /* 메인 프레임 */
         .main-wrapper {
             display: flex;
@@ -65,6 +36,7 @@
             border-radius: 20px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 10px 25px rgba(160, 174, 192, 0.15);
+            margin-top: 10px;
         }
 
         /* 컨테이너 공통 */
@@ -171,8 +143,7 @@
         input[type="number"] { width: 100px; }
         .auth-area input { width: 140px; }
         
-        /* 주식 게임 UI */
-        .stock-screen { display: none; }
+        /* 주식 전용판 구조 스타일 */
         .stock-market-board {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -258,16 +229,10 @@
 </head>
 <body>
 
-<!-- 게임 선택 버튼 -->
-<div class="game-selector">
-    <button class="tab-btn active" id="tab-number" onclick="switchGame('number')">🔢 숫자맞추기</button>
-    <button class="tab-btn" id="tab-stock" onclick="switchGame('stock')">📈 주식투자게임</button>
-</div>
-
 <div class="main-wrapper">
     
     <!-- 공통 계정 설정 및 접속 상태 영역 -->
-    <div style="width:100%; display:flex; justify-content:center; margin-bottom:10px;" id="auth-box-zone">
+    <div style="width:100%; display:flex; justify-content:center; margin-bottom:15px;" id="auth-box-zone">
         <div class="auth-area" style="margin-bottom: 0; flex-direction: row; gap: 12px;" id="login-form-area">
             <input type="text" id="user-id-input" placeholder="닉네임(아이디)" maxlength="12">
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리" maxlength="4">
@@ -279,28 +244,10 @@
         </div>
     </div>
 
-    <!-- ================= 1. 숫자 게임 화면 ================= -->
-    <div class="game-container id-game-content" id="number-game-screen">
-        <h1>🔢 조상희숫자 랭킹전</h1>
-        <p class="description">조상희의 모던 라이트 에디션 : 백엔드 실시간 연동</p>
-        
-        <div class="stats">
-            <div>남은 기회: <span id="chances">6</span>회</div>
-            <div>현재 연승: <span id="current-streak" class="red-text">0</span>승</div>
-        </div>
-        <div class="description" style="color: #e53e3e; font-weight: 500; margin-bottom: 10px;" id="num-login-notice">⚠️ 숫자 맞추기 전적을 저장하려면 먼저 상단에서 [계정 접속]을 해주세요!</div>
-        <div class="message" id="number-message">조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.</div>
-        <div id="input-area">
-            <input type="number" id="guess-input" min="1" max="100" placeholder="1-100" style="margin-right:8px;">
-            <button id="guess-btn">확인</button>
-        </div>
-        <button class="restart-btn" id="restart-btn">다시 시작하기</button>
-    </div>
-
-    <!-- ================= 2. 주식 게임 화면 ================= -->
-    <div class="game-container id-game-content stock-screen" id="stock-game-screen">
+    <!-- ================= 주식 게임 메인 스크린 ================= -->
+    <div class="game-container">
         <h1>📈 조상희 우량주 레이스 (REALTIME)</h1>
-        <p class="description">5초마다 주가 자동 변동! 종목을 선택하여 거래하세요.</p>
+        <p class="description">5초마다 변하는 실시간 시세! 내 계정에 자산이 자동 세이브됩니다.</p>
         
         <div class="stats">
             <div>시장 상태: <span id="stock-status-text" style="font-weight:700; color: #3182ce;">실시간 개장 중</span></div>
@@ -337,8 +284,8 @@
             <div id="live-users-list-zone" style="margin-top:5px; font-weight:300;">로그인 시 동접자 활성화</div>
         </div>
 
-        <h2 id="ranking-title">🏆 조상희 명예의 전당 (TOP 20)</h2>
-        <p class="description" id="ranking-desc">실시간 조상희 게임 마스터 랭킹 리스트</p>
+        <h2>🏆 조상희 실시간 주식 명예의 전당</h2>
+        <p class="description">실시간 자산 현황 자동 반영 랭킹 리스트</p>
         <ul class="ranking-list" id="ranking-list">
             <li class="ranking-item">데이터 로딩 중...</li>
         </ul>
@@ -363,7 +310,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let activeTab = 'number'; 
     let currentDocId = null; 
     let isUserLoggedIn = false;
     let myLoggedId = ""; 
@@ -376,25 +322,6 @@
     const loginFormArea = document.getElementById('login-form-area');
     const loggedInStatusArea = document.getElementById('logged-in-status-area');
     const currentUserDisplay = document.getElementById('current-user-display');
-
-    /* ----------------------------------------------------
-       [공통] 탭 전환 시스템
-    ---------------------------------------------------- */
-    window.switchGame = function(gameType) {
-        activeTab = gameType;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.id-game-content').forEach(content => content.style.display = 'none');
-        
-        if(gameType === 'number') {
-            document.getElementById('tab-number').classList.add('active');
-            document.getElementById('number-game-screen').style.display = 'block';
-            loadRanking('rankings', '연승');
-        } else {
-            document.getElementById('tab-stock').classList.add('active');
-            document.getElementById('stock-game-screen').style.display = 'block';
-            loadRanking('stock_rankings', '원');
-        }
-    }
 
     /* ----------------------------------------------------
        [계정 시스템]
@@ -461,10 +388,9 @@
             currentUserDisplay.textContent = userId;
             loggedInStatusArea.style.display = "flex";
             
-            document.getElementById('num-login-notice').style.display = "none";
             document.getElementById('stock-status-text').textContent = "실시간 거래 중 (연동됨)";
             document.getElementById('stock-status-text').style.color = "#e53e3e";
-            document.getElementById('stock-message').textContent = "계정이 동기화되었습니다. 원하는 종목을 클릭해 매매하세요!";
+            document.getElementById('stock-message').textContent = "계정 동기화 완료! 종목을 클릭해 매매 패드를 이용하세요.";
             
             renderStockMarket(false);
             fetchLiveActiveUsers(); 
@@ -495,13 +421,11 @@
         loggedInStatusArea.style.display = "none";
         loginFormArea.style.display = "flex";
 
-        document.getElementById('num-login-notice').style.display = "block";
         document.getElementById('stock-status-text').textContent = "실시간 개장 중";
         document.getElementById('stock-status-text').style.color = "#3182ce";
-        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 거래 및 전적 저장을 원하시면 상단 계정 접속을 진행하세요.";
+        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 전적 저장을 원하시면 상단 계정 접속을 진행하세요.";
         document.getElementById('order-panel').style.visibility = "hidden"; 
         
-        // 보유 현금 및 종목 잔고 초기화 (시세 루프는 계속 돌아감)
         stockCash = 2000000;
         stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
         document.querySelectorAll('.stock-item').forEach(el => el.classList.remove('selected'));
@@ -556,69 +480,8 @@
         } catch (e) { console.error("실시간 자산 백업 오류: ", e); }
     }
 
-
     /* ----------------------------------------------------
-       [게임 1] 숫자 맞추기 내부 로직
-    ---------------------------------------------------- */
-    let targetNumber, remainingChances, currentStreak = 0;
-    const numMsg = document.getElementById('number-message');
-    const chancesEl = document.getElementById('chances');
-    const streakEl = document.getElementById('current-streak');
-    const guessInput = document.getElementById('guess-input');
-    const guessBtn = document.getElementById('guess-btn');
-    const restartBtn = document.getElementById('restart-btn');
-
-    function initNumberGame() {
-        targetNumber = Math.floor(Math.random() * 100) + 1;
-        remainingChances = 6; 
-        chancesEl.textContent = remainingChances;
-        streakEl.textContent = currentStreak;
-        numMsg.textContent = "조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.";
-        numMsg.style.color = "#4a5568";
-        guessInput.value = "";
-        guessInput.disabled = false;
-        guessBtn.disabled = false;
-        restartBtn.style.display = "none";
-        loadRanking(activeTab === 'number' ? 'rankings' : 'stock_rankings', activeTab === 'number' ? '연승' : '원'); 
-    }
-
-    function checkGuess() {
-        const userGuess = parseInt(guessInput.value);
-        if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) { numMsg.textContent = "범위 초과! (1~100 사이)"; return; }
-
-        remainingChances--; chancesEl.textContent = remainingChances;
-
-        if (userGuess === targetNumber) {
-            currentStreak++;
-            numMsg.textContent = `🎉 CORRECT! 조상희의 정답은 [ ${targetNumber} ]`;
-            endGame(true);
-        } else if (remainingChances === 0) {
-            numMsg.textContent = `💥 GAME OVER! 정답은 [ ${targetNumber} ] 이었습니다.`;
-            endGame(false);
-        } else {
-            numMsg.textContent = userGuess < targetNumber ? "🔼 UP! 더 높은 수입니다." : "🔽 DOWN! 더 낮은 수입니다.";
-        }
-        guessInput.value = ""; guessInput.focus();
-    }
-
-    function endGame(isWin) {
-        guessInput.disabled = true; guessBtn.disabled = true;
-        restartBtn.style.display = "inline-block";
-        streakEl.textContent = currentStreak;
-        if (!isWin) {
-            if (isUserLoggedIn && currentStreak > 0) {
-                saveScore('rankings', myLoggedId, currentStreak);
-            } else if (!isUserLoggedIn && currentStreak > 0) {
-                alert("⚠️ 로그인을 하지 않아 이번 기록은 명예의 전당에 저장되지 않습니다!");
-            }
-            currentStreak = 0; 
-        } else {
-            setTimeout(() => { alert(`연승 성공! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`); initNumberGame(); }, 1000);
-        }
-    }
-
-    /* ----------------------------------------------------
-       [게임 2] 실시간 주식 투자 게임 로직 (선택형 패드 탑재)
+       [게임 핵심 로직] 실시간 주가 및 차트 제어
     ---------------------------------------------------- */
     let stockCash = 2000000; 
     let priceInterval;
@@ -640,17 +503,6 @@
     const selectedStockNameEl = document.getElementById('selected-stock-name');
     const globalQtyInput = document.getElementById('global-quantity');
 
-    function initStockGame() {
-        stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; s.history = [s.price]; });
-        selectedStockIndex = null;
-        orderPanel.style.visibility = "hidden";
-        renderStockMarket(true); 
-        assetEl.textContent = stockCash.toLocaleString();
-        cashEl.textContent = stockCash.toLocaleString();
-        profitEl.textContent = "0 원 (0.00%)";
-    }
-
-    // [핵심 변경] 계정 접속(로그인) 유무와 상관없이 실시간으로 무한 구동되는 시세 루프
     function startRealtimePrices() {
         clearInterval(priceInterval);
         priceInterval = setInterval(() => {
@@ -667,7 +519,7 @@
                 syncAssetToBackend(); 
                 fetchLiveActiveUsers(); 
             }
-            loadRanking(activeTab === 'number' ? 'rankings' : 'stock_rankings', activeTab === 'number' ? '연승' : '원');
+            loadRanking('stock_rankings', '원');
         }, 5000);
     }
 
@@ -825,39 +677,9 @@
         syncAssetToBackend(); 
     }
 
-    /* ----------------------------------------------------
-       [공통 백엔드 데이터 연동] 
-    ---------------------------------------------------- */
-    async function saveScore(colName, userId, score) {
-        try {
-            const q = query(collection(db, colName), where("userId", "==", userId));
-            const querySnapshot = await getDocs(q);
-            
-            if (!querySnapshot.empty) {
-                let existingData = querySnapshot.docs[0].data();
-                if (parseInt(score) <= existingData.score) return;
-            }
-
-            await addDoc(collection(db, colName), {
-                userId: userId, score: parseInt(score), timestamp: new Date()
-            });
-            loadRanking(colName, '연승'); 
-        } catch (e) { console.error("점수 저장 실패: ", e); }
-    }
-
     async function loadRanking(colName, unit) {
-        const titleEl = document.getElementById('ranking-title');
-        const descEl = document.getElementById('ranking-desc');
         const rankingListEl = document.getElementById('ranking-list');
         rankingListEl.innerHTML = "";
-
-        if(colName === 'rankings') {
-            titleEl.textContent = "🏆 조상희 숫자 명예의 전당 (TOP 20)";
-            descEl.textContent = "가장 높은 연속 정답 기록 리스트";
-        } else {
-            titleEl.textContent = "🏆 조상희 실시간 주식 명예의 전당 (TOP 20)";
-            descEl.textContent = "실시간 자산 현황 자동 반영 랭킹 리스트";
-        }
 
         try {
             const q = query(collection(db, colName), orderBy("score", "desc"), limit(20));
@@ -885,15 +707,10 @@
         } catch (e) { console.error("랭킹 로드 실패: ", e); }
     }
 
-    guessBtn.addEventListener("click", checkGuess);
-    restartBtn.addEventListener("click", initNumberGame);
-    guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
-
-    // [최초 실행] 로그인 상태 여부와 관계없이 최초 접속 시 주가 실시간 변동 시작 및 랭킹 세팅
-    loadRanking('rankings', '연승');
-    initNumberGame();
-    initStockGame();
-    startRealtimePrices(); // 로딩되자마자 5초 순환 루프 발동!
+    // [최초 렌더링 구동]
+    renderStockMarket(true);
+    loadRanking('stock_rankings', '원');
+    startRealtimePrices(); 
 </script>
 
 </body>
