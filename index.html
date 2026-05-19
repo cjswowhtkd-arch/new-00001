@@ -78,6 +78,7 @@
         }
         .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } /* 1등 금색 */
         .ranking-item:nth-child(2) { font-weight: bold; color: #c0c0c0; } /* 2등 은색 */
+        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 추가 */
     </style>
 </head>
 <body>
@@ -99,10 +100,10 @@
 
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
-            <button id="guess-btn" onclick="checkGuess()">확인</button>
+            <button id="guess-btn">확인</button>
         </div>
 
-        <button class="restart-btn" id="restart-btn" onclick="initGame()">다시 시작하기</button>
+        <button class="restart-btn" id="restart-btn">다시 시작하기</button>
     </div>
 
     <!-- 오른쪽: 실시간 백엔드 랭킹 보드 -->
@@ -120,7 +121,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔒 질문해주신 본인의 Firebase 설정값들이 여기에 안전하게 합쳐졌습니다!
+    // Firebase 설정
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
         authDomain: "chosanghee00001.firebaseapp.com",
@@ -148,9 +149,10 @@
     const guessBtn = document.getElementById('guess-btn');
     const restartBtn = document.getElementById('restart-btn');
 
+    // 게임 초기화 함수
     function initGame() {
         targetNumber = Math.floor(Math.random() * 100) + 1;
-        remainingChances = 6;
+        remainingChances = 5; // 기회를 5회로 통일
         chancesEl.textContent = remainingChances;
         currentStreakEl.textContent = currentStreak;
         messageEl.textContent = "숫자를 입력하고 확인을 눌러주세요.";
@@ -178,7 +180,7 @@
         }
     }
 
-    // 백엔드에서 랭킹 데이터 긁어오기
+    // 백엔드에서 랭킹 데이터 불러오기
     async function loadRanking() {
         const rankingListEl = document.getElementById('ranking-list');
         rankingListEl.innerHTML = "";
@@ -207,8 +209,8 @@
         }
     }
 
-    // 정답 체크
-    window.checkGuess = function() {
+    // 정답 체크 함수
+    function checkGuess() {
         const nickname = nicknameInput.value.trim();
         const userGuess = parseInt(guessInput.value);
 
@@ -250,6 +252,7 @@
         guessInput.focus();
     }
 
+    // 게임 종료 처리
     function endGame(isWin) {
         guessInput.disabled = true;
         guessBtn.disabled = true;
@@ -270,10 +273,14 @@
         }
     }
 
+    // 이벤트 리스너 등록 (HTML onclick 대체)
+    guessBtn.addEventListener("click", checkGuess);
+    restartBtn.addEventListener("click", initGame);
     guessInput.addEventListener("keyup", function(event) {
-        if (event.key === "Enter") window.checkGuess();
+        if (event.key === "Enter") checkGuess();
     });
 
+    // 최초 게임 실행
     initGame();
 </script>
 
