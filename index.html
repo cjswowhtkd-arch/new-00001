@@ -193,9 +193,9 @@
         .price-up { color: #e53e3e !important; } 
         .price-down { color: #3182ce !important; } 
 
-        /* ================= [신규] 10분 단위 상세 차트 영역 스타일 ================= */
+        /* 10분 단위 상세 차트 영역 스타일 */
         .stock-detail-chart-container {
-            display: none; /* 초기 상태 숨김 */
+            display: none; 
             background: #fdfdfd;
             padding: 15px;
             border-top: 1px dashed #e2e8f0;
@@ -280,7 +280,7 @@
     <!-- ================= 주식 게임 메인 스크린 ================= -->
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스 (REALTIME)</h1>
-        <p class="description">5초마다 변하는 실시간 시세! 종목 클릭 시 10분 단위 상세 차트가 제공됩니다.</p>
+        <p class="description">5초마다 변하는 실시간 시세! 종목 클릭 시 로그인 없이도 10분 단위 차트 조회가 가능합니다.</p>
         
         <div class="stats">
             <div>시장 상태: <span id="stock-status-text" style="font-weight:700; color: #3182ce;">실시간 개장 중</span></div>
@@ -291,12 +291,12 @@
 
         <!-- 5대 우량주 종목판 -->
         <div class="stock-market-board" id="market-board">
-            <!-- 종목 래퍼들과 아코디언 차트가 동적 렌더링 영역 -->
+            <!-- 종목 래퍼들과 아코디언 차트 동적 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">상단에서 계정 접속을 하시면 200만 원 시드로 매매 거래 및 자동 저장이 활성화됩니다!</div>
+        <div class="message" id="stock-message">원하는 종목을 클릭하면 상세 차트가 제공됩니다. 매매를 하려면 상단에서 계정 접속을 해주세요!</div>
 
-        <!-- 하단 통합 주문 패드 -->
+        <!-- 하단 통합 주문 패드 (로그인 시에만 정상 작동 조율) -->
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
             <div class="order-title">📌 선택된 종목: <span id="selected-stock-name" class="target">-</span></div>
             <div class="order-inputs">
@@ -423,8 +423,13 @@
             
             document.getElementById('stock-status-text').textContent = "실시간 거래 중 (연동됨)";
             document.getElementById('stock-status-text').style.color = "#e53e3e";
-            document.getElementById('stock-message').textContent = "계정 동기화 완료! 종목을 클릭해 매매 패드 및 상세 차트를 확인하세요.";
+            document.getElementById('stock-message').textContent = "계정 동기화 완료! 현재 선택 상태에 맞춰 주문창이 제어됩니다.";
             
+            // 만약 로그인 전에 미리 종목을 찍어두었다면 하단 패드 열어주기
+            if(selectedStockIndex !== null) {
+                orderPanel.style.visibility = "visible";
+            }
+
             renderStockMarket(false);
             fetchLiveActiveUsers(); 
 
@@ -447,7 +452,13 @@
         isUserLoggedIn = false;
         myLoggedId = "";
         currentDocId = null;
-        selectedStockIndex = null; 
+        
+        // 로그아웃 시 선택했던 테두리 하이라이트 및 아코디언 차트 숨김 동기화
+        if(selectedStockIndex !== null) {
+            document.getElementById(`stock-wrapper-${selectedStockIndex}`).classList.remove('selected');
+            document.getElementById(`stock-detail-container-${selectedStockIndex}`).classList.remove('open');
+            selectedStockIndex = null;
+        }
 
         userIdInput.value = "";
         userPwInput.value = "";
@@ -456,13 +467,13 @@
 
         document.getElementById('stock-status-text').textContent = "실시간 개장 중";
         document.getElementById('stock-status-text').style.color = "#3182ce";
-        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 전적 저장을 원하시면 상단 계정 접속을 진행하세요.";
-        document.getElementById('order-panel').style.visibility = "hidden"; 
+        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 상세 차트는 로그인 없이 계속 조회할 수 있습니다.";
+        orderPanel.style.visibility = "hidden"; 
         
         stockCash = 2000000;
-        stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; s.history = [s.price]; s.detailHistory = [s.price]; });
+        stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
         
-        renderStockMarket(true); // 구조 리셋
+        renderStockMarket(false);
         document.getElementById('live-users-list-zone').textContent = "로그인 시 동접자 활성화";
     }
 
@@ -518,7 +529,6 @@
     let stockCash = 2000000; 
     let priceInterval;
     
-    // [업데이트]: 10분 단위 정밀 상세 차트를 위해 detailHistory 배열(최대 20개 저장) 추가
     let stocks = [
         { name: "삼성전자", price: 68000, oldPrice: 68000, cap: "시총 405조 | 반도체 대장", owned: 0, avgPrice: 0, history: [68000], detailHistory: [68000] },
         { name: "SK하이닉스", price: 172000, oldPrice: 172000, cap: "시총 125조 | HBM 선두", owned: 0, avgPrice: 0, history: [172000], detailHistory: [172000] },
@@ -544,11 +554,9 @@
                 let changePercent = (Math.random() * 34 - 16) / 100; 
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
                 
-                // 미니 차트 이력 (10개 축적)
                 stock.history.push(stock.price);
                 if (stock.history.length > 10) stock.history.shift();
 
-                // [업데이트]: 10분 차트 정밀 이력 (20개 축적)
                 stock.detailHistory.push(stock.price);
                 if (stock.detailHistory.length > 20) stock.detailHistory.shift();
             });
@@ -561,36 +569,40 @@
         }, 5000);
     }
 
-    // [업데이트]: 토글 아코디언 방식으로 클릭 이벤트 고도화
+    // [보안 우회 패치]: 로그인 가드(Guard) 제거. 계정 접속 안 해도 차트 열람 토글 완전 허용
     window.selectStockItem = function(index) {
-        if(!isUserLoggedIn) { alert("⚠️ 주식을 주문하고 거래하려면 상단에서 먼저 [계정 접속]을 완료해 주세요!"); return; }
-        
-        const wrapperEl = document.getElementById(`stock-wrapper-${index}`);
-        const detailChartEl = document.getElementById(`stock-detail-container-${index}`);
+        const wrapperEl = document.getElementById('stock-wrapper-' + index);
+        const detailChartEl = document.getElementById('stock-detail-container-' + index);
 
-        // 이미 선택된 종목을 다시 누르면 감추기(토글 해제)
+        // 이미 열려 있는 종목 다시 클릭 시 숨김 처리 (토글 기능 작동)
         if (selectedStockIndex === index) {
             selectedStockIndex = null;
             wrapperEl.classList.remove('selected');
             detailChartEl.classList.remove('open');
             orderPanel.style.visibility = "hidden";
-            stockMsg.textContent = "종목 선택이 해제되었습니다.";
+            stockMsg.textContent = "종목 차트 보기가 해제되었습니다.";
             return;
         }
 
-        // 새로운 종목 선택 시 기존 선택된 UI 리셋
+        // 기존에 열려 있던 UI가 있다면 일괄 닫기 리셋
         document.querySelectorAll('.stock-row-wrapper').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.stock-detail-chart-container').forEach(el => el.classList.remove('open'));
 
-        // 현재 선택된 종목 활성화
+        // 선택한 주식 데이터 활성화 기입
         selectedStockIndex = index;
         selectedStockNameEl.textContent = stocks[index].name;
-        orderPanel.style.visibility = "visible"; 
         wrapperEl.classList.add('selected');
         detailChartEl.classList.add('open');
-        stockMsg.textContent = `▶ [${stocks[index].name}] 10분 상세 차트 개시 및 매매 활성화.`;
         
-        // 상세 대형 차트 즉시 렌더링
+        // [매매 조건 패드 가드]: 계정 접속이 되었을 때만 하단 주문판 노출 허용 조율
+        if (isUserLoggedIn) {
+            orderPanel.style.visibility = "visible";
+            stockMsg.textContent = `▶ [${stocks[index].name}] 상세 차트 활성화 및 실시간 매매 대기 중.`;
+        } else {
+            orderPanel.style.visibility = "hidden";
+            stockMsg.textContent = `▶ [${stocks[index].name}] 상세 차트 조회 중. 매매를 원하시면 로그인하세요.`;
+        }
+        
         drawDetailChart(index);
     }
 
@@ -598,7 +610,6 @@
         if (isInit || marketBoard.children.length === 0) {
             marketBoard.innerHTML = "";
             stocks.forEach((stock, index) => {
-                // 아코디언 확장을 위한 대형 래퍼 구조 도입
                 const wrapper = document.createElement('div');
                 wrapper.className = 'stock-row-wrapper';
                 wrapper.id = `stock-wrapper-${index}`;
@@ -616,7 +627,6 @@
                         <canvas id="stock-canvas-${index}" class="stock-chart-zone" width="80" height="35"></canvas>
                         <div class="stock-price" id="stock-price-${index}">${stock.price.toLocaleString()} 원</div>
                     </div>
-                    <!-- [신규 업데이트]: 토글형 10분 단위 정밀 대형 차트 컨테이너 플러그인 -->
                     <div class="stock-detail-chart-container" id="stock-detail-container-${index}">
                         <div class="detail-chart-title">📊 10분 단위 추이 (실시간 타임라인)</div>
                         <canvas id="stock-detail-canvas-${index}" class="detail-canvas" width="400" height="120"></canvas>
@@ -642,7 +652,7 @@
                     else if (stock.price < stock.oldPrice) priceEl.classList.add("price-down");
                     
                     drawMiniChart(index);
-                    // 열려 있는 상세 차트가 있다면 시세 변동 시 대형 차트도 함께 동적 리프레시
+                    // 차트가 펼쳐져 있다면 로그인 유무 상관없이 무조건 5초마다 대형 선그래프 리렌더링
                     if (selectedStockIndex === index) {
                         drawDetailChart(index);
                     }
@@ -667,7 +677,6 @@
         else profitEl.className = "";
     }
 
-    // 1. 호가창 옆 5초 우측 미니 차트 (기존 유지)
     function drawMiniChart(index) {
         const canvas = document.getElementById(`stock-canvas-${index}`);
         if (!canvas) return;
@@ -698,7 +707,6 @@
         ctx.stroke();
     }
 
-    // [신규 업데이트]: 10분 단위 자세한 대형 차트 렌더링 엔진 함수
     function drawDetailChart(index) {
         const canvas = document.getElementById(`stock-detail-canvas-${index}`);
         if (!canvas) return;
@@ -707,17 +715,16 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // 가로 점선 그리기 (MTS 보조지표 느낌 구현)
         ctx.strokeStyle = '#f1f3f5';
         ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]); // 점선 효과
+        ctx.setLineDash([4, 4]); 
         for(let i = 1; i < 4; i++) {
             ctx.beginPath();
             ctx.moveTo(0, (canvas.height / 4) * i);
             ctx.lineTo(canvas.width, (canvas.height / 4) * i);
             ctx.stroke();
         }
-        ctx.setLineDash([]); // 점선 해제
+        ctx.setLineDash([]); 
 
         if (detailHistory.length < 2) return;
 
@@ -727,24 +734,21 @@
 
         const isUp = detailHistory[detailHistory.length - 1] >= detailHistory[0];
         
-        // 차트 선 색상 결정 (상승: 파스텔 레드, 하락: 파스텔 블루)
         ctx.strokeStyle = isUp ? '#f56565' : '#4299e1';
         ctx.lineWidth = 2.5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
         ctx.beginPath();
-        const segmentWidth = canvas.width / 19; // 최대 20개 데이터 공간 배정 (20-1)
+        const segmentWidth = canvas.width / 19; 
         detailHistory.forEach((price, idx) => {
             const x = idx * segmentWidth;
-            // 위아래 여백 10픽셀을 확보해 시인성 극대화
             const y = canvas.height - 10 - ((price - minPrice) / priceRange) * (canvas.height - 20);
             if (idx === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
         });
         ctx.stroke();
 
-        // 차트 하단 그라데이션 채우기 (고급 MTS 연출)
         ctx.lineTo((detailHistory.length - 1) * segmentWidth, canvas.height);
         ctx.lineTo(0, canvas.height);
         ctx.closePath();
