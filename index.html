@@ -26,7 +26,7 @@
             gap: 15px;
             margin-bottom: 25px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1050px;
             justify-content: center;
         }
         .tab-btn {
@@ -82,7 +82,7 @@
 
         .ranking-container {
             flex: 0.8;
-            max-height: 620px;
+            max-height: 640px;
             overflow-y: auto;
         }
 
@@ -162,8 +162,12 @@
         .stock-item:last-child { border-bottom: none; }
         .stock-info .name { font-weight: bold; color: #fff; font-size: 1.05rem; }
         .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; margin-top: 2px; }
-        .stock-price { font-weight: bold; text-align: right; min-width: 100px; color: #ffb199; }
+        .stock-price { font-weight: bold; text-align: right; min-width: 110px; color: #ffb199; transition: color 0.2s ease; }
         
+        /* 변동 보정 컬러 래퍼 클래스 */
+        .price-up { color: #ff0844 !important; text-shadow: 0 0 5px rgba(255,8,68,0.4); }
+        .price-down { color: #00f2fe !important; text-shadow: 0 0 5px rgba(0,242,254,0.4); }
+
         /* 수량 입력 및 거래 버튼 레이아웃 */
         .stock-trade-zone {
             display: flex;
@@ -183,7 +187,7 @@
 </head>
 <body>
 
-<!-- 게임 선택 버튼 (상단 탭) -->
+<!-- 게임 선택 버튼 -->
 <div class="game-selector">
     <button class="tab-btn active" id="tab-number" onclick="switchGame('number')">🔢 숫자맞추기</button>
     <button class="tab-btn" id="tab-stock" onclick="switchGame('stock')">📈 주식투자게임</button>
@@ -218,21 +222,21 @@
 
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
-        <h1>📈 조상희 가치주 레이스</h1>
-        <p class="description">가치주 테마를 발굴해 자산을 증식하라! (총 5턴)</p>
+        <h1>📈 조상희 가치주 레이스 (REALTIME)</h1>
+        <p class="description">1.5초마다 변하는 실시간 시세! 최적의 타이밍에 매매하라!</p>
         
         <div class="stats">
-            <div>현재 턴: <span id="stock-turn">1</span> / 5</div>
+            <div>남은 시간: <span id="stock-timer" class="red-text">90</span> 초</div>
             <div>보유 자산: <span id="stock-asset" class="red-text">50,000,000</span> 원</div>
             <div>보유 주식: <span id="stock-owned">0</span> 주</div>
         </div>
 
         <div class="stock-market-board" id="market-board">
-            <!-- 5개 종목이 동적으로 이곳에 렌더링됩니다 -->
+            <!-- 5개 종목 동적 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">원하는 수량을 치고 매수/매도를 누르세요. 다음 턴에 가격이 변동합니다.</div>
-        <button id="next-turn-btn" style="width: 100%; margin-bottom: 10px;">다음 턴 넘어가기 (시세 변동)</button>
+        <div class="message" id="stock-message">상단 계정 정보를 입력하고 거래를 시작해 주세요. 제한시간은 90초입니다!</div>
+        <button id="start-stock-btn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color:#000;">🕹️ 실시간 게임 시작하기</button>
         <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
     </div>
 
@@ -349,49 +353,83 @@
     }
 
     /* ----------------------------------------------------
-       [게임 2] 주식 가치주 투자 게임 로직 (종목 5개 확장 및 수량 기능)
+       [게임 2] 실시간 주식 투자 게임 로직
     ---------------------------------------------------- */
-    let stockTurn = 1, stockAsset = 50000000, stockOwned = 0; // 투자금 5천만원으로 상향 조정
+    let stockTimeLeft = 90, stockAsset = 50000000, stockGameActive = false;
+    let priceInterval, clockInterval;
     
-    // 조상희 스페셜 엄선 5대 바이오/테마 종목 라인업
     let stocks = [
-        { name: "리가켐바이오 테마", price: 65000, cap: "시총 4,200억", owned: 0 },
-        { name: "한스바이오메드 테마", price: 14000, cap: "시총 1,500억", owned: 0 },
-        { name: "휴젤 헬스케어테마", price: 195000, cap: "시총 8,900억", owned: 0 },
-        { name: "KOSDAQ 150 바이오 ETF", price: 22000, cap: "지수 연동형 테마", owned: 0 },
-        { name: "상희 디바이스 자산가치", price: 45000, cap: "시총 3,100억", owned: 0 }
+        { name: "리가켐바이오 테마", price: 65000, oldPrice: 65000, cap: "시총 4,200억", owned: 0 },
+        { name: "한스바이오메드 테마", price: 14000, oldPrice: 14000, cap: "시총 1,500억", owned: 0 },
+        { name: "휴젤 헬스케어테마", price: 195000, oldPrice: 195000, cap: "시총 8,900억", owned: 0 },
+        { name: "KOSDAQ 150 바이오 ETF", price: 22000, oldPrice: 22000, cap: "지수 연동형 테마", owned: 0 },
+        { name: "상희 디바이스 가치주", price: 45000, oldPrice: 45000, cap: "시총 3,100억", owned: 0 }
     ];
 
-    const turnEl = document.getElementById('stock-turn');
+    const timerEl = document.getElementById('stock-timer');
     const assetEl = document.getElementById('stock-asset');
     const ownedEl = document.getElementById('stock-owned');
     const marketBoard = document.getElementById('market-board');
     const stockMsg = document.getElementById('stock-message');
-    const nextTurnBtn = document.getElementById('next-turn-btn');
+    const startStockBtn = document.getElementById('start-stock-btn');
     const stockRestartBtn = document.getElementById('stock-restart-btn');
 
     function initStockGame() {
-        stockTurn = 1; stockAsset = 50000000; stockOwned = 0;
-        stocks[0].price = 65000; stocks[0].owned = 0;
-        stocks[1].price = 14000; stocks[1].owned = 0;
-        stocks[2].price = 195000; stocks[2].owned = 0;
-        stocks[3].price = 22000; stocks[3].owned = 0;
-        stocks[4].price = 45000; stocks[4].owned = 0;
-        nextTurnBtn.disabled = false;
+        clearInterval(priceInterval);
+        clearInterval(clockInterval);
+        stockTimeLeft = 90; stockAsset = 50000000; stockGameActive = false;
+        stocks.forEach(s => { s.owned = 0; s.price = s.oldPrice; });
+        startStockBtn.disabled = false;
+        startStockBtn.style.display = "inline-block";
         stockRestartBtn.style.display = "none";
         userIdInput.disabled = false; userPwInput.disabled = false;
-        updateStockUI();
+        renderStockMarket();
+        timerEl.textContent = stockTimeLeft;
+        assetEl.textContent = stockAsset.toLocaleString();
+        ownedEl.textContent = 0;
+        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 제한시간은 90초입니다.";
     }
 
-    function updateStockUI() {
-        turnEl.textContent = stockTurn;
-        assetEl.textContent = stockAsset.toLocaleString();
-        
-        let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
-        ownedEl.textContent = totalOwned;
+    // 실시간 주가 변동 루프 가동
+    function startRealtimeStockGame() {
+        const userId = userIdInput.value.trim();
+        const userPw = userPwInput.value.trim();
+        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 상단에 먼저 입력해야 게임 시작이 가능합니다."); return; }
 
+        userIdInput.disabled = true; userPwInput.disabled = true;
+        stockGameActive = true;
+        startStockBtn.style.display = "none";
+        stockMsg.textContent = "🚀 실시간 주식 레이스가 시작되었습니다! 호가창 동향을 주시하세요.";
+
+        // 1. 1.5초마다 무작위 주가 폭등락 변동 루프
+        priceInterval = setInterval(() => {
+            stocks.forEach(stock => {
+                stock.oldPrice = stock.price;
+                let changePercent = (Math.random() * 34 - 16) / 100; // -16% ~ +18% 변동폭 실시간 적용
+                stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
+            });
+            renderStockMarket();
+        }, 1500);
+
+        // 2. 1초마다 시한 카운트다운 타이머 구동
+        clockInterval = setInterval(() => {
+            stockTimeLeft--;
+            timerEl.textContent = stockTimeLeft;
+            
+            if(stockTimeLeft <= 0) {
+                endStockGame();
+            }
+        }, 1000);
+    }
+
+    function renderStockMarket() {
         marketBoard.innerHTML = "";
         stocks.forEach((stock, index) => {
+            // 가격 전회 대비 변동 색상 묘사 전처리
+            let colorClass = "";
+            if (stock.price > stock.oldPrice) colorClass = "price-up";
+            else if (stock.price < stock.oldPrice) colorClass = "price-down";
+
             const item = document.createElement('div');
             item.className = 'stock-item';
             item.innerHTML = `
@@ -399,7 +437,7 @@
                     <div class="name">${stock.name}</div>
                     <div class="cap">${stock.cap} | 보유: ${stock.owned}주</div>
                 </div>
-                <div class="stock-price">${stock.price.toLocaleString()} 원</div>
+                <div class="stock-price ${colorClass}">${stock.price.toLocaleString()} 원</div>
                 <div class="stock-trade-zone">
                     <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
                     <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
@@ -408,71 +446,59 @@
             `;
             marketBoard.appendChild(item);
         });
+
+        // 보유 총 주식 및 자산 지표 동기화 리프레시
+        assetEl.textContent = stockAsset.toLocaleString();
+        let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
+        ownedEl.textContent = totalOwned;
     }
 
     window.tradeStock = function(index, type) {
-        const userId = userIdInput.value.trim();
-        const userPw = userPwInput.value.trim();
-        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 상단에 입력해야 거래가 가능합니다."); return; }
-        
-        userIdInput.disabled = true; userPwInput.disabled = true;
+        if(!stockGameActive) { alert("먼저 '실시간 게임 시작하기' 버튼을 눌러주세요!"); return; }
         
         let stock = stocks[index];
         const qtyInput = document.getElementById(`quantity-${index}`);
         let qty = parseInt(qtyInput.value);
 
-        if (isNaN(qty) || qty <= 0) {
-            alert("정확한 거래 수량을 입력해 주세요!");
-            return;
-        }
-
+        if (isNaN(qty) || qty <= 0) { alert("거래할 정확한 수량을 지정해 주세요."); return; }
         let totalCost = stock.price * qty;
 
         if (type === 'buy') {
             if (stockAsset >= totalCost) {
                 stockAsset -= totalCost;
                 stock.owned += qty;
-                stockMsg.textContent = `📈 [${stock.name}] ${qty}주 매수 완료! (총 ${totalCost.toLocaleString()}원)`;
-            } else {
-                alert("자산이 부족하여 선택한 수량을 전부 매수할 수 없습니다!");
-            }
+                stockMsg.textContent = `🎯 [${stock.name}] ${qty}주 실시간 매수 체결 완료.`;
+            } else { alert("증거금(보유 자산)이 부족합니다!"); }
         } else {
             if (stock.owned >= qty) {
                 stockAsset += totalCost;
                 stock.owned -= qty;
-                stockMsg.textContent = `📉 [${stock.name}] ${qty}주 매도 완료! (총 ${totalCost.toLocaleString()}원 환전)`;
-            } else {
-                alert(`보유 주식이 부족합니다! (현재 보유: ${stock.owned}주)`);
-            }
+                stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 청산(매도) 완료.`;
+            } else { alert("방출 가능한 보유 주식 수량이 결핍되었습니다."); }
         }
-        updateStockUI();
+        renderStockMarket();
     }
 
-    nextTurnBtn.addEventListener("click", () => {
-        if(stockTurn >= 5) {
-            stocks.forEach(stock => {
-                stockAsset += stock.owned * stock.price;
-                stock.owned = 0;
-            });
-            nextTurnBtn.disabled = true;
-            stockRestartBtn.style.display = "inline-block";
-            stockMsg.textContent = `🏁 최종 게임 종료! 최종 자산: ${stockAsset.toLocaleString()} 원`;
-            updateStockUI();
-            
-            saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
-            return;
-        }
+    function test() {}
 
-        // 시세 변동 알고리즘
+    function endStockGame() {
+        stockGameActive = false;
+        clearInterval(priceInterval);
+        clearInterval(clockInterval);
+
+        // 정규 장마감 후 보유 종목 현재가로 전량 전적 자동 매도 처리
         stocks.forEach(stock => {
-            let changePercent = (Math.random() * 66 - 30) / 100; // 변동폭 미세 조정 (-30% ~ +36% 폭등락)
-            stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
+            stockAsset += stock.owned * stock.price;
+            stock.owned = 0;
         });
 
-        stockTurn++;
-        stockMsg.textContent = `시세 판도가 변경되었습니다! 변동 수치를 확인하고 대응하세요.`;
-        updateStockUI();
-    });
+        stockRestartBtn.style.display = "inline-block";
+        stockMsg.textContent = `🏁 MARKET CLOSED! 장마감 최종 평가액: ${stockAsset.toLocaleString()} 원`;
+        renderStockMarket();
+        
+        // 최종 마감 전적 백엔드 전송
+        saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
+    }
 
     /* ----------------------------------------------------
        [공통 백엔드 데이터 연동] Firebase 저장/조회
@@ -485,11 +511,11 @@
             if (!querySnapshot.empty) {
                 let existingData = querySnapshot.docs[0].data();
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 보안 시스템: 기존 계정 비밀번호와 불일치하여 명예의 전당 등록이 거부되었습니다.");
+                    alert("⚠️ 보안 인증 에러: 기존 등록 패스워드 불일치로 기록 등재가 무산되었습니다.");
                     return;
                 }
                 if (parseInt(score) <= existingData.score) {
-                    console.log("이전 최고 기록이 더 높음.");
+                    console.log("기존 랭킹 기록이 더 높아 스킵.");
                     return;
                 }
             }
@@ -499,7 +525,7 @@
             });
             
             let unit = colName === 'rankings' ? '연승' : '원 자산';
-            alert(`🎉 명예의 전당 등극: '${userId}'님의 대기록이 주식 서버에 박제되었습니다.`);
+            alert(`🎉 명예의 전당 경신: '${userId}'님의 기록이 실시간 데이터베이스에 업로드되었습니다.`);
             loadRanking(colName, colName === 'rankings' ? '연승' : '원'); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
@@ -516,8 +542,8 @@
             titleEl.textContent = "🏆 조상희 숫자 명예의 전당 (TOP 20)";
             descEl.textContent = "가장 높은 연속 정답 기록 리스트";
         } else {
-            titleEl.textContent = "🏆 조상희 가치주 명예의 전당 (TOP 20)";
-            descEl.textContent = "가장 많은 자산을 달성한 가치투자자 리스트";
+            titleEl.textContent = "🏆 조상희 실시간 주식 명예의 전당 (TOP 20)";
+            descEl.textContent = "90초 스캘핑 레이스 최고 자산가 리스트";
         }
 
         try {
@@ -544,13 +570,14 @@
         }
     }
 
-    // 초기 이벤트 설정
+    // 초기 이벤트 핸들러 바인딩
     guessBtn.addEventListener("click", checkGuess);
     restartBtn.addEventListener("click", initNumberGame);
+    startStockBtn.addEventListener("click", startRealtimeStockGame);
     stockRestartBtn.addEventListener("click", initStockGame);
     guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
 
-    // 첫 실행 세팅
+    // 첫 세팅 로드
     initNumberGame();
     initStockGame();
 </script>
