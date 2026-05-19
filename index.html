@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>조상희 숫자게임랭킹전</title>
+    <title>조상희 멀티게임 랭킹전</title>
     <style>
         /* 글로벌 사이버 펑크 / 아케이드 테마 스타일 */
         body {
@@ -11,13 +11,42 @@
             background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
             color: #fff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
             overflow-x: hidden;
+        }
+
+        /* 게임 전환 탭 영역 */
+        .game-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: rgba(20, 26, 46, 0.8);
+            color: #8fa0dd;
+            border: 2px solid rgba(0, 242, 254, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .tab-btn.active {
+            color: #00f2fe;
+            background: rgba(0, 242, 254, 0.15);
+            border-color: #00f2fe;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
         }
 
         /* 메인 프레임: 네온 그라데이션 테두리 효과 */
@@ -52,51 +81,21 @@
         }
 
         .ranking-container {
-            max-height: 520px;
+            max-height: 550px;
             overflow-y: auto;
         }
 
         /* 스크롤바 커스텀 */
-        .ranking-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .ranking-container::-webkit-scrollbar-thumb {
-            background: #00f2fe;
-            border-radius: 10px;
-        }
+        .ranking-container::-webkit-scrollbar { width: 6px; }
+        .ranking-container::-webkit-scrollbar-thumb { background: #00f2fe; border-radius: 10px; }
 
-        h1 {
-            font-size: 2rem;
-            color: #00f2fe;
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
-            margin-top: 0;
-            margin-bottom: 5px;
-        }
+        h1 { font-size: 1.9rem; color: #00f2fe; text-shadow: 0 0 10px rgba(0, 242, 254, 0.6); margin: 0 0 5px 0; }
+        h2 { font-size: 1.5rem; color: #ff0844; text-shadow: 0 0 10px rgba(255, 8, 68, 0.6); margin: 0 0 5px 0; }
+        .description { color: #8fa0dd; font-size: 0.9rem; margin-bottom: 20px; }
         
-        h2 {
-            font-size: 1.6rem;
-            color: #ff0844;
-            text-shadow: 0 0 10px rgba(255, 8, 68, 0.6);
-            margin-top: 0;
-            margin-bottom: 5px;
-        }
-
-        .description { 
-            color: #8fa0dd; 
-            font-size: 0.9rem; 
-            margin-bottom: 25px; 
-        }
+        .auth-area { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 20px; }
         
-        /* 입력 영역 디자인 */
-        .auth-area {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        /* 게임 스탯 보드 */
+        /* 스탯 보드 */
         .stats {
             display: flex;
             justify-content: space-around;
@@ -108,120 +107,124 @@
             border-left: 4px solid #00f2fe;
         }
         .stats span { color: #00f2fe; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
-        #current-streak { color: #ff0844; text-shadow: 0 0 5px rgba(255, 8, 68, 0.4); }
+        .red-text { color: #ff0844 !important; text-shadow: 0 0 5px rgba(255, 8, 68, 0.4) !important; }
 
-        /* 상태 알림 메시지 */
-        .message { 
-            font-size: 1.15rem; 
-            font-weight: bold; 
-            margin: 20px 0; 
-            min-height: 35px; 
-            color: #00f2fe;
-            text-shadow: 0 0 8px rgba(0, 242, 254, 0.3);
-        }
+        .message { font-size: 1.1rem; font-weight: bold; margin: 15px 0; min-height: 35px; color: #00f2fe; }
         
-        /* 인풋 폼 스타일링 */
         input[type="number"], input[type="text"], input[type="password"] {
-            padding: 12px;
-            font-size: 1.1rem;
-            background: rgba(10, 14, 28, 0.9);
-            border: 2px solid rgba(0, 242, 254, 0.4);
-            border-radius: 6px;
-            color: #fff;
-            text-align: center;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
+            padding: 12px; font-size: 1.1rem; background: rgba(10, 14, 28, 0.9);
+            border: 2px solid rgba(0, 242, 254, 0.4); border-radius: 6px; color: #fff;
+            text-align: center; box-sizing: border-box; transition: all 0.3s ease;
         }
-        input:focus {
-            outline: none;
-            border-color: #ff0844;
-            box-shadow: 0 0 10px rgba(255, 8, 68, 0.5);
-        }
-        input::placeholder {
-            color: #53658a;
-        }
+        input:focus { outline: none; border-color: #ff0844; box-shadow: 0 0 10px rgba(255, 8, 68, 0.5); }
+        input::placeholder { color: #53658a; }
         
         input[type="number"] { width: 100px; margin-right: 8px; }
         .auth-area input { width: 80%; max-width: 260px; }
         
-        /* 미래지향적 버튼 스타일 */
         button {
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            color: #090a0f;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+            padding: 12px 24px; font-size: 1.1rem; font-weight: bold;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #090a0f;
+            border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
             transition: all 0.2s ease;
         }
-        button:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
-        }
-        button:active {
-            transform: translateY(1px);
-        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
         .restart-btn { 
-            background: linear-gradient(135deg, #f5515f 0%, #9f031b 100%); 
-            color: white;
-            margin-top: 15px; 
-            display: none; 
-            box-shadow: 0 4px 15px rgba(245, 81, 95, 0.4);
-        }
-        .restart-btn:hover {
-            box-shadow: 0 6px 20px rgba(245, 81, 95, 0.6);
+            background: linear-gradient(135deg, #f5515f 0%, #9f031b 100%); color: white;
+            margin-top: 15px; display: none; box-shadow: 0 4px 15px rgba(245, 81, 95, 0.4);
         }
         
-        /* 명예의 전당 리스트 스타일 */
+        /* 랭킹 스타일 */
         .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
-        .ranking-item {
+        .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 1.05rem; }
+        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } 
+        .ranking-item:nth-child(2) { font-weight: bold; color: #e0e0e0; } 
+        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } 
+
+        /* 📈 주식 게임 전용 UI UI */
+        .stock-screen { display: none; }
+        .stock-market-board {
+            background: rgba(10, 14, 28, 0.8);
+            border: 1px solid rgba(255, 8, 68, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .stock-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 1.05rem;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        /* 상위 3등 하이라이트 효과 */
-        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); } 
-        .ranking-item:nth-child(2) { font-weight: bold; color: #e0e0e0; text-shadow: 0 0 8px rgba(224, 224, 224, 0.5); } 
-        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; text-shadow: 0 0 8px rgba(205, 127, 50, 0.5); } 
+        .stock-info .name { font-weight: bold; color: #fff; }
+        .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; }
+        .stock-price { font-weight: bold; text-align: right; }
+        .stock-actions button { padding: 6px 12px; font-size: 0.9rem; margin-left: 5px; }
+        .btn-buy { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); color: white; box-shadow: 0 2px 8px rgba(255,8,68,0.3); }
+        .btn-sell { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; box-shadow: 0 2px 8px rgba(48,207,208,0.3); }
     </style>
 </head>
 <body>
 
+<!-- 게임 선택 버튼 (상단 탭) -->
+<div class="game-selector">
+    <button class="tab-btn active" id="tab-number" onclick="switchGame('number')">🔢 숫자맞추기</button>
+    <button class="tab-btn" id="tab-stock" onclick="switchGame('stock')">📈 주식투자게임</button>
+</div>
+
 <div class="main-wrapper">
-    <!-- 왼쪽: 아케이드 게이밍 스크린 -->
-    <div class="game-container">
+    
+    <!-- 공통 계정 설정 영역 (상단 고정 배치) -->
+    <div style="width:100%; display:flex; justify-content:center; margin-bottom:10px;">
+        <div class="auth-area" style="margin-bottom: 0; flex-direction: row; gap: 15px;">
+            <input type="text" id="user-id-input" placeholder="닉네임(아이디)" maxlength="12">
+            <input type="password" id="user-pw-input" placeholder="비밀번호 4자리" maxlength="4">
+        </div>
+    </div>
+
+    <!-- ================= 1. 숫자 게임 화면 ================= -->
+    <div class="game-container id-game-content" id="number-game-screen">
         <h1>🔢 조상희숫자 랭킹전</h1>
         <p class="description">조상희의 아케이드 에디션 : 백엔드 실시간 연동</p>
         
-        <div class="auth-area">
-            <input type="text" id="user-id-input" placeholder="닉네임(아이디) 입력" maxlength="12">
-            <input type="password" id="user-pw-input" placeholder="비밀번호 4자리 숫자" maxlength="4">
-        </div>
-
         <div class="stats">
             <div>남은 기회: <span id="chances">5</span>회</div>
-            <div>현재 연승: <span id="current-streak">0</span>승</div>
+            <div>현재 연승: <span id="current-streak" class="red-text">0</span>승</div>
         </div>
-
-        <div class="message" id="message">조상희의 숫자 매치에 도전하라! 계정 세팅 후 시작!</div>
-
+        <div class="message" id="number-message">조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.</div>
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
             <button id="guess-btn">확인</button>
         </div>
-
         <button class="restart-btn" id="restart-btn">다시 시작하기</button>
     </div>
 
-    <!-- 오른쪽: 네온 랭킹 보드 (TOP 20) -->
+    <!-- ================= 2. 주식 게임 화면 ================= -->
+    <div class="game-container id-game-content stock-screen" id="stock-game-screen">
+        <h1>📈 조상희 가치주 레이스</h1>
+        <p class="description">시총 1조 미만 가치주를 발굴해 자산을 증식하라! (총 5턴)</p>
+        
+        <div class="stats">
+            <div>현재 턴: <span id="stock-turn">1</span> / 5</div>
+            <div>보유 자산: <span id="stock-asset" class="red-text">10,000,000</span> 원</div>
+            <div>보유 주식: <span id="stock-owned">0</span> 주</div>
+        </div>
+
+        <div class="stock-market-board" id="market-board">
+            <!-- 주식 종목들이 자바스크립트로 동적 생성됨 -->
+        </div>
+
+        <div class="message" id="stock-message">종목을 분석하고 매수/매도 하세요. 다음 턴에 가격이 변동합니다.</div>
+        <button id="next-turn-btn" style="width: 100%; margin-bottom: 10px;">다음 턴 넘어가기 (시세 변동)</button>
+        <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
+    </div>
+
+    <!-- ================= 우측: 실시간 통합 명예의 전당 ================= -->
     <div class="ranking-container">
-        <h2>🏆 조상희 명예의 전당 (TOP 20)</h2>
-        <p class="description">실시간 조상희 게임 마스터 랭킹 리스트</p>
+        <h2 id="ranking-title">🏆 조상희 명예의 전당 (TOP 20)</h2>
+        <p class="description" id="ranking-desc">실시간 조상희 게임 마스터 랭킹 리스트</p>
         <ul class="ranking-list" id="ranking-list">
             <li class="ranking-item">데이터 로딩 중...</li>
         </ul>
@@ -233,7 +236,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Firebase 설정 정보
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
         authDomain: "chosanghee00001.firebaseapp.com",
@@ -247,79 +249,255 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let targetNumber;
-    let remainingChances;
-    let currentStreak = 0;
-
-    const messageEl = document.getElementById('message');
-    const chancesEl = document.getElementById('chances');
-    const currentStreakEl = document.getElementById('current-streak');
-    const guessInput = document.getElementById('guess-input');
+    // 글로벌 환경 변수
+    let activeTab = 'number'; 
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
+
+    /* ----------------------------------------------------
+       [공통] 탭 전환 시스템
+    ---------------------------------------------------- */
+    window.switchGame = function(gameType) {
+        activeTab = gameType;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.id-game-content').forEach(content => content.style.display = 'none');
+        
+        if(gameType === 'number') {
+            document.getElementById('tab-number').classList.add('active');
+            document.getElementById('number-game-screen').style.display = 'block';
+            loadRanking('rankings', '연승');
+        } else {
+            document.getElementById('tab-stock').classList.add('active');
+            document.getElementById('stock-game-screen').style.display = 'block';
+            loadRanking('stock_rankings', '원');
+        }
+    }
+
+    /* ----------------------------------------------------
+       [게임 1] 숫자 맞추기 내부 로직
+    ---------------------------------------------------- */
+    let targetNumber, remainingChances, currentStreak = 0;
+    const numMsg = document.getElementById('number-message');
+    const chancesEl = document.getElementById('chances');
+    const streakEl = document.getElementById('current-streak');
+    const guessInput = document.getElementById('guess-input');
     const guessBtn = document.getElementById('guess-btn');
     const restartBtn = document.getElementById('restart-btn');
 
-    function initGame() {
+    function initNumberGame() {
         targetNumber = Math.floor(Math.random() * 100) + 1;
         remainingChances = 5; 
         chancesEl.textContent = remainingChances;
-        currentStreakEl.textContent = currentStreak;
-        messageEl.textContent = "조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.";
-        messageEl.style.color = "#00f2fe";
+        streakEl.textContent = currentStreak;
+        numMsg.textContent = "조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.";
+        numMsg.style.color = "#00f2fe";
         guessInput.value = "";
         guessInput.disabled = false;
         guessBtn.disabled = false;
         restartBtn.style.display = "none";
-        loadRanking(); 
+        loadRanking('rankings', '연승'); 
     }
 
-    async function saveScoreToBackend(userId, userPw, score) {
-        if (!userId || !userPw) return;
+    function checkGuess() {
+        const userId = userIdInput.value.trim();
+        const userPw = userPwInput.value.trim();
+        const userGuess = parseInt(guessInput.value);
+
+        if (!userId || !userPw) { alert("닉네임과 비밀번호를 모두 채워야 합니다."); return; }
+        if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) { numMsg.textContent = "범위 초과! (1~100 사이)"; return; }
+
+        userIdInput.disabled = true; userPwInput.disabled = true;
+        remainingChances--; chancesEl.textContent = remainingChances;
+
+        if (userGuess === targetNumber) {
+            currentStreak++;
+            numMsg.textContent = `🎉 CORRECT! 조상희의 정답은 [ ${targetNumber} ]`;
+            endGame(true);
+        } else if (remainingChances === 0) {
+            numMsg.textContent = `💥 GAME OVER! 정답은 [ ${targetNumber} ] 이었습니다.`;
+            endGame(false);
+        } else {
+            numMsg.textContent = userGuess < targetNumber ? "🔼 UP! 더 높은 수입니다." : "🔽 DOWN! 더 낮은 수입니다.";
+        }
+        guessInput.value = ""; guessInput.focus();
+    }
+
+    function endGame(isWin) {
+        guessInput.disabled = true; guessBtn.disabled = true;
+        restartBtn.style.display = "inline-block";
+        streakEl.textContent = currentStreak;
+        if (!isWin) {
+            if (currentStreak > 0) saveScore('rankings', userIdInput.value.trim(), userPwInput.value.trim(), currentStreak);
+            currentStreak = 0; userIdInput.disabled = false; userPwInput.disabled = false;
+        } else {
+            setTimeout(() => { alert(`연승 성공! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`); initNumberGame(); }, 1000);
+        }
+    }
+
+    /* ----------------------------------------------------
+       [게임 2] 주식 가치주 투자 게임 로직
+    ---------------------------------------------------- */
+    let stockTurn = 1, stockAsset = 10000000, stockOwned = 0;
+    // 가상의 시총 1조 미만 저평가 바이오 및 테마 기업 테마 리스트
+    let stocks = [
+        { name: "리가켐바이오 테마", price: 50000, cap: "시총 4,200억", owned: 0 },
+        { name: "한스바이오메드 테마", price: 12000, cap: "시총 1,500억", owned: 0 },
+        { name: "휴젤 바이오테마", price: 180000, cap: "시총 8,900억", owned: 0 }
+    ];
+
+    const turnEl = document.getElementById('stock-turn');
+    const assetEl = document.getElementById('stock-asset');
+    const ownedEl = document.getElementById('stock-owned');
+    const marketBoard = document.getElementById('market-board');
+    const stockMsg = document.getElementById('stock-message');
+    const nextTurnBtn = document.getElementById('next-turn-btn');
+    const stockRestartBtn = document.getElementById('stock-restart-btn');
+
+    function initStockGame() {
+        stockTurn = 1; stockAsset = 10000000; stockOwned = 0;
+        stocks[0].price = 50000; stocks[0].owned = 0;
+        stocks[1].price = 12000; stocks[1].owned = 0;
+        stocks[2].price = 180000; stocks[2].owned = 0;
+        nextTurnBtn.disabled = false;
+        stockRestartBtn.style.display = "none";
+        userIdInput.disabled = false; userPwInput.disabled = false;
+        updateStockUI();
+    }
+
+    function updateStockUI() {
+        turnEl.textContent = stockTurn;
+        assetEl.textContent = stockAsset.toLocaleString();
         
+        let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
+        ownedEl.textContent = totalOwned;
+
+        marketBoard.innerHTML = "";
+        stocks.forEach((stock, index) => {
+            const item = document.createElement('div');
+            item.className = 'stock-item';
+            item.innerHTML = `
+                <div class="stock-info">
+                    <div class="name">${stock.name}</div>
+                    <div class="cap">${stock.cap} | 보유: ${stock.owned}주</div>
+                </div>
+                <div class="stock-price">${stock.price.toLocaleString()} 원</div>
+                <div class="stock-actions">
+                    <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
+                    <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
+                </div>
+            `;
+            marketBoard.appendChild(item);
+        });
+    }
+
+    window.tradeStock = function(index, type) {
+        const userId = userIdInput.value.trim();
+        const userPw = userPwInput.value.trim();
+        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 입력해야 거래가 가능합니다."); return; }
+        
+        userIdInput.disabled = true; userPwInput.disabled = true;
+        let stock = stocks[index];
+
+        if (type === 'buy') {
+            if (stockAsset >= stock.price) {
+                stockAsset -= stock.price;
+                stock.owned += 1;
+                stockMsg.textContent = `[${stock.name}] 1주 매수 완료!`;
+            } else {
+                alert("자산이 부족합니다!");
+            }
+        } else {
+            if (stock.owned > 0) {
+                stockAsset += stock.price;
+                stock.owned -= 1;
+                stockMsg.textContent = `[${stock.name}] 1주 매도 완료!`;
+            } else {
+                alert("보유 주식이 없습니다!");
+            }
+        }
+        updateStockUI();
+    }
+
+    nextTurnBtn.addEventListener("click", () => {
+        if(stockTurn >= 5) {
+            // 게임 종료 처리 및 최종 전량 강제 매도 자산 환산
+            stocks.forEach(stock => {
+                stockAsset += stock.owned * stock.price;
+                stock.owned = 0;
+            });
+            nextTurnBtn.disabled = true;
+            stockRestartBtn.style.display = "inline-block";
+            stockMsg.textContent = `🏁 최종 게임 종료! 최종 환산 자산: ${stockAsset.toLocaleString()} 원`;
+            updateStockUI();
+            
+            // 주식 랭킹전 DB 저장 호출
+            saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
+            return;
+        }
+
+        // 시세 변동 알고리즘 (상승/하락 변동폭 폭등락 부여)
+        stocks.forEach(stock => {
+            let changePercent = (Math.random() * 60 - 28) / 100; // -28% ~ +32% 변동
+            stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
+        });
+
+        stockTurn++;
+        stockMsg.textContent = `턴이 변경되었습니다! 가격 변동 완료.`;
+        updateStockUI();
+    });
+
+    /* ----------------------------------------------------
+       [공통 백엔드 데이터 연동] Firebase 저장/조회
+    ---------------------------------------------------- */
+    async function saveScore(colName, userId, userPw, score) {
         try {
-            const q = query(collection(db, "rankings"), where("userId", "==", userId));
+            const q = query(collection(db, colName), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
-                let existingDoc = querySnapshot.docs[0];
-                let existingData = existingDoc.data();
-                
+                let existingData = querySnapshot.docs[0].data();
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 조상희 보안관제: 기존 닉네임과 비밀번호가 일치하지 않아 기록이 차단되었습니다!");
+                    alert("⚠️ 보안 경고: 기존 계정 비밀번호와 일치하지 않아 랭킹 등록이 보류되었습니다!");
                     return;
                 }
-                
                 if (parseInt(score) <= existingData.score) {
-                    console.log("기존 최고 기록이 더 높거나 같음.");
+                    console.log("이전 최고 기록이 더 높아 업데이트 보류.");
                     return;
                 }
             }
 
-            await addDoc(collection(db, "rankings"), {
-                userId: userId,
-                userPw: userPw, 
-                score: parseInt(score),
-                timestamp: new Date()
+            await addDoc(collection(db, colName), {
+                userId: userId, userPw: userPw, score: parseInt(score), timestamp: new Date()
             });
             
-            alert(`🎉 조상희 랭킹전 통보: '${userId}'님의 새로운 랭커 기록(${score}연승)이 박제되었습니다.`);
-            loadRanking(); 
+            let unit = colName === 'rankings' ? '연승' : '원 자산';
+            alert(`🎉 조상희 서버 통보: '${userId}'님의 새로운 마스터 기록(${score.toLocaleString()} ${unit})이 갱신되었습니다.`);
+            loadRanking(colName, colName === 'rankings' ? '연승' : '원'); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
     }
 
-    async function loadRanking() {
+    async function loadRanking(colName, unit) {
+        const titleEl = document.getElementById('ranking-title');
+        const descEl = document.getElementById('ranking-desc');
         const rankingListEl = document.getElementById('ranking-list');
         rankingListEl.innerHTML = "";
 
+        if(colName === 'rankings') {
+            titleEl.textContent = "🏆 조상희 숫자 명예의 전당 (TOP 20)";
+            descEl.textContent = "가장 높은 연속 정답 기록 리스트";
+        } else {
+            titleEl.textContent = "🏆 조상희 가치주 명예의 전당 (TOP 20)";
+            descEl.textContent = "가장 많은 자산을 달성한 자산가 리스트";
+        }
+
         try {
-            const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(20));
+            const q = query(collection(db, colName), orderBy("score", "desc"), limit(20));
             const querySnapshot = await getDocs(q);
             
             if(querySnapshot.empty) {
-                rankingListEl.innerHTML = "<li class='ranking-item'>조상희 서버: 등록된 랭커가 없습니다. 첫 챔피언이 되십시오!</li>";
+                rankingListEl.innerHTML = "<li class='ranking-item'>아직 랭커가 없습니다. 첫 챔피언에 등극해 보십시오!</li>";
                 return;
             }
 
@@ -328,90 +506,25 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'ranking-item';
-                li.innerHTML = `<span>${rank}위. ${data.userId}</span> <span>${data.score} 연승</span>`;
+                li.innerHTML = `<span>${rank}위. ${data.userId}</span> <span>${data.score.toLocaleString()} ${unit}</span>`;
                 rankingListEl.appendChild(li);
                 rank++;
             });
         } catch (e) {
             console.error("랭킹 로드 실패: ", e);
-            rankingListEl.innerHTML = "<li class='ranking-item'>조상희 서버 연결 실패 (보안 규칙을 확인하세요)</li>";
+            rankingListEl.innerHTML = "<li class='ranking-item'>서버 연결 실패 (보안 세팅을 확인하세요)</li>";
         }
     }
 
-    function checkGuess() {
-        const userId = userIdInput.value.trim();
-        const userPw = userPwInput.value.trim();
-        const userGuess = parseInt(guessInput.value);
-
-        if (!userId || !userPw) {
-            alert("조상희 랭킹전에 참여하려면 닉네임과 비밀번호를 모두 채워야 합니다.");
-            if(!userId) userIdInput.focus();
-            else userPwInput.focus();
-            return;
-        }
-
-        if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
-            messageEl.textContent = "조상희 시스템 경고: 범위 초과! (1~100 사이)";
-            messageEl.style.color = "#ff0844";
-            return;
-        }
-
-        userIdInput.disabled = true;
-        userPwInput.disabled = true;
-        
-        remainingChances--;
-        chancesEl.textContent = remainingChances;
-
-        if (userGuess === targetNumber) {
-            currentStreak++;
-            messageEl.textContent = `🎉 CORRECT! 조상희의 정답은 [ ${targetNumber} ]`;
-            messageEl.style.color = "#00f2fe";
-            endGame(true);
-        } else if (remainingChances === 0) {
-            messageEl.textContent = `💥 GAME OVER! 조상희가 숨긴 수는 [ ${targetNumber} ] 이었습니다.`;
-            messageEl.style.color = "#ff0844";
-            endGame(false);
-        } else {
-            if (userGuess < targetNumber) {
-                messageEl.textContent = "🔼 UP! 조상희 레이더: 더 높은 수입니다.";
-                messageEl.style.color = "#00f2fe";
-            } else {
-                messageEl.textContent = "🔽 DOWN! 조상희 레이더: 더 낮은 수입니다.";
-                messageEl.style.color = "#ffb199";
-            }
-        }
-        guessInput.value = "";
-        guessInput.focus();
-    }
-
-    function endGame(isWin) {
-        guessInput.disabled = true;
-        guessBtn.disabled = true;
-        restartBtn.style.display = "inline-block";
-        currentStreakEl.textContent = currentStreak;
-
-        if (!isWin) {
-            if (currentStreak > 0) {
-                saveScoreToBackend(userIdInput.value.trim(), userPwInput.value.trim(), currentStreak);
-            }
-            currentStreak = 0; 
-            userIdInput.disabled = false;
-            userPwInput.disabled = false;
-        } else {
-            setTimeout(() => {
-                alert(`조상희 연승 컴플리트! 이어서 ${currentStreak + 1}번째 판을 이어갑니다.`);
-                initGame();
-            }, 1000);
-        }
-    }
-
+    // 초기 이벤트 설정 및 셋업
     guessBtn.addEventListener("click", checkGuess);
-    restartBtn.addEventListener("click", initGame);
-    guessInput.addEventListener("keyup", function(event) {
-        if (event.key === "Enter") checkGuess();
-    });
+    restartBtn.addEventListener("click", initNumberGame);
+    stockRestartBtn.addEventListener("click", initStockGame);
+    guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
 
-    initGame();
+    // 첫 실행 세팅
+    initNumberGame();
+    initStockGame();
 </script>
 
 </body>
