@@ -8,72 +8,98 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #f4f7f6 0%, #e9eff1 100%); color: #4a5568; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; overflow-x: hidden; }
-        .main-wrapper { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; background: #ffffff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(160, 174, 192, 0.15); }
-        .game-container { flex: 1.2; min-width: 350px; background: #f7fafc; padding: 25px; border-radius: 16px; text-align: center; }
-        .ranking-container { flex: 0.8; min-width: 320px; background: #ffffff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; }
+        /* 화면 스크롤을 원천 차단하고 전체 요소를 화면 높이(100vh)에 딱 맞추는 피팅 스타일 */
+        body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #f4f7f6 0%, #e9eff1 100%); color: #4a5568; display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; padding: 10px 20px; box-sizing: border-box; overflow: hidden; }
         
-        h1, h2 { color: #2d3748; margin-bottom: 10px; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #ebf8ff; padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left; font-size: 0.9rem; }
+        .main-wrapper { display: flex; gap: 15px; max-width: 1200px; width: 100%; flex: 1; min-height: 0; background: #ffffff; padding: 15px; border-radius: 16px; box-shadow: 0 8px 20px rgba(160, 174, 192, 0.1); box-sizing: border-box; }
         
-        .stock-market-board { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 20px; }
+        /* 주식 영역과 랭킹 영역의 높이를 고정하여 스크롤 오버플로우 방지 */
+        .game-container { flex: 1.2; display: flex; flex-direction: column; background: #f7fafc; padding: 15px; border-radius: 12px; min-height: 0; box-sizing: border-box; }
+        .ranking-container { flex: 0.8; display: flex; flex-direction: column; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 0; box-sizing: border-box; }
+        
+        h1 { font-size: 1.35rem; color: #2d3748; font-weight: 700; margin: 0 0 5px 0; }
+        h2 { font-size: 1.1rem; color: #2d3748; margin: 0 0 5px 0; }
+        .description { color: #718096; font-size: 0.8rem; margin-bottom: 10px; font-weight: 300; }
+        
+        .auth-area { display: flex; flex-direction: row; gap: 8px; align-items: center; }
+        .user-status-badge { background: #e2e8f0; color: #4a5568; padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .user-status-badge span.name { color: #3182ce; font-weight: 700; }
+        
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ebf8ff; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
+        .stats div { display: flex; justify-content: space-between; padding: 1px 2px; }
+        
+        /* 종목 리스트 박스 높이 최적화 */
+        .stock-market-board { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
         .stock-row-wrapper { border-bottom: 1px solid #edf2f7; }
-        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; cursor: pointer; transition: 0.2s; }
+        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; transition: 0.2s; }
         .stock-item:hover { background: #f7fafc; }
-        .stock-price { font-weight: 700; min-width: 90px; text-align: right; }
-        .price-up { color: #e53e3e; } .price-down { color: #3182ce; }
+        .stock-row-wrapper.selected .stock-item { background: #eaf6ff; }
+        
+        .stock-info .name { font-weight: 500; color: #2d3748; font-size: 0.88rem; }
+        .stock-info .cap { font-size: 0.72rem; color: #718096; margin-top: 1px; font-weight: 300; }
+        .stock-info .cap.has-balance { color: #dd6b20; font-weight: 500; }
+        .stock-price { font-weight: 700; min-width: 85px; text-align: right; font-size: 0.88rem; }
+        
+        .price-up { color: #e53e3e; } 
+        .price-down { color: #3182ce; }
 
-        .stock-detail-chart-container { display: none; padding: 15px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
+        /* 아코디언 상세 차트 캔버스 높이 압축 다이어트 */
+        .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
         .stock-detail-chart-container.open { display: block; }
-        .detail-canvas { width: 100%; height: 100px; }
+        .detail-canvas { width: 100%; height: 80px; display: block; }
 
-        .ranking-list { list-style: none; padding: 0; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #edf2f7; cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .ranking-item:hover { background: #edf2f7; transform: scale(1.02); }
-        .ranking-item.selected { background: #e2e8f0; border-left: 4px solid #3182ce; }
-
-        .peer-portfolio-card { margin-top: 20px; padding: 15px; background: #2d3748; color: white; border-radius: 12px; display: none; animation: fadeIn 0.3s; }
-        .peer-portfolio-card h3 { font-size: 1rem; margin-top: 0; color: #63b3ed; }
-        .peer-stock-list { font-size: 0.85rem; text-align: left; line-height: 1.6; }
-        .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 4px 0; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* 주문 패드 스타일 고도화 */
-        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.2s; }
+        /* 랭킹전 영역 고정형 리스트 뷰 개편 */
+        .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; text-align: left; font-size: 0.8rem; color: #22543d; }
+        .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.72rem; margin-right: 4px; }
         
-        /* 버튼 그룹 배치 */
-        .order-action-group { display: flex; gap: 8px; width: 100%; }
-        .btn-buy { background: #fed7d7; color: #c53030; padding: 12px; flex: 2; font-size: 0.95rem; }
+        .ranking-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; }
+        .ranking-item { display: flex; justify-content: space-between; padding: 9px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; border-radius: 6px; font-size: 0.85rem; transition: 0.2s; }
+        .ranking-item:hover { background: #edf2f7; }
+
+        /* 상대방 포트폴리오 엿보기 창 크기 보정 */
+        .peer-portfolio-card { margin-top: 10px; padding: 12px; background: #2d3748; color: white; border-radius: 10px; animation: fadeIn 0.2s; max-height: 140px; overflow-y: auto; }
+        .peer-portfolio-card h3 { font-size: 0.85rem; margin: 0 0 6px 0; color: #63b3ed; }
+        .peer-stock-list { font-size: 0.78rem; text-align: left; line-height: 1.5; }
+        .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 2px 0; }
+
+        /* 단일 최대 버튼 통합 및 매매 패드 압축화 */
+        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
+        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.15s; }
+        
+        .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
+        .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
+        .btn-combined-max:hover { background: #e2e8f0; }
+
+        .order-action-group { display: flex; gap: 8px; width: 100%; justify-content: center; }
+        .btn-buy { background: #fed7d7; color: #c53030; padding: 10px; flex: 1; font-size: 0.9rem; }
         .btn-buy:hover { background: #feb2b2; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 12px; flex: 2; font-size: 0.95rem; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 10px; flex: 1; font-size: 0.9rem; }
         .btn-sell:hover { background: #bee3f8; }
-        
-        /* 미니 서브 최대 버튼 */
-        .btn-sub-max-buy { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; padding: 12px; flex: 1; font-size: 0.85rem; }
-        .btn-sub-max-buy:hover { background: #fed7d7; }
-        .btn-sub-max-sell { background: #f7fafc; color: #3182ce; border: 1px solid #bee3f8; padding: 12px; flex: 1; font-size: 0.85rem; }
-        .btn-sub-max-sell:hover { background: #ebf8ff; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper">
-    <div style="width:100%; display:flex; justify-content:center; margin-bottom:15px;">
-        <div class="auth-area" id="login-form-area">
-            <input type="text" id="user-id-input" placeholder="닉네임" maxlength="12">
-            <input type="password" id="user-pw-input" placeholder="비밀번호" maxlength="4">
-            <button id="login-btn" style="padding: 10px 15px; cursor:pointer;">계정 접속</button>
-        </div>
-        <div id="logged-in-status-area" class="user-status-badge" style="display: none;">
-            <span>🟢 <span id="current-user-display" class="name">-</span>님 투자 중</span>
-            <button onclick="handleLogout()" style="cursor:pointer; border:none; background:none; color:#718096; text-decoration:underline;">로그아웃</button>
-        </div>
+<!-- 상단 인증 바 스크롤 절약형 -->
+<div style="display:flex; justify-content:center; margin-bottom:8px; height: 36px; align-items: center;">
+    <div class="auth-area" id="login-form-area">
+        <input type="text" id="user-id-input" placeholder="닉네임" maxlength="12" style="padding:6px; font-size:0.85rem; width:100px;">
+        <input type="password" id="user-pw-input" placeholder="비번" maxlength="4" style="padding:6px; font-size:0.85rem; width:60px;">
+        <button id="login-btn" style="padding: 6px 12px; font-size:0.85rem; background:#63b3ed; color:white;">접속</button>
     </div>
+    <div id="logged-in-status-area" class="user-status-badge" style="display: none;">
+        <span>🟢 <span id="current-user-display" class="name">-</span>님 거래 마켓</span>
+        <button onclick="handleLogout()" style="cursor:pointer; border:none; background:none; color:#718096; text-decoration:underline; font-size:0.8rem; margin-left:10px;">로그아웃</button>
+    </div>
+</div>
 
+<div class="main-wrapper">
+    <!-- 왼쪽 주식 레이스 메인 프레임 -->
     <div class="game-container">
-        <h1>📈 조상희 실시간 주식</h1>
+        <h1>📈 조상희 우량주 레이스</h1>
+        <p class="description">5초 주기 무한 시세 동적 연동 시스템</p>
+        
         <div class="stats">
             <div>예수금: <span id="stock-cash">2,000,000</span>원</div>
             <div>총자산: <span id="stock-asset">2,000,000</span>원</div>
@@ -82,39 +108,40 @@
 
         <div class="stock-market-board" id="market-board"></div>
 
-        <div class="message" id="stock-message">종목을 선택하고 주문창을 이용하세요.</div>
+        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 10분 데이터 차트 및 패드가 표출됩니다.</div>
 
-        <!-- 하단 분리형 통합 주문 패드 -->
+        <!-- 단일 [최대] 버튼이 수량 옆에 통합 탑재된 주문 패드 -->
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
-            <div id="selected-stock-name" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 5px;">종목을 선택하세요</div>
-            <div style="margin-bottom: 5px;">
-                <span style="font-size: 0.9rem; color: #718096; margin-right: 8px;">주문수량:</span>
-                <input type="number" id="global-quantity" value="1" min="1" style="width: 80px; padding: 6px; text-align: center; font-size: 1rem;">
+            <div id="selected-stock-name" style="font-weight: bold; font-size: 0.9rem; text-align: left;">종목 선택됨</div>
+            <div class="order-inputs-zone">
+                <span>수량:</span>
+                <input type="number" id="global-quantity" value="1" min="1" style="width: 60px; padding: 4px; text-align: center; font-size: 0.9rem;">
+                <!-- 통합 최대 단추 단 1개 배치 -->
+                <button class="btn-combined-max" onclick="triggerCombinedMaxCalculate()">최대</button>
             </div>
-            
-            <!-- 버튼 근처에 각각 최대 버튼 결합 배치 -->
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                <div class="order-action-group">
-                    <button class="btn-sub-max-buy" onclick="triggerMaxCalculate('buy')">최대</button>
-                    <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
-                </div>
-                <div class="order-action-group">
-                    <button class="btn-sub-max-sell" onclick="triggerMaxCalculate('sell')">최대</button>
-                    <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
-                </div>
+            <div class="order-action-group">
+                <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
+                <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
             </div>
         </div>
     </div>
 
+    <!-- 오른쪽 실시간 랭킹 보드 프레임 -->
     <div class="ranking-container">
-        <h2>🏆 실시간 랭킹</h2>
-        <p style="font-size: 0.75rem; color: #a0aec0;">* 유저를 클릭하면 보유 주식을 엿볼 수 있습니다.</p>
+        <div class="live-users-panel">
+            <strong>🟢 실시간 동접자</strong>
+            <div id="live-users-list-zone" style="margin-top:2px; font-size:0.75rem;">로그인 시 갱신</div>
+        </div>
+        <h2>🏆 실시간 명예의 전당</h2>
         <ul class="ranking-list" id="ranking-list"></ul>
 
+        <!-- 유저 클릭 시 오버레이되는 포트폴리오 카드 -->
         <div class="peer-portfolio-card" id="peer-card">
-            <h3>🔍 <span id="peer-name">상대방</span>님의 포트폴리오</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <h3>🔍 <span id="peer-name">유저</span> 포트폴리오</h3>
+                <span onclick="closePeerCard()" style="cursor:pointer; font-size:0.75rem; color:#a0aec0;">[닫기]</span>
+            </div>
             <div class="peer-stock-list" id="peer-stock-list"></div>
-            <button onclick="closePeerCard()" style="margin-top:10px; background:#4a5568; color:white; font-size:0.7rem; padding:4px 8px;">닫기</button>
         </div>
     </div>
 </div>
@@ -160,10 +187,10 @@
                 board.innerHTML += `
                     <div class="stock-row-wrapper" id="stock-wrapper-${i}">
                         <div class="stock-item" onclick="selectStockItem(${i})">
-                            <div style="text-align:left"><b>${s.name}</b><br><small id="own-${i}">0주 보유</small></div>
+                            <div style="text-align:left"><span class="name"><b>${s.name}</b></span><br><small class="cap" id="own-${i}">0주 보유</small></div>
                             <div class="stock-price" id="price-${i}">${s.price.toLocaleString()}원</div>
                         </div>
-                        <div class="stock-detail-chart-container" id="detail-${i}"><canvas id="canvas-${i}" class="detail-canvas"></canvas></div>
+                        <div class="stock-detail-chart-container" id="detail-${i}"><canvas id="canvas-${i}" class="detail-canvas" width="400" height="80"></canvas></div>
                     </div>`;
             });
         }
@@ -172,7 +199,10 @@
             document.getElementById(`price-${i}`).className = `stock-price ${s.price > s.oldPrice ? 'price-up' : 'price-down'}`;
             const displayOwned = isNaN(s.owned) ? 0 : s.owned;
             const displayAvg = isNaN(s.avgPrice) ? 0 : s.avgPrice;
-            document.getElementById(`own-${i}`).textContent = `${displayOwned}주 보유 (평단: ${Math.floor(displayAvg).toLocaleString()}원)`;
+            const capEl = document.getElementById(`own-${i}`);
+            capEl.textContent = `평단: ${Math.floor(displayAvg).toLocaleString()}원 | 잔고: ${displayOwned}주`;
+            if (displayOwned > 0) capEl.className = "cap has-balance";
+            else capEl.className = "cap";
         });
 
         let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
@@ -200,7 +230,7 @@
             document.getElementById(`stock-wrapper-${i}`).classList.add('selected');
             selectedStockIndex = i;
             document.getElementById('order-panel').style.visibility = "visible";
-            document.getElementById('selected-stock-name').textContent = stocks[i].name + " 주문";
+            document.getElementById('selected-stock-name').textContent = `📌 ${stocks[i].name} 실시간 호가 주문`;
             drawChart(i);
         } else {
             document.getElementById('order-panel').style.visibility = "hidden";
@@ -215,30 +245,34 @@
         ctx.clearRect(0,0,canvas.width, canvas.height);
         if(h.length < 2) return;
         ctx.beginPath();
-        ctx.strokeStyle = '#3182ce';
+        ctx.strokeStyle = h[h.length - 1] >= h[0] ? '#f56565' : '#4299e1';
+        ctx.lineWidth = 1.5;
+        const step = canvas.width / 19;
         h.forEach((p, idx) => {
-            const x = (idx / 20) * canvas.width;
-            const y = canvas.height - ((p - Math.min(...h)) / (Math.max(...h)-Math.min(...h)+1)) * canvas.height;
+            const x = idx * step;
+            const y = canvas.height - ((p - Math.min(...h)) / (Math.max(...h)-Math.min(...h)+1)) * (canvas.height - 10) - 5;
             idx === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
         });
         ctx.stroke();
     }
 
-    // [최대수량 입력 엔진 연동] 매수/매도 버튼 바로 옆 최대 버튼 핸들러
-    window.triggerMaxCalculate = function(type) {
+    // [업데이트]: 스마트 통합 단일 최대 버튼 비즈니스 연산 로직
+    window.triggerCombinedMaxCalculate = function() {
         if(selectedStockIndex === null) return;
         const s = stocks[selectedStockIndex];
         const qtyInput = document.getElementById('global-quantity');
 
-        if(type === 'buy') {
-            // 예수금 기반 최대 매수 수량 산출
+        const cleanOwned = Number(s.owned) || 0;
+
+        if (cleanOwned > 0) {
+            // 주식을 들고 있다면 잔고 전량 원터치 청산 세팅
+            qtyInput.value = cleanOwned;
+            document.getElementById('stock-message').textContent = `💡 [최대 매도 자동 할당] 보유 잔고 전량(${cleanOwned}주) 매도 수량이 확정되었습니다.`;
+        } else {
+            // 주식이 없다면 가용 예수금 풀베팅 매수 수량 할당
             let maxBuy = Math.floor(stockCash / s.price);
             qtyInput.value = maxBuy < 0 ? 0 : maxBuy;
-            stockMsg.textContent = `💡 [최대 매수] 현재 잔액으로 가능한 풀매수 수량(${qtyInput.value}주)이 설정되었습니다.`;
-        } else {
-            // 주식 잔고 기반 최대 매도 수량 산출
-            qtyInput.value = isNaN(s.owned) ? 0 : s.owned;
-            stockMsg.textContent = `💡 [최대 매도] 현재 보유 중인 잔고 전량(${qtyInput.value}주)이 설정되었습니다.`;
+            document.getElementById('stock-message').textContent = `💡 [최대 매수 자동 할당] 예수금 한도 내 풀매수 수량(${qtyInput.value}주)이 확정되었습니다.`;
         }
     }
 
@@ -267,19 +301,19 @@
                         html += `
                             <div class="peer-stock-row">
                                 <span>${stocks[idx].name} (${cleanCount}주)</span>
-                                <span>평가: ${isNaN(evalAmount) ? 0 : evalAmount.toLocaleString()}원</span>
+                                <span>평가: ${evalAmount.toLocaleString()}원</span>
                             </div>`;
                     }
                 });
             }
-            peerList.innerHTML = hasStock ? html : "<div style='text-align:center; padding:10px;'>보유 중인 주식이 없습니다.</div>";
+            peerList.innerHTML = hasStock ? html : "<div style='text-align:center; padding:5px;'>보유 중인 주식이 없습니다.</div>";
         }
     }
 
     window.closePeerCard = () => { document.getElementById('peer-card').style.display = "none"; }
 
     async function loadRanking() {
-        const q = query(collection(db, "stock_rankings"), orderBy("score", "desc"), limit(10));
+        const q = query(collection(db, "stock_rankings"), orderBy("score", "desc"), limit(12));
         const snap = await getDocs(q);
         const list = document.getElementById('ranking-list');
         list.innerHTML = "";
@@ -303,17 +337,17 @@
         if(isNaN(qty) || qty <= 0) return;
 
         if(type === 'buy') {
-            if(stockCash < s.price * qty) return alert("잔고 부족");
+            if(stockCash < s.price * qty) return alert("예수금이 부족합니다.");
             stockCash -= s.price * qty;
             s.avgPrice = (((s.owned || 0) * (s.avgPrice || 0)) + (s.price * qty)) / ((s.owned || 0) + qty);
             s.owned = (s.owned || 0) + qty;
-            stockMsg.textContent = `🎯 [${s.name}] ${qty}주 실시간 매수 완료!`;
+            document.getElementById('stock-message').textContent = `🎯 [매수 체결] ${s.name} ${qty}주 정상 체결 완료.`;
         } else {
-            if((s.owned || 0) < qty) return alert("주식 부족");
+            if((s.owned || 0) < qty) return alert("보유 주식이 부족합니다.");
             stockCash += s.price * qty;
             s.owned = (s.owned || 0) - qty;
             if(s.owned === 0) s.avgPrice = 0;
-            stockMsg.textContent = `💰 [${s.name}] ${qty}주 실시간 매도 완료!`;
+            document.getElementById('stock-message').textContent = `💰 [매도 체결] ${s.name} ${qty}주 정상 방출 청산 완료.`;
         }
         renderStockMarket();
         if(isUserLoggedIn) await syncAssetToBackend();
@@ -328,6 +362,7 @@
         document.getElementById('login-form-area').style.display = "flex";
         document.getElementById('logged-in-status-area').style.display = "none";
         document.getElementById('order-panel').style.visibility = "hidden";
+        document.getElementById('peer-card').style.display = "none";
         renderStockMarket();
     }
 
@@ -350,6 +385,8 @@
             if(user.data().avgPrices && Array.isArray(user.data().avgPrices)) {
                 user.data().avgPrices.forEach((prc, idx) => { if(stocks[idx]) stocks[idx].avgPrice = Number(prc) || 0; });
             }
+            
+            await updateDoc(doc(db, "stock_rankings", currentDocId), { lastActive: new Date() });
         } else {
             const res = await addDoc(collection(db, "stock_rankings"), { userId: id, userPw: pw, score: 2000000, cash: 2000000, ownedStocks:[0,0,0,0,0], avgPrices:[0,0,0,0,0], lastActive: new Date() });
             currentDocId = res.id;
@@ -362,6 +399,19 @@
         document.getElementById('logged-in-status-area').style.display = "flex";
         document.getElementById('current-user-display').textContent = id;
         renderStockMarket();
+        
+        // 동접 명단 스캔 작동
+        const liveUserZone = document.getElementById('live-users-list-zone');
+        const allUsers = await getDocs(collection(db, "stock_rankings"));
+        let liveHtml = "";
+        let now = new Date().getTime();
+        allUsers.forEach(doc => {
+            let u = doc.data();
+            if(u.lastActive && (now - u.lastActive.toDate().getTime() < 20000)) {
+                liveHtml += `<span class="live-user-dot">👤 ${u.userId}</span>`;
+            }
+        });
+        liveUserZone.innerHTML = liveHtml === "" ? "솔로 투자 중" : liveHtml;
     };
 
     async function syncAssetToBackend() {
