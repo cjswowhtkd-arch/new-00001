@@ -19,7 +19,7 @@
         .main-wrapper {
             display: flex;
             gap: 20px;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             flex-wrap: wrap;
         }
@@ -29,11 +29,25 @@
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             flex: 1;
-            min-width: 300px;
+            min-width: 320px;
             text-align: center;
+        }
+        .ranking-container {
+            max-height: 80vh;
+            overflow-y: auto; /* 20위까지 나오므로 스크롤바 추가 */
         }
         h1, h2 { color: #333; margin-bottom: 10px; }
         .description { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        /* 로그인/계정 입력 영역 스타일 */
+        .auth-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
         .stats {
             display: flex;
             justify-content: space-around;
@@ -46,15 +60,18 @@
         }
         .stats span { color: #007bff; }
         .message { font-size: 1.2rem; font-weight: bold; margin: 20px 0; min-height: 30px; color: #28a745; }
-        input[type="number"], input[type="text"] {
+        
+        input[type="number"], input[type="text"], input[type="password"] {
             padding: 10px;
             font-size: 1.1rem;
             border: 2px solid #ddd;
             border-radius: 5px;
             text-align: center;
+            box-sizing: border-box;
         }
-        input[type="number"] { width: 80px; margin-right: 10px; }
-        input[type="text"] { width: 150px; margin-bottom: 10px; }
+        input[type="number"] { width: 90px; margin-right: 10px; }
+        .auth-area input { width: 220px; }
+        
         button {
             padding: 10px 20px;
             font-size: 1.1rem;
@@ -78,7 +95,7 @@
         }
         .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } /* 1등 금색 */
         .ranking-item:nth-child(2) { font-weight: bold; color: #c0c0c0; } /* 2등 은색 */
-        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 추가 */
+        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 */
     </style>
 </head>
 <body>
@@ -89,14 +106,19 @@
         <h1>🔢 조상희숫자 랭킹전</h1>
         <p class="description">서버에 실시간으로 기록되는 백엔드 연동 게임!</p>
         
-        <input type="text" id="nickname-input" placeholder="닉네임 입력 (필수)" maxlength="10"><br>
+        <!-- 아이디 및 비밀번호 입력칸 추가 -->
+        <div class="auth-area">
+            <input type="text" id="user-id-input" placeholder="아이디 입력 (기록 저장용)" maxlength="15">
+            <input type="password" id="user-pw-input" placeholder="비밀번호 4자리 숫자" maxlength="4">
+            <input type="text" id="nickname-input" placeholder="표시될 닉네임 (필수)" maxlength="10">
+        </div>
 
         <div class="stats">
             <div>남은 기회: <span id="chances">5</span>회</div>
             <div>현재 연승: <span id="current-streak">0</span>승</div>
         </div>
 
-        <div class="message" id="message">닉네임을 입력하고 숫자를 맞춰!</div>
+        <div class="message" id="message">계정 정보와 닉네임을 입력하고 숫자를 맞춰!</div>
 
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
@@ -109,7 +131,7 @@
     <!-- 오른쪽: 실시간 백엔드 랭킹 보드 -->
     <div class="ranking-container">
         <h2>🏆 실시간 랭킹 명예의 전당</h2>
-        <p class="description">전체 플레이어의 최고 연승 기록</p>
+        <p class="description">전체 플레이어의 최고 연승 기록 (TOP 20)</p>
         <ul class="ranking-list" id="ranking-list">
             <li class="ranking-item">불러오는 중...</li>
         </ul>
@@ -119,7 +141,7 @@
 <!-- Firebase 라이브러리 로드 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // Firebase 설정
     const firebaseConfig = {
@@ -145,6 +167,8 @@
     const chancesEl = document.getElementById('chances');
     const currentStreakEl = document.getElementById('current-streak');
     const guessInput = document.getElementById('guess-input');
+    const userIdInput = document.getElementById('user-id-input');
+    const userPwInput = document.getElementById('user-pw-input');
     const nicknameInput = document.getElementById('nickname-input');
     const guessBtn = document.getElementById('guess-btn');
     const restartBtn = document.getElementById('restart-btn');
@@ -152,59 +176,72 @@
     // 게임 초기화 함수
     function initGame() {
         targetNumber = Math.floor(Math.random() * 100) + 1;
-        remainingChances = 6; 
+        remainingChances = 5; 
         chancesEl.textContent = remainingChances;
         currentStreakEl.textContent = currentStreak;
         messageEl.textContent = "숫자를 입력하고 확인을 눌러주세요.";
         messageEl.style.color = "#28a745";
-        
         guessInput.value = "";
         guessInput.disabled = false;
         guessBtn.disabled = false;
         restartBtn.style.display = "none";
-        
-        // 연승이 끊겼을 때만 닉네임 수정 허용
-        if (currentStreak === 0) {
-            nicknameInput.disabled = false;
-        } else {
-            nicknameInput.disabled = true;
-        }
-        
         loadRanking(); 
-        setTimeout(() => guessInput.focus(), 50); // 편의를 위해 시작 시 자동 포커스
     }
 
-    // 완전히 처음부터 다시 시작 (연승 초기화 버튼용)
-    function resetAllGame() {
-        currentStreak = 0;
-        initGame();
-    }
-
-    // 백엔드로 점수 전송
-    async function saveScoreToBackend(nickname, score) {
-        if (!nickname || score <= 0) return;
+    // 백엔드로 점수 전송 (아이디/비밀번호 검증 로직 포함)
+    async function saveScoreToBackend(userId, userPw, nickname, score) {
+        if (!userId || !userPw || !nickname) return;
+        
         try {
+            // 1. 해당 아이디로 등록된 기존 기록이 있는지 확인
+            const q = query(collection(db, "rankings"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
+            
+            if (!querySnapshot.empty) {
+                // 기존 유저 데이터가 존재하는 경우
+                let existingDoc = querySnapshot.docs[0];
+                let existingData = existingDoc.data();
+                
+                // 비밀번호가 틀리면 저장 거부
+                if (existingData.userPw !== userPw) {
+                    alert("⚠️ 기존에 등록된 아이디지만 비밀번호가 일치하지 않아 랭킹이 저장되지 않았습니다!");
+                    return;
+                }
+                
+                // 비밀번호가 맞고, 기존 최고 점수보다 현재 점수가 높을 때만 새로 등록
+                if (parseInt(score) <= existingData.score) {
+                    console.log("기존 최고 기록이 더 높거나 같아서 업데이트하지 않습니다.");
+                    return;
+                }
+            }
+
+            // 2. 새 점수 기록 추가 (기존 내역이 없거나 최고 기록을 경신한 경우)
             await addDoc(collection(db, "rankings"), {
+                userId: userId,
+                userPw: userPw, // 주의: 학습/테스트용 단순 비교용 보관
                 nickname: nickname,
                 score: parseInt(score),
                 timestamp: new Date()
             });
+            
             console.log("백엔드 서버에 점수 저장 완료!");
-            await loadRanking(); 
+            alert(`🎉 축하합니다! ${score}연승 기록이 새롭게 등록되었습니다.`);
+            loadRanking(); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
     }
 
-    // 백엔드에서 랭킹 데이터 불러오기
+    // 백엔드에서 랭킹 데이터 불러오기 (TOP 20으로 제한 수정)
     async function loadRanking() {
         const rankingListEl = document.getElementById('ranking-list');
+        rankingListEl.innerHTML = "";
+
         try {
-            const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(5));
+            // limit(5)에서 limit(20)으로 수정하여 20위까지 로드
+            const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(20));
             const querySnapshot = await getDocs(q);
             
-            rankingListEl.innerHTML = "";
-
             if(querySnapshot.empty) {
                 rankingListEl.innerHTML = "<li class='ranking-item'>아직 등록된 랭킹이 없습니다. 첫 주인공이 되어보세요!</li>";
                 return;
@@ -215,9 +252,7 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'ranking-item';
-                // HTML 인젝션 방지 처리
-                const safeNickname = data.nickname ? data.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "이름없음";
-                li.innerHTML = `<span>${rank}위. ${safeNickname}</span> <span>${data.score}연승</span>`;
+                li.innerHTML = `<span>${rank}위. ${data.nickname} (${data.userId})</span> <span>${data.score}연승</span>`;
                 rankingListEl.appendChild(li);
                 rank++;
             });
@@ -229,14 +264,16 @@
 
     // 정답 체크 함수
     function checkGuess() {
-        if (guessInput.disabled) return;
-
+        const userId = userIdInput.value.trim();
+        const userPw = userPwInput.value.trim();
         const nickname = nicknameInput.value.trim();
         const userGuess = parseInt(guessInput.value);
 
-        if (!nickname) {
-            alert("게임을 시작하기 전에 닉네임을 먼저 입력해 주세요!");
-            nicknameInput.focus();
+        if (!userId || !userPw || !nickname) {
+            alert("게임을 시작하기 전에 아이디, 비밀번호, 닉네임을 모두 입력해 주세요!");
+            if(!userId) userIdInput.focus();
+            else if(!userPw) userPwInput.focus();
+            else nicknameInput.focus();
             return;
         }
 
@@ -246,7 +283,11 @@
             return;
         }
 
+        // 게임 진행 시 계정 정보 입력창 비활성화
+        userIdInput.disabled = true;
+        userPwInput.disabled = true;
         nicknameInput.disabled = true; 
+        
         remainingChances--;
         chancesEl.textContent = remainingChances;
 
@@ -267,29 +308,33 @@
                 messageEl.textContent = "🔽 DOWN! 더 작은 숫자입니다.";
                 messageEl.style.color = "#fd7e14";
             }
-            guessInput.value = "";
-            guessInput.focus();
         }
+        guessInput.value = "";
+        guessInput.focus();
     }
 
     // 게임 종료 처리
-    async function endGame(isWin) {
+    function endGame(isWin) {
         guessInput.disabled = true;
         guessBtn.disabled = true;
+        restartBtn.style.display = "inline-block";
+        currentStreakEl.textContent = currentStreak;
 
         if (!isWin) {
-            // 실패 시 점수 저장 로직이 끝날 때까지 대기(await)한 후 초기화 진행
             if (currentStreak > 0) {
-                const currentNickname = nicknameInput.value.trim();
-                await saveScoreToBackend(currentNickname, currentStreak);
+                saveScoreToBackend(
+                    userIdInput.value.trim(), 
+                    userPwInput.value.trim(), 
+                    nicknameInput.value.trim(), 
+                    currentStreak
+                );
             }
             currentStreak = 0; 
-            currentStreakEl.textContent = currentStreak;
-            
-            // 랭킹 저장 완료 후 다시 시작 버튼 활성화
-            restartBtn.style.display = "inline-block";
+            // 실패 시 다시 입력할 수 있도록 활성화
+            userIdInput.disabled = false;
+            userPwInput.disabled = false;
+            nicknameInput.disabled = false; 
         } else {
-            currentStreakEl.textContent = currentStreak;
             setTimeout(() => {
                 alert(`연승 행진 중! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`);
                 initGame();
@@ -299,14 +344,9 @@
 
     // 이벤트 리스너 등록
     guessBtn.addEventListener("click", checkGuess);
-    restartBtn.addEventListener("click", resetAllGame); // 독자적인 리셋 함수 바인딩
-    
+    restartBtn.addEventListener("click", initGame);
     guessInput.addEventListener("keyup", function(event) {
         if (event.key === "Enter") checkGuess();
-    });
-    
-    nicknameInput.addEventListener("keyup", function(event) {
-        if (event.key === "Enter") guessInput.focus();
     });
 
     // 최초 게임 실행
