@@ -178,28 +178,36 @@
             border: 1px solid #e2e8f0;
             border-radius: 12px;
             padding: 5px 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: left;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
+        
+        /* 종목 행: 클릭할 수 있도록 마우스 포인터 및 선택 효과 지정 */
         .stock-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0;
+            padding: 16px 12px;
             border-bottom: 1px solid #edf2f7;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
         .stock-item:last-child { border-bottom: none; }
-        .stock-info { flex: 1; min-width: 140px; }
+        .stock-item:hover { background: #f7fafc; }
+        .stock-item.selected { background: #eaf6ff; border: 1px solid #90cdf4; }
+
+        .stock-info { flex: 1; min-width: 130px; }
         .stock-info .name { font-weight: 500; color: #2d3748; font-size: 0.95rem; }
         .stock-info .cap { font-size: 0.75rem; color: #718096; margin-top: 3px; font-weight: 300; }
         .stock-info .cap.has-balance { color: #dd6b20; font-weight: 500; }
 
-        /* [차트 스타일 추가] 미니 차트 캔버스 영역 */
+        /* 미니 차트 캔버스 영역 */
         .stock-chart-zone {
             width: 80px;
             height: 35px;
-            margin: 0 10px;
+            margin: 0 15px;
             background: #fafafa;
             border: 1px solid #f0f0f0;
             border-radius: 4px;
@@ -210,16 +218,33 @@
         .price-up { color: #e53e3e !important; } 
         .price-down { color: #3182ce !important; } 
 
-        .stock-trade-zone { display: flex; align-items: center; gap: 4px; }
-        .stock-trade-zone input[type="number"] { width: 50px; padding: 6px 4px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .stock-trade-zone button { padding: 7px 8px; font-size: 0.82rem; border-radius: 6px; font-weight: 400; }
+        /* ================= [MTS식 하단 통합 주문 패드] ================= */
+        .order-panel {
+            background: #ffffff;
+            border: 1px solid #63b3ed;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(99,179,237,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .order-title { font-size: 0.95rem; font-weight: 700; color: #2d3748; }
+        .order-title span.target { color: #3182ce; }
+
+        .order-inputs { display: flex; align-items: center; gap: 8px; justify-content: center; width: 100%; }
+        .order-inputs input[type="number"] { width: 80px; padding: 8px; font-size: 1rem; }
         
-        .btn-max-mix { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; margin-right: 2px; font-weight: 500; }
+        .btn-max-mix { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; font-weight: 500; padding: 9px 12px; border-radius: 8px; }
         .btn-max-mix:hover { background: #e2e8f0; }
 
-        .btn-buy { background: #fed7d7; color: #c53030; box-shadow: none; font-weight: 500; }
+        .order-actions { display: flex; gap: 10px; width: 100%; max-width: 320px; }
+        .order-actions button { flex: 1; padding: 12px; font-size: 1rem; font-weight: 700; border-radius: 8px; box-shadow: none; }
+        
+        .btn-buy { background: #fed7d7; color: #c53030; }
         .btn-buy:hover { background: #feb2b2; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; font-weight: 500; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; }
         .btn-sell:hover { background: #bee3f8; }
 
         /* 랭킹 스타일 */
@@ -274,7 +299,7 @@
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
         <h1>📈 조상희 우량주 레이스 (REALTIME)</h1>
-        <p class="description">5초마다 변하는 실시간 시세 및 꺾은선 차트 탑재!</p>
+        <p class="description">5초마다 시세 변동! 종목을 터치(선택)하여 하단 패드에서 매매하세요.</p>
         
         <div class="stats">
             <div>시장 상태: <span id="stock-status-text" style="font-weight:700;">로그인 필요</span></div>
@@ -283,11 +308,25 @@
             <div>평가 손익: <span id="stock-profit" style="font-weight:700;">0 원 (0.00%)</span></div>
         </div>
 
+        <!-- 5대 우량주 종목판 (클릭형으로 진화) -->
         <div class="stock-market-board" id="market-board">
             <!-- 종목 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">상단 계정 정보를 입력하고 [계정 접속]을 누르면 내 자산 정보를 동기화합니다.</div>
+        <div class="message" id="stock-message">원하는 종목을 클릭하면 하단에 매매 패드가 열립니다.</div>
+
+        <!-- [업데이트] 하단으로 분리 통합된 단일 호가 매매 패드 -->
+        <div class="order-panel" id="order-panel" style="visibility: hidden;">
+            <div class="order-title">📌 선택된 종목: <span id="selected-stock-name" class="target">-</span></div>
+            <div class="order-inputs">
+                <input type="number" id="global-quantity" min="1" value="1" placeholder="수량">
+                <button class="btn-max-mix" onclick="fillCombinedMaxQuantity()">최대</button>
+            </div>
+            <div class="order-actions">
+                <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
+                <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
+            </div>
+        </div>
     </div>
 
     <!-- ================= 우측: 실시간 명예의 전당 ================= -->
@@ -327,6 +366,7 @@
     let currentDocId = null; 
     let isUserLoggedIn = false;
     let myLoggedId = ""; 
+    let selectedStockIndex = null; // [업데이트] 현재 사용자가 터치해서 선택한 종목 번호
 
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
@@ -422,7 +462,7 @@
             
             document.getElementById('stock-status-text').textContent = "실시간 거래 중";
             document.getElementById('stock-status-text').style.color = "#e53e3e";
-            document.getElementById('stock-message').textContent = "주가가 5초마다 자동 갱신됩니다. 매매 시 자산 정보는 계정에 즉시 영구 저장됩니다.";
+            document.getElementById('stock-message').textContent = "주가가 5초마다 자동 갱신됩니다. 종목을 터치하여 거래를 개시하세요.";
             
             startRealtimePrices(); 
             renderStockMarket(false);
@@ -447,6 +487,7 @@
         isUserLoggedIn = false;
         myLoggedId = "";
         currentDocId = null;
+        selectedStockIndex = null; // 선택 종목 초기화
         clearInterval(priceInterval);
 
         userIdInput.value = "";
@@ -457,6 +498,7 @@
         document.getElementById('stock-status-text').textContent = "로그인 필요";
         document.getElementById('stock-status-text').style.color = "#4a5568";
         document.getElementById('stock-message').textContent = "로그아웃되었습니다. 다시 거래하려면 상단 계정 접속을 이용하세요.";
+        document.getElementById('order-panel').style.visibility = "hidden"; // 패드 숨김
         
         initStockGame();
         document.getElementById('live-users-list-zone').textContent = "로그인 후 확인 가능";
@@ -464,10 +506,7 @@
 
     async function fetchLiveActiveUsers() {
         const zone = document.getElementById('live-users-list-zone');
-        if(!isUserLoggedIn) {
-            zone.textContent = "로그인 후 확인 가능";
-            return;
-        }
+        if(!isUserLoggedIn) { zone.textContent = "로그인 후 확인 가능"; return; }
 
         try {
             const snap = await getDocs(collection(db, "stock_rankings"));
@@ -486,9 +525,7 @@
             });
 
             zone.innerHTML = html === "" ? "현재 접속 중인 다른 유저가 없습니다." : html;
-        } catch(e) {
-            console.error("동접자 로드 실패", e);
-        }
+        } catch(e) { console.error("동접자 로드 실패", e); }
     }
 
     async function syncAssetToBackend() {
@@ -510,9 +547,7 @@
                 lastActive: new Date(), 
                 timestamp: new Date()
             });
-        } catch (e) {
-            console.error("실시간 자산 백업 오류: ", e);
-        }
+        } catch (e) { console.error("실시간 자산 백업 오류: ", e); }
     }
 
 
@@ -574,12 +609,11 @@
     }
 
     /* ----------------------------------------------------
-       [게임 2] 실시간 주식 투자 게임 로직 (실시간 차트 탑재)
+       [게임 2] 실시간 주식 투자 게임 로직 (선택형 패드 탑재)
     ---------------------------------------------------- */
     let stockCash = 2000000; 
     let priceInterval;
     
-    // [차트 기능 연동]: 주가 이력을 기록할 history 배열(최대 10개)을 종목 구조에 추가
     let stocks = [
         { name: "삼성전자", price: 68000, oldPrice: 68000, cap: "시총 405조 | 반도체 대장", owned: 0, avgPrice: 0, history: [68000] },
         { name: "SK하이닉스", price: 172000, oldPrice: 172000, cap: "시총 125조 | HBM 선두", owned: 0, avgPrice: 0, history: [172000] },
@@ -593,9 +627,14 @@
     const profitEl = document.getElementById('stock-profit');
     const marketBoard = document.getElementById('market-board');
     const stockMsg = document.getElementById('stock-message');
+    const orderPanel = document.getElementById('order-panel');
+    const selectedStockNameEl = document.getElementById('selected-stock-name');
+    const globalQtyInput = document.getElementById('global-quantity');
 
     function initStockGame() {
         stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; s.history = [s.price]; });
+        selectedStockIndex = null;
+        orderPanel.style.visibility = "hidden";
         renderStockMarket(true); 
         assetEl.textContent = stockCash.toLocaleString();
         cashEl.textContent = stockCash.toLocaleString();
@@ -610,7 +649,6 @@
                 let changePercent = (Math.random() * 34 - 16) / 100; 
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
                 
-                // [차트 기능 연동]: 최근 10회까지의 가격 변화 기록 누적
                 stock.history.push(stock.price);
                 if (stock.history.length > 10) stock.history.shift();
             });
@@ -621,6 +659,20 @@
         }, 5000);
     }
 
+    // [업데이트] 종목행 자체를 클릭해서 포커싱하는 핸들러 추가
+    window.selectStockItem = function(index) {
+        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
+        
+        selectedStockIndex = index;
+        selectedStockNameEl.textContent = stocks[index].name;
+        orderPanel.style.visibility = "visible"; // 하단 패드 가시화
+        stockMsg.textContent = `▶ [${stocks[index].name}] 종목이 타겟으로 지정되었습니다. 주문을 실행하세요.`;
+        
+        // 시각적으로 선택 상태 반영
+        document.querySelectorAll('.stock-item').forEach(el => el.classList.remove('selected'));
+        document.getElementById(`stock-row-${index}`).classList.add('selected');
+    }
+
     function renderStockMarket(isInit = false) {
         if (isInit || marketBoard.children.length === 0) {
             marketBoard.innerHTML = "";
@@ -628,6 +680,8 @@
                 const item = document.createElement('div');
                 item.className = 'stock-item';
                 item.id = `stock-row-${index}`;
+                // 행 자체에 클릭 바인딩
+                item.setAttribute("onclick", `selectStockItem(${index})`);
                 
                 const textStyleClass = stock.owned > 0 ? "cap has-balance" : "cap";
                 
@@ -638,18 +692,11 @@
                             평단가: ${Math.floor(stock.avgPrice).toLocaleString()}원 | 잔고: ${stock.owned}주 | ${stock.cap.split('|')[1] ?? stock.cap}
                         </div>
                     </div>
-                    <!-- [차트 영역 추가]: HTML Canvas 요소를 종목마다 배치 -->
                     <canvas id="stock-canvas-${index}" class="stock-chart-zone" width="80" height="35"></canvas>
                     <div class="stock-price" id="stock-price-${index}">${stock.price.toLocaleString()} 원</div>
-                    <div class="stock-trade-zone">
-                        <input type="number" id="quantity-${index}" min="0" value="1" placeholder="수량">
-                        <button class="btn-max-mix" onclick="fillCombinedMaxQuantity(${index})">최대</button>
-                        <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
-                        <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
-                    </div>
                 `;
                 marketBoard.appendChild(item);
-                drawMiniChart(index); // 최초 차트 그리기
+                drawMiniChart(index);
             });
         } else {
             stocks.forEach((stock, index) => {
@@ -667,7 +714,6 @@
                     if (stock.price > stock.oldPrice) priceEl.classList.add("price-up");
                     else if (stock.price < stock.oldPrice) priceEl.classList.add("price-down");
                     
-                    // [차트 리프레시 추가]: 주가 변동 루프 발생 시 그래프 새로 그리기
                     drawMiniChart(index);
                 }
             });
@@ -685,32 +731,24 @@
 
         profitEl.textContent = `${totalProfit >= 0 ? '+' : ''}${totalProfit.toLocaleString()} 원 (${profitRate.toFixed(2)}%)`;
         
-        if(totalProfit > 0) {
-            profitEl.className = "red-text";
-        } else if(totalProfit < 0) {
-            profitEl.className = "blue-text";
-        } else {
-            profitEl.className = "";
-        }
+        if(totalProfit > 0) profitEl.className = "red-text";
+        else if(totalProfit < 0) profitEl.className = "blue-text";
+        else profitEl.className = "";
     }
 
-    // [차트 캔버스 드로잉 기술 로직 함수 추가]
     function drawMiniChart(index) {
         const canvas = document.getElementById(`stock-canvas-${index}`);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         const history = stocks[index].history;
         
-        // 도화지 깨끗하게 밀기
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (history.length < 2) return;
 
-        // 주가 기록의 최댓값, 최솟값을 구해 변동 비율 가방 매핑
         const maxPrice = Math.max(...history);
         const minPrice = Math.min(...history);
         const priceRange = (maxPrice - minPrice) === 0 ? 1 : (maxPrice - minPrice);
 
-        // 디자인 톤 앤 매너 결정 (상승: 연한 레드, 하락: 연한 블루)
         const isUp = history[history.length - 1] >= history[history.length - 2];
         ctx.strokeStyle = isUp ? '#e53e3e' : '#3182ce';
         ctx.lineWidth = 2;
@@ -718,11 +756,9 @@
         ctx.lineJoin = 'round';
 
         ctx.beginPath();
-        // 각 데이터 포인트를 캔버스 좌표계로 치환하여 선으로 연결
-        const segmentWidth = canvas.width / 9; // 최대 10개 점이므로 칸은 9칸
+        const segmentWidth = canvas.width / 9;
         history.forEach((price, idx) => {
             const x = idx * segmentWidth;
-            // 위아래 여백을 4픽셀씩 주어 선이 캔버스 모서리에 달라붙지 않게 처리
             const y = canvas.height - 4 - ((price - minPrice) / priceRange) * (canvas.height - 8);
             if (idx === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
@@ -730,32 +766,31 @@
         ctx.stroke();
     }
 
-    window.fillCombinedMaxQuantity = function(index) {
-        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
+    // [업데이트] 통합 단일 최대 버튼 알고리즘 연동
+    window.fillCombinedMaxQuantity = function() {
+        if(selectedStockIndex === null) return;
         
-        let stock = stocks[index];
-        const qtyInput = document.getElementById(`quantity-${index}`);
-        
+        let stock = stocks[selectedStockIndex];
         let maxBuyQty = Math.floor(stockCash / stock.price);
         if (maxBuyQty < 0) maxBuyQty = 0;
 
         if(stock.owned > 0) {
-            qtyInput.value = stock.owned;
-            stockMsg.textContent = `💡 [최대 청산] 보유 중인 잔고 전량(${stock.owned}주)이 세팅되었습니다.`;
+            globalQtyInput.value = stock.owned;
+            stockMsg.textContent = `💡 [최대 매도] 보유 중인 잔고 전량(${stock.owned}주)이 세팅되었습니다.`;
         } else {
-            qtyInput.value = maxBuyQty;
-            stockMsg.textContent = `💡 [최대 매수] 보유 예수금 기준 풀매수 수량(${maxBuyQty}주)이 세팅되었습니다.`;
+            globalQtyInput.value = maxBuyQty;
+            stockMsg.textContent = `💡 [최대 매수] 가용 예수금 기준 풀매수 수량(${maxBuyQty}주)이 세팅되었습니다.`;
         }
     }
 
-    window.tradeStock = function(index, type) {
-        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
+    // [업데이트] 통합 주문창 액션 제어 핸들러
+    window.tradeStock = function(type) {
+        if(selectedStockIndex === null) { alert("거래할 종목을 리스트에서 먼저 선택해 주세요!"); return; }
         
-        let stock = stocks[index];
-        const qtyInput = document.getElementById(`quantity-${index}`);
-        let qty = parseInt(qtyInput.value);
+        let stock = stocks[selectedStockIndex];
+        let qty = parseInt(globalQtyInput.value);
 
-        if (isNaN(qty) || qty <= 0) { alert("거래할 정확한 수량을 지정해 주세요."); return; }
+        if (isNaN(qty) || qty <= 0) { alert("거래할 정확한 수량을 입력해 주세요."); return; }
         let totalCost = stock.price * qty;
 
         if (type === 'buy') {
@@ -777,7 +812,7 @@
                 if(stock.owned === 0) stock.avgPrice = 0;
 
                 stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 매도 완료.`;
-            } else { alert("방출 가능한 보유 주식 수량이 부족합니다."); }
+            } else { alert("보유 주식이 주문 수량보다 부족합니다."); }
         }
         renderStockMarket(false); 
         syncAssetToBackend(); 
@@ -800,9 +835,7 @@
                 userId: userId, score: parseInt(score), timestamp: new Date()
             });
             loadRanking(colName, '연승'); 
-        } catch (e) {
-            console.error("점수 저장 실패: ", e);
-        }
+        } catch (e) { console.error("점수 저장 실패: ", e); }
     }
 
     async function loadRanking(colName, unit) {
@@ -842,9 +875,7 @@
                 rankingListEl.appendChild(li);
                 rank++;
             });
-        } catch (e) {
-            console.error("랭킹 로드 실패: ", e);
-        }
+        } catch (e) { console.error("랭킹 로드 실패: ", e); }
     }
 
     guessBtn.addEventListener("click", checkGuess);
