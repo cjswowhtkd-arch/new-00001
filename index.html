@@ -171,32 +171,6 @@
         input[type="number"] { width: 100px; }
         .auth-area input { width: 140px; }
         
-        /* 버튼 테마 */
-        button {
-            padding: 10px 22px; font-size: 1rem; font-weight: 500;
-            background: #63b3ed; color: #ffffff;
-            border: none; border-radius: 8px; cursor: pointer;
-            box-shadow: 0 2px 4px rgba(99, 179, 237, 0.2);
-            transition: all 0.2s ease;
-        }
-        button:hover { background: #4299e1; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3); }
-        .restart-btn { 
-            background: #fc8181; color: white;
-            margin-top: 15px; display: none; box-shadow: 0 2px 4px rgba(252, 129, 129, 0.2);
-        }
-        .restart-btn:hover { background: #f56565; }
-
-        .btn-logout { background: #cbd5e0; color: #4a5568; padding: 4px 10px; font-size: 0.82rem; border-radius: 6px; box-shadow: none; }
-        .btn-logout:hover { background: #a0aec0; }
-        
-        /* 랭킹 스타일 */
-        .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; color: #4a5568; transition: background 0.3s ease; }
-        .ranking-item:nth-child(1) { font-weight: 700; color: #dd6b20; background: #fffaf0; border-radius: 6px; } 
-        .ranking-item:nth-child(2) { font-weight: 700; color: #4a5568; background: #f7fafc; border-radius: 6px; } 
-        .ranking-item:nth-child(3) { font-weight: 700; color: #b7791f; background: #fffaf0; border-radius: 6px; } 
-        .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
-
         /* 주식 게임 UI */
         .stock-screen { display: none; }
         .stock-market-board {
@@ -217,12 +191,11 @@
         }
         .stock-item:last-child { border-bottom: none; }
         .stock-info .name { font-weight: 500; color: #2d3748; font-size: 0.95rem; }
-        .stock-info .cap { font-size: 0.78rem; color: #718096; margin-top: 2px; font-weight: 300; }
         
-        .balance-badge {
-            font-size: 0.78rem; background: #edf2f7; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-weight: 500; margin-left: 5px;
-        }
-        .balance-badge.active { background: #feebc8; color: #c05621; }
+        /* 하단 이동 잔고 텍스트 기본 스타일 */
+        .stock-info .cap { font-size: 0.78rem; color: #718096; margin-top: 3px; font-weight: 300; transition: color 0.3s; }
+        /* 잔고가 있을 때 텍스트 색상 강조 */
+        .stock-info .cap.has-balance { color: #dd6b20; font-weight: 500; }
 
         .stock-price { font-weight: 700; text-align: right; min-width: 100px; color: #4a5568; font-size: 0.95rem; transition: color 0.2s ease; }
         
@@ -231,17 +204,24 @@
 
         .stock-trade-zone { display: flex; align-items: center; gap: 4px; }
         .stock-trade-zone input[type="number"] { width: 55px; padding: 6px 4px; font-size: 0.88rem; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .stock-trade-zone button { padding: 7px 8px; font-size: 0.82rem; border-radius: 6px; font-weight: 400; }
+        .stock-trade-zone button { padding: 7px 10px; font-size: 0.85rem; border-radius: 6px; font-weight: 400; }
         
-        .btn-max-buy { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; margin-right: 2px; }
-        .btn-max-buy:hover { background: #fed7d7; }
-        .btn-max-sell { background: #f7fafc; color: #3182ce; border: 1px solid #bee3f8; margin-right: 4px; }
-        .btn-max-sell:hover { background: #ebf8ff; }
+        /* 통합 최대 단추 세련된 그레이 테마 */
+        .btn-max-mix { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; margin-right: 4px; font-weight: 500; }
+        .btn-max-mix:hover { background: #e2e8f0; }
 
         .btn-buy { background: #fed7d7; color: #c53030; box-shadow: none; font-weight: 500; }
         .btn-buy:hover { background: #feb2b2; }
         .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; font-weight: 500; }
         .btn-sell:hover { background: #bee3f8; }
+
+        /* 랭킹 스타일 */
+        .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
+        .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; color: #4a5568; transition: background 0.3s ease; }
+        .ranking-item:nth-child(1) { font-weight: 700; color: #dd6b20; background: #fffaf0; border-radius: 6px; } 
+        .ranking-item:nth-child(2) { font-weight: 700; color: #4a5568; background: #f7fafc; border-radius: 6px; } 
+        .ranking-item:nth-child(3) { font-weight: 700; color: #b7791f; background: #fffaf0; border-radius: 6px; } 
+        .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -587,12 +567,11 @@
     }
 
     /* ----------------------------------------------------
-       [게임 2] 실시간 주식 투자 게임 로직 (최신 인기주 교체형)
+       [게임 2] 실시간 주식 투자 게임 로직
     ---------------------------------------------------- */
     let stockCash = 2000000; 
     let priceInterval;
     
-    // [업데이트] 주가 자산 스케일에 부합하게 코스피/코스닥 주요 인기 5대 종목으로 전면 교체
     let stocks = [
         { name: "삼성전자", price: 68000, oldPrice: 68000, cap: "시총 405조 | 반도체 대장", owned: 0, avgPrice: 0 },
         { name: "SK하이닉스", price: 172000, oldPrice: 172000, cap: "시총 125조 | HBM 선두", owned: 0, avgPrice: 0 },
@@ -629,6 +608,7 @@
         }, 5000);
     }
 
+    // [업데이트] 주식 잔고현황 하단 고정 및 통합 최대 단추 레이아웃 반영
     function renderStockMarket(isInit = false) {
         if (isInit || marketBoard.children.length === 0) {
             marketBoard.innerHTML = "";
@@ -637,22 +617,23 @@
                 item.className = 'stock-item';
                 item.id = `stock-row-${index}`;
                 
-                const badgeClass = stock.owned > 0 ? "balance-badge active" : "balance-badge";
+                // 잔고 상태에 따른 파스텔 오렌지 하이라이트 클래스 정의
+                const textStyleClass = stock.owned > 0 ? "cap has-balance" : "cap";
                 
                 item.innerHTML = `
                     <div class="stock-info">
-                        <div class="name">
-                            ${stock.name}
-                            <span id="stock-badge-${index}" class="${badgeClass}">잔고: ${stock.owned}주</span>
+                        <div class="name">${stock.name}</div>
+                        <!-- 잔고와 평단가를 보기 편하게 하단으로 하방 정렬 일원화 -->
+                        <div class="${textStyleClass}" id="stock-cap-${index}">
+                            평단가: ${Math.floor(stock.avgPrice).toLocaleString()}원 | 잔고: ${stock.owned}주 | ${stock.cap.split('|')[1] ?? stock.cap}
                         </div>
-                        <div class="cap" id="stock-cap-${index}">평단가: ${Math.floor(stock.avgPrice).toLocaleString()}원 | ${stock.cap}</div>
                     </div>
                     <div class="stock-price" id="stock-price-${index}">${stock.price.toLocaleString()} 원</div>
                     <div class="stock-trade-zone">
-                        <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
-                        <button class="btn-max-buy" onclick="fillMaxQuantity(${index}, 'buy')">최대</button>
+                        <input type="number" id="quantity-${index}" min="0" value="1" placeholder="수량">
+                        <!-- 통합된 심플한 최대 버튼 하나만 스크린에 배치 -->
+                        <button class="btn-max-mix" onclick="fillCombinedMaxQuantity(${index})">최대</button>
                         <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
-                        <button class="btn-max-sell" onclick="fillMaxQuantity(${index}, 'sell')">최대</button>
                         <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
                     </div>
                 `;
@@ -662,15 +643,13 @@
             stocks.forEach((stock, index) => {
                 const priceEl = document.getElementById(`stock-price-${index}`);
                 const capEl = document.getElementById(`stock-cap-${index}`);
-                const badgeEl = document.getElementById(`stock-badge-${index}`);
                 
-                if (priceEl && capEl && badgeEl) {
+                if (priceEl && capEl) {
                     priceEl.textContent = `${stock.price.toLocaleString()} 원`;
-                    capEl.textContent = `평단가: ${Math.floor(stock.avgPrice).toLocaleString()}원 | ${stock.cap}`;
-                    badgeEl.textContent = `잔고: ${stock.owned}주`;
+                    capEl.textContent = `평단가: ${Math.floor(stock.avgPrice).toLocaleString()}원 | 잔고: ${stock.owned}주 | ${stock.cap.split('|')[1] ?? stock.cap}`;
                     
-                    if(stock.owned > 0) badgeEl.className = "balance-badge active";
-                    else badgeEl.className = "balance-badge";
+                    if(stock.owned > 0) capEl.className = "cap has-balance";
+                    else capEl.className = "cap";
 
                     priceEl.className = "stock-price";
                     if (stock.price > stock.oldPrice) priceEl.classList.add("price-up");
@@ -700,20 +679,23 @@
         }
     }
 
-    window.fillMaxQuantity = function(index, type) {
+    // [업데이트] 매수/매도 상황을 스마트하게 자동 판단하여 인풋을 채워주는 단일 최대 버튼 함수
+    window.fillCombinedMaxQuantity = function(index) {
         if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
         
         let stock = stocks[index];
         const qtyInput = document.getElementById(`quantity-${index}`);
+        
+        let maxBuyQty = Math.floor(stockCash / stock.price);
+        if (maxBuyQty < 0) maxBuyQty = 0;
 
-        if (type === 'buy') {
-            let maxBuyQty = Math.floor(stockCash / stock.price);
-            if (maxBuyQty < 0) maxBuyQty = 0;
-            qtyInput.value = maxBuyQty;
-            stockMsg.textContent = `💡 [최대 매수] 현재 예수금 기준 최대 매수 가능 수량은 ${maxBuyQty}주입니다.`;
-        } else {
+        // 보유 잔고가 있으면 전부 매도할 수 있도록 잔고 수량을 우선 기입하고, 잔고가 0주인 빈 상태일 때는 살 수 있는 최대 수량을 알아서 계산
+        if(stock.owned > 0) {
             qtyInput.value = stock.owned;
-            stockMsg.textContent = `💡 [최대 매도] 보유 중인 ${stock.name} 주식은 총 ${stock.owned}주입니다.`;
+            stockMsg.textContent = `💡 [최대 청산 감지] 보유 중인 잔고 전량(${stock.owned}주)이 세팅되었습니다.`;
+        } else {
+            qtyInput.value = maxBuyQty;
+            stockMsg.textContent = `💡 [최대 진입 감지] 사용 가능한 예수금 전액 기준 풀매수 수량(${maxBuyQty}주)이 세팅되었습니다.`;
         }
     }
 
