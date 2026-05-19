@@ -229,12 +229,18 @@
         .price-up { color: #e53e3e !important; } 
         .price-down { color: #3182ce !important; } 
 
-        .stock-trade-zone { display: flex; align-items: center; gap: 6px; }
-        .stock-trade-zone input[type="number"] { width: 60px; padding: 6px; font-size: 0.88rem; border: 1px solid #e2e8f0; border-radius: 6px; }
-        .stock-trade-zone button { padding: 7px 10px; font-size: 0.85rem; border-radius: 6px; font-weight: 400; }
-        .btn-buy { background: #fed7d7; color: #c53030; box-shadow: none; }
+        .stock-trade-zone { display: flex; align-items: center; gap: 4px; }
+        .stock-trade-zone input[type="number"] { width: 55px; padding: 6px 4px; font-size: 0.88rem; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .stock-trade-zone button { padding: 7px 8px; font-size: 0.82rem; border-radius: 6px; font-weight: 400; }
+        
+        .btn-max-buy { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; margin-right: 2px; }
+        .btn-max-buy:hover { background: #fed7d7; }
+        .btn-max-sell { background: #f7fafc; color: #3182ce; border: 1px solid #bee3f8; margin-right: 4px; }
+        .btn-max-sell:hover { background: #ebf8ff; }
+
+        .btn-buy { background: #fed7d7; color: #c53030; box-shadow: none; font-weight: 500; }
         .btn-buy:hover { background: #feb2b2; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; font-weight: 500; }
         .btn-sell:hover { background: #bee3f8; }
     </style>
 </head>
@@ -280,7 +286,7 @@
 
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
-        <h1>📈 조상희 가치주 레이스 (REALTIME)</h1>
+        <h1>📈 조상희 우량주 레이스 (REALTIME)</h1>
         <p class="description">5초마다 변하는 실시간 시세! 내 계정에 자산이 자동 세이브됩니다.</p>
         
         <div class="stats">
@@ -508,7 +514,7 @@
         let avgPricesArray = stocks.map(s => s.avgPrice);
 
         try {
-            const userDocRef = doc(db, "stock_rankings", currentDocRef ?? currentDocId);
+            const userDocRef = doc(db, "stock_rankings", currentDocId);
             await updateDoc(userDocRef, {
                 score: totalAsset, 
                 cash: stockCash,   
@@ -581,17 +587,18 @@
     }
 
     /* ----------------------------------------------------
-       [게임 2] 실시간 주식 투자 게임 로직
+       [게임 2] 실시간 주식 투자 게임 로직 (최신 인기주 교체형)
     ---------------------------------------------------- */
     let stockCash = 2000000; 
     let priceInterval;
     
+    // [업데이트] 주가 자산 스케일에 부합하게 코스피/코스닥 주요 인기 5대 종목으로 전면 교체
     let stocks = [
-        { name: "리가켐바이오 테마", price: 65000, oldPrice: 65000, cap: "시총 4,200억", owned: 0, avgPrice: 0 },
-        { name: "한스바이오메드 테마", price: 14000, oldPrice: 14000, cap: "시총 1,500억", owned: 0, avgPrice: 0 },
-        { name: "휴젤 헬스케어테마", price: 195000, oldPrice: 195000, cap: "시총 8,900억", owned: 0, avgPrice: 0 },
-        { name: "KOSDAQ 150 바이오 ETF", price: 22000, oldPrice: 22000, cap: "지수 연동형 테마", owned: 0, avgPrice: 0 },
-        { name: "상희 디바이스 가치주", price: 45000, oldPrice: 45000, cap: "시총 3,100억", owned: 0, avgPrice: 0 }
+        { name: "삼성전자", price: 68000, oldPrice: 68000, cap: "시총 405조 | 반도체 대장", owned: 0, avgPrice: 0 },
+        { name: "SK하이닉스", price: 172000, oldPrice: 172000, cap: "시총 125조 | HBM 선두", owned: 0, avgPrice: 0 },
+        { name: "현대차", price: 245000, oldPrice: 245000, cap: "시총 51조 | 자동차·밸류업", owned: 0, avgPrice: 0 },
+        { name: "NAVER", price: 185000, oldPrice: 185000, cap: "시총 30조 | IT·AI 대표", owned: 0, avgPrice: 0 },
+        { name: "에코프로비엠", price: 165000, oldPrice: 165000, cap: "시총 16조 | 이차전지 테마", owned: 0, avgPrice: 0 }
     ];
 
     const assetEl = document.getElementById('stock-asset');
@@ -643,7 +650,9 @@
                     <div class="stock-price" id="stock-price-${index}">${stock.price.toLocaleString()} 원</div>
                     <div class="stock-trade-zone">
                         <input type="number" id="quantity-${index}" min="1" value="1" placeholder="수량">
+                        <button class="btn-max-buy" onclick="fillMaxQuantity(${index}, 'buy')">최대</button>
                         <button class="btn-buy" onclick="tradeStock(${index}, 'buy')">매수</button>
+                        <button class="btn-max-sell" onclick="fillMaxQuantity(${index}, 'sell')">최대</button>
                         <button class="btn-sell" onclick="tradeStock(${index}, 'sell')">매도</button>
                     </div>
                 `;
@@ -688,6 +697,23 @@
             profitEl.className = "blue-text";
         } else {
             profitEl.className = "";
+        }
+    }
+
+    window.fillMaxQuantity = function(index, type) {
+        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
+        
+        let stock = stocks[index];
+        const qtyInput = document.getElementById(`quantity-${index}`);
+
+        if (type === 'buy') {
+            let maxBuyQty = Math.floor(stockCash / stock.price);
+            if (maxBuyQty < 0) maxBuyQty = 0;
+            qtyInput.value = maxBuyQty;
+            stockMsg.textContent = `💡 [최대 매수] 현재 예수금 기준 최대 매수 가능 수량은 ${maxBuyQty}주입니다.`;
+        } else {
+            qtyInput.value = stock.owned;
+            stockMsg.textContent = `💡 [최대 매도] 보유 중인 ${stock.name} 주식은 총 ${stock.owned}주입니다.`;
         }
     }
 
