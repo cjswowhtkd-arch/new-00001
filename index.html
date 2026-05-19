@@ -250,7 +250,105 @@
         }
 
         renderStockInfoText();
-        renderEstateMarket(); // 부동산 뷰어 리프레시
+        // 🏢 [신설] 부동산 마켓 렌더러 및 즉시 계약 엔진
+function renderEstateMarket() {
+    const board = document.getElementById('estate-board');
+    board.innerHTML = "";
+
+    estates.forEach((e, idx) => {
+
+        const row = document.createElement('div');
+        row.className = 'estate-item';
+
+        row.innerHTML = `
+            <div class="estate-info">
+                <div class="estate-name">
+                    ${e.name}
+                    <span style="font-weight:300; color:#a0aec0;">
+                        | 매입가 ${e.cost.toLocaleString()}원
+                    </span>
+                </div>
+
+                <div class="estate-rent-info">
+                    💰 5초당 월세 수입:
+                    +${e.rent.toLocaleString()}원 고정 입금
+                </div>
+            </div>
+
+            <div class="estate-btn-zone">
+
+                <div class="estate-count">
+                    ${e.owned} 채 보유
+                </div>
+
+                <!-- 매입 버튼 -->
+                <button
+                    class="btn-estate-buy"
+                    onclick="buyEstateAsset(${idx})">
+                    매입 등기
+                </button>
+
+                <!-- 매도 버튼 추가 -->
+                <button
+                    onclick="sellEstateAsset(${idx})"
+                    style="
+                        background:#fff5f5;
+                        color:#c53030;
+                        border:1px solid #feb2b2;
+                        padding:6px 12px;
+                        font-size:0.8rem;
+                        font-weight:bold;
+                        border-radius:6px;
+                        cursor:pointer;
+                    ">
+                    매도
+                </button>
+
+            </div>
+        `;
+
+        board.appendChild(row);
+    });
+}
+        // 🏢 부동산 매도 처리 함수
+window.sellEstateAsset = function(idx) {
+
+    if(!isUserLoggedIn) {
+        alert("⚠️ 로그인 후 이용 가능합니다.");
+        return;
+    }
+
+    let targetEstate = estates[idx];
+
+    // 보유 체크
+    if(targetEstate.owned <= 0) {
+        alert("❌ 보유한 부동산이 없습니다.");
+        return;
+    }
+
+    // 랜덤 매도가 (원가 90% ~ 115%)
+    let sellPrice = Math.floor(
+        targetEstate.cost * (0.9 + Math.random() * 0.25)
+    );
+
+    // 보유 수 감소
+    targetEstate.owned--;
+
+    // 현금 지급
+    stockCash += sellPrice;
+
+    document.getElementById('stock-message').textContent =
+        `🏢 '${targetEstate.name}' 매도 완료! +${sellPrice.toLocaleString()}원 입금`;
+
+    // 화면 갱신
+    renderStockInfoText();
+    renderEstateMarket();
+
+    // 서버 저장
+    if(isUserLoggedIn) {
+        syncAssetToBackend();
+    }
+}
         calculateAIHints();
         loadRanking();
         if(isUserLoggedIn) {
