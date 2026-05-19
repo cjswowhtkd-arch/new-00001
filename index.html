@@ -78,7 +78,7 @@
         }
         .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } /* 1등 금색 */
         .ranking-item:nth-child(2) { font-weight: bold; color: #c0c0c0; } /* 2등 은색 */
-        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 */
+        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } /* 3등 동색 추가 */
     </style>
 </head>
 <body>
@@ -103,7 +103,7 @@
             <button id="guess-btn">확인</button>
         </div>
 
-        <button class="restart-btn" id="restart-btn">새 게임 시작하기</button>
+        <button class="restart-btn" id="restart-btn">다시 시작하기</button>
     </div>
 
     <!-- 오른쪽: 실시간 백엔드 랭킹 보드 -->
@@ -157,20 +157,27 @@
         currentStreakEl.textContent = currentStreak;
         messageEl.textContent = "숫자를 입력하고 확인을 눌러주세요.";
         messageEl.style.color = "#28a745";
+        
         guessInput.value = "";
         guessInput.disabled = false;
         guessBtn.disabled = false;
         restartBtn.style.display = "none";
         
-        // 연승 중일 때는 닉네임 변경 불가 고정
-        if (currentStreak > 0) {
-            nicknameInput.disabled = true;
-        } else {
+        // 연승이 끊겼을 때만 닉네임 수정 허용
+        if (currentStreak === 0) {
             nicknameInput.disabled = false;
+        } else {
+            nicknameInput.disabled = true;
         }
         
         loadRanking(); 
-        setTimeout(() => guessInput.focus(), 50); // 편의성: 시작 시 입력창 포커스
+        setTimeout(() => guessInput.focus(), 50); // 편의를 위해 시작 시 자동 포커스
+    }
+
+    // 완전히 처음부터 다시 시작 (연승 초기화 버튼용)
+    function resetAllGame() {
+        currentStreak = 0;
+        initGame();
     }
 
     // 백엔드로 점수 전송
@@ -183,7 +190,7 @@
                 timestamp: new Date()
             });
             console.log("백엔드 서버에 점수 저장 완료!");
-            await loadRanking(); // 저장 후 즉시 랭킹 리프레시
+            await loadRanking(); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
@@ -196,7 +203,7 @@
             const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(5));
             const querySnapshot = await getDocs(q);
             
-            rankingListEl.innerHTML = ""; // 성공적으로 데이터를 받았을 때만 비우기
+            rankingListEl.innerHTML = "";
 
             if(querySnapshot.empty) {
                 rankingListEl.innerHTML = "<li class='ranking-item'>아직 등록된 랭킹이 없습니다. 첫 주인공이 되어보세요!</li>";
@@ -207,9 +214,10 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
-                const cleanNickname = data.nickname ? data.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "이름없음"; // 간단한 XSS 방어
                 li.className = 'ranking-item';
-                li.innerHTML = `<span>${rank}위. ${cleanNickname}</span> <span>${data.score}연승</span>`;
+                // HTML 인젝션 방지 처리
+                const safeNickname = data.nickname ? data.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "이름없음";
+                li.innerHTML = `<span>${rank}위. ${safeNickname}</span> <span>${data.score}연승</span>`;
                 rankingListEl.appendChild(li);
                 rank++;
             });
@@ -221,7 +229,6 @@
 
     // 정답 체크 함수
     function checkGuess() {
-        // 이미 기회가 없거나 입력창이 막혔다면 실행 방지
         if (guessInput.disabled) return;
 
         const nickname = nicknameInput.value.trim();
@@ -266,22 +273,23 @@
     }
 
     // 게임 종료 처리
-    function endGame(isWin) {
+    async function endGame(isWin) {
         guessInput.disabled = true;
         guessBtn.disabled = true;
-        currentStreakEl.textContent = currentStreak;
 
         if (!isWin) {
-            // 실패했을 때만 '새 게임 시작하기' 버튼 노출
-            restartBtn.style.display = "inline-block";
+            // 실패 시 점수 저장 로직이 끝날 때까지 대기(await)한 후 초기화 진행
             if (currentStreak > 0) {
-                saveScoreToBackend(nicknameInput.value.trim(), currentStreak);
+                const currentNickname = nicknameInput.value.trim();
+                await saveScoreToBackend(currentNickname, currentStreak);
             }
             currentStreak = 0; 
-            nicknameInput.disabled = false; 
+            currentStreakEl.textContent = currentStreak;
+            
+            // 랭킹 저장 완료 후 다시 시작 버튼 활성화
+            restartBtn.style.display = "inline-block";
         } else {
-            // 승리했을 때는 버튼을 노출하지 않고 1초 뒤 자동 다음 판 실행
-            restartBtn.style.display = "none";
+            currentStreakEl.textContent = currentStreak;
             setTimeout(() => {
                 alert(`연승 행진 중! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`);
                 initGame();
@@ -291,15 +299,14 @@
 
     // 이벤트 리스너 등록
     guessBtn.addEventListener("click", checkGuess);
-    restartBtn.addEventListener("click", () => {
-        currentStreak = 0; // 완전 재시작 시 연승 초기화 보장
-        initGame();
-    });
+    restartBtn.addEventListener("click", resetAllGame); // 독자적인 리셋 함수 바인딩
+    
     guessInput.addEventListener("keyup", function(event) {
         if (event.key === "Enter") checkGuess();
     });
+    
     nicknameInput.addEventListener("keyup", function(event) {
-        if (event.key === "Enter") guessInput.focus(); // 닉네임 입력 후 엔터 치면 숫자 입력창으로 이동
+        if (event.key === "Enter") guessInput.focus();
     });
 
     // 최초 게임 실행
