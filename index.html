@@ -47,12 +47,22 @@
         .tf-btn.active { background: #ebf8ff; color: #3182ce; border-color: #a3bffa; font-weight: bold; }
         .detail-canvas { width: 100%; height: 90px; display: block; }
 
-        /* [신규 스타일]: 하단 유튜브 숏츠 멀티미디어 뷰어 영역 레이아웃 */
+        /* 하단 레이아웃 분할 구조 피팅 */
         .bottom-media-layout { display: flex; gap: 10px; width: 100%; align-items: stretch; margin-top: auto; }
-        .shorts-viewer-container { flex: 1; background: #000000; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; position: relative; height: 145px; }
-        .shorts-iframe { width: 100%; height: 100%; border: none; }
         
-        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; width: 60%; justify-content: center; }
+        /* 🔮 [신규 디자인] 실시간 AI 매매 힌트 보드 스타일 */
+        .ai-hint-panel { flex: 1.1; background: #2d3748; border: 1px solid #1a202c; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; height: 145px; box-sizing: border-box; color: #e2e8f0; text-align: left; }
+        .ai-hint-title { font-size: 0.85rem; font-weight: 700; color: #63b3ed; border-bottom: 1px solid #4a5568; padding-bottom: 4px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .ai-hint-title .status-dot { color: #48bb78; font-size: 0.75rem; font-weight: 400; }
+        .ai-hint-content { font-size: 0.78rem; line-height: 1.5; overflow-y: auto; flex: 1; }
+        .ai-hint-row { display: flex; justify-content: space-between; border-bottom: 1px solid #3a4659; padding: 3px 0; }
+        .ai-badge { font-weight: bold; padding: 1px 5px; border-radius: 4px; font-size: 0.72rem; }
+        .badge-buy { background: #e53e3e; color: #fff; }
+        .badge-sell { background: #3182ce; color: #fff; }
+        .badge-hold { background: #718096; color: #fff; }
+        .badge-wait { background: #dd6b20; color: #fff; }
+        
+        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; width: 55%; justify-content: center; }
         .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
         .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
         .order-action-group { display: flex; gap: 6px; width: 100%; justify-content: center; }
@@ -82,8 +92,6 @@
         .peer-portfolio-card h3 { font-size: 0.8rem; margin: 0 0 4px 0; color: #63b3ed; }
         .peer-stock-list { font-size: 0.75rem; text-align: left; line-height: 1.4; }
         .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 2px 0; }
-        button { button-shadow: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -101,10 +109,10 @@
 </div>
 
 <div class="main-wrapper">
-    <!-- 왼쪽 프레임 (주식 리스트 + 하단 멀티 미디어 주문 결합 구조) -->
+    <!-- 왼쪽 프레임 -->
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스</h1>
-        <p class="description">60fps 실시간 주가 변동 및 유튜브 멀티플레이어 탑재</p>
+        <p class="description">60fps 실시간 주가 변동 및 AI 매매 시그널 분석판</p>
         
         <div class="stats">
             <div>예수금: <span id="stock-cash">2,000,000</span>원</div>
@@ -115,18 +123,19 @@
         <div class="stock-market-board" id="market-board"></div>
         <div class="message" id="stock-message" style="font-size:0.75rem; margin:3px 0; min-height:16px; color:#a0aec0;">종목 선택 시 차트와 하단 매매 주문창이 활성화됩니다.</div>
 
-        <!-- [하단 레이아웃 변경]: 빈 공간에 숏츠 플레이어와 주문 패드를 가로 병렬 배치 -->
         <div class="bottom-media-layout">
-            <!-- 📺 유튜브 숏츠 뷰어 (기본 트렌딩 플레이리스트 임베드) -->
-            <div class="shorts-viewer-container">
-                <iframe class="shorts-iframe" 
-                        src="https://www.youtube.com/embed/videoseries?list=PLGR6fH68fEXwdb3YInp-eor6F0w_G_V6B&autoplay=1&mute=1&loop=1" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
+            <!-- 🔮 [신규 탑재]: 실시간 AI 힌트 계측 배시 보드 디스플레이 -->
+            <div class="ai-hint-panel">
+                <div class="ai-hint-title">
+                    <span>🔮 AI 실시간 매매 힌트 오라클</span>
+                    <span class="status-dot">● 실시간 분석중</span>
+                </div>
+                <div class="ai-hint-content" id="ai-hint-content">
+                    <div style="text-align:center; color:#a0aec0; padding-top:25px;">가동 대기 중... 다음 틱(5초)에 첫 힌트가 도출됩니다.</div>
+                </div>
             </div>
 
-            <!-- 📌 호가 거래 주문창 (크기 컴팩트 조율) -->
+            <!-- 호가 거래 주문창 -->
             <div class="order-panel" id="order-panel" style="visibility: hidden;">
                 <div id="selected-stock-name" style="font-weight: bold; font-size: 0.85rem; text-align: left; color:#2d3748;">종목 선택됨</div>
                 <div class="order-inputs-zone">
@@ -210,6 +219,7 @@
             }
         });
         renderStockInfoText();
+        calculateAIHints(); // 시세 바뀔 때마다 오라클 수학 연산 호출
         loadRanking();
         if(isUserLoggedIn) {
             syncAssetToBackend();
@@ -217,6 +227,51 @@
         }
     }
     setInterval(updatePrices, 5000);
+
+    // [신규 로직]: 가격 이력 기반 실시간 기술적 지표 모사 알고리즘 엔진
+    function calculateAIHints() {
+        const hintZone = document.getElementById('ai-hint-content');
+        let html = "";
+
+        stocks.forEach(s => {
+            let h = s.detailHistory5m;
+            if(h.length < 3) return;
+
+            // 직전 3개 봉의 기울기(모멘텀) 연산
+            let currentTrend = s.price - s.oldPrice;
+            let olderTrend = s.oldPrice - h[h.length - 3];
+            
+            let badgeClass = "badge-hold";
+            let hintText = "보유(관망)";
+
+            // 기술적 시그널 분기점 연산
+            if (currentTrend > 0 && olderTrend > 0) {
+                // 연속 상승 추세 가속화 상태
+                badgeClass = "badge-buy";
+                hintText = "강력매수 (추세 돌파 감지)";
+            } else if (currentTrend < 0 && olderTrend < 0) {
+                // 과매도 권역 진입 직전 하락 가속
+                badgeClass = "badge-sell";
+                hintText = "단기매도 (하방 압력 가중)";
+            } else if (currentTrend > 0 && olderTrend <= 0) {
+                // 떨어지다가 반등하는 시점 (골든크로스 모사)
+                badgeClass = "badge-buy";
+                hintText = "단기 진입 (눌림목 반등 시작)";
+            } else if (currentTrend < 0 && olderTrend >= 0) {
+                // 오르다가 꺾이는 시점 (데드크로스 모사)
+                badgeClass = "badge-wait";
+                hintText = "매수보류 (단기 고점 징후)";
+            }
+
+            html += `
+                <div class="ai-hint-row">
+                    <span><b>${s.name}</b></span>
+                    <span class="ai-badge ${badgeClass}">${hintText}</span>
+                </div>`;
+        });
+
+        hintZone.innerHTML = html;
+    }
 
     function animationLoop() {
         stocks.forEach((s, i) => {
@@ -371,7 +426,7 @@
         }
     }
 
-    // 실시간 채팅 로직
+    // 채팅 로직
     const msgZone = document.getElementById('chat-messages-zone');
     const msgInput = document.getElementById('chat-user-msg');
     const sendBtn = document.getElementById('chat-send-btn');
