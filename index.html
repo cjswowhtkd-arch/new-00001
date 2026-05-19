@@ -15,6 +15,7 @@
         .ranking-container { flex: 0.8; display: flex; flex-direction: column; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 0; box-sizing: border-box; }
         
         h1 { font-size: 1.35rem; color: #2d3748; font-weight: 700; margin: 0 0 5px 0; }
+        h2 { font-size: 1.1rem; color: #2d3748; margin: 0 0 5px 0; }
         .description { color: #718096; font-size: 0.8rem; margin-bottom: 10px; font-weight: 300; }
         
         .auth-area { display: flex; flex-direction: row; gap: 8px; align-items: center; }
@@ -38,36 +39,43 @@
         .price-up { color: #e53e3e; } 
         .price-down { color: #3182ce; }
 
-        /* 상세 차트 및 주기 변경 탭 스타일 */
         .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
         .stock-detail-chart-container.open { display: block; }
         
         .timeframe-selector { display: flex; gap: 4px; margin-bottom: 6px; justify-content: flex-start; }
         .tf-btn { padding: 3px 8px; font-size: 0.72rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; color: #718096; }
         .tf-btn.active { background: #ebf8ff; color: #3182ce; border-color: #a3bffa; font-weight: bold; }
-
         .detail-canvas { width: 100%; height: 90px; display: block; }
 
-        .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; text-align: left; font-size: 0.8rem; color: #22543d; }
-        .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.72rem; margin-right: 4px; }
+        .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 6px 12px; margin-bottom: 8px; text-align: left; font-size: 0.78rem; color: #22543d; }
+        .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.7rem; margin-right: 4px; }
         
-        .ranking-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 9px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; border-radius: 6px; font-size: 0.85rem; }
+        /* 스크롤 제어를 위해 랭킹 목록 크기 소폭 패킹축소 */
+        .ranking-list { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 8px; }
+        .ranking-item { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; font-size: 0.82rem; }
         .ranking-item:hover { background: #edf2f7; }
         .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
 
-        .peer-portfolio-card { margin-top: 10px; padding: 12px; background: #2d3748; color: white; border-radius: 10px; animation: fadeIn 0.2s; max-height: 140px; overflow-y: auto; }
-        .peer-portfolio-card h3 { font-size: 0.85rem; margin: 0 0 6px 0; color: #63b3ed; }
-        .peer-stock-list { font-size: 0.78rem; text-align: left; line-height: 1.5; }
+        /* [신규 스타일]: 하단 고정 실시간 대화창 영역 디자인 */
+        .chat-panel-container { display: flex; flex-direction: column; background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 10px; margin-top: 10px; flex: 1; min-height: 0; box-sizing: border-box; padding: 8px; }
+        .chat-messages-zone { flex: 1; overflow-y: auto; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; padding: 8px; font-size: 0.8rem; text-align: left; line-height: 1.4; min-height: 0; }
+        .chat-line { margin-bottom: 6px; word-break: break-all; }
+        .chat-line .author { font-weight: 700; color: #4a5568; margin-right: 4px; }
+        .chat-line .author.me { color: #3182ce; }
+        .chat-line .msg-text { color: #2d3748; }
+        .chat-input-row { display: flex; gap: 6px; margin-top: 6px; width: 100%; }
+        .chat-input-row input { flex: 1; padding: 6px; font-size: 0.82rem; border-radius: 6px; border: 1px solid #cbd5e0; }
+        .chat-send-btn { background: #63b3ed; color: white; border: none; padding: 0 14px; font-size: 0.82rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .peer-portfolio-card { margin-top: 6px; padding: 10px; background: #2d3748; color: white; border-radius: 8px; max-height: 110px; overflow-y: auto; }
+        .peer-portfolio-card h3 { font-size: 0.8rem; margin: 0 0 4px 0; color: #63b3ed; }
+        .peer-stock-list { font-size: 0.75rem; text-align: left; line-height: 1.4; }
         .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 2px 0; }
 
         .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
         button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.15s; }
-        
         .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
         .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
-        .btn-combined-max:hover { background: #e2e8f0; }
-
         .order-action-group { display: flex; gap: 8px; width: 100%; justify-content: center; }
         .btn-buy { background: #fed7d7; color: #c53030; padding: 10px; flex: 1; font-size: 0.9rem; }
         .btn-buy:hover { background: #feb2b2; }
@@ -92,9 +100,10 @@
 </div>
 
 <div class="main-wrapper">
+    <!-- 왼쪽 프레임 -->
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스</h1>
-        <p class="description">금액 표시 및 분봉/일봉 주가 조회 기능 반영 에디션</p>
+        <p class="description">60fps 실시간 유동식 꺾은선 차트 탑재 버전</p>
         
         <div class="stats">
             <div>예수금: <span id="stock-cash">2,000,000</span>원</div>
@@ -103,7 +112,7 @@
         </div>
 
         <div class="stock-market-board" id="market-board"></div>
-        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 차트와 주문 패드가 활성화됩니다.</div>
+        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 정밀 데이터 차트가 가동됩니다.</div>
 
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
             <div id="selected-stock-name" style="font-weight: bold; font-size: 0.9rem; text-align: left;">종목 선택됨</div>
@@ -119,6 +128,7 @@
         </div>
     </div>
 
+    <!-- 오른쪽 프레임 (랭킹 + 실시간 채팅 결합) -->
     <div class="ranking-container">
         <div class="live-users-panel">
             <strong>🟢 실시간 동접자</strong>
@@ -127,19 +137,32 @@
         <h2>🏆 실시간 명예의 전당</h2>
         <ul class="ranking-list" id="ranking-list"></ul>
 
-        <div class="peer-portfolio-card" id="peer-card">
+        <div class="peer-portfolio-card" id="peer-card" style="display: none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <h3>🔍 <span id="peer-name">유저</span> 포트폴리오</h3>
                 <span onclick="closePeerCard()" style="cursor:pointer; font-size:0.75rem; color:#a0aec0;">[닫기]</span>
             </div>
             <div class="peer-stock-list" id="peer-stock-list"></div>
         </div>
+
+        <!-- [업데이트]: 실시간 토론 채팅 패널 인터페이스 단추 컴포넌트 -->
+        <div class="chat-panel-container">
+            <h2 style="font-size: 0.9rem; text-align: left; margin: 0 0 6px 0;">💬 토론 스페이스 (실시간)</h2>
+            <div class="chat-messages-zone" id="chat-messages-zone">
+                <div style="color:#a0aec0; text-align:center; margin-top:20px;">대화 로딩 중...</div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chat-user-msg" placeholder="메시지를 입력하세요..." maxlength="50">
+                <button class="chat-send-btn" id="chat-send-btn">전송</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script type="module">
+    // [업데이트]: 실시간 채팅 청취를 위해 Firestore 라이브러리 추가 모듈(onSnapshot) 임포트 연동
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4", authDomain: "chosanghee00001.firebaseapp.com", projectId: "chosanghee00001", storageBucket: "chosanghee00001.firebasestorage.app", messagingSenderId: "705786109560", appId: "1:705786109560:web:01b69c754e13df96e8978d" };
     const app = initializeApp(firebaseConfig);
@@ -151,8 +174,6 @@
     let isUserLoggedIn = false;
     let currentDocId = null;
 
-    // [업데이트]: 5분 단위 데이터(detailHistory5m)와 1일 단위 데이터(detailHistory1d) 주기를 분리 저장
-    // 현재 보고 있는 차트 모드(chartMode) 기본값은 '5m'
     let stocks = [
         { name: "삼성전자", price: 68000, oldPrice: 68000, displayPrice: 68000, owned: 0, avgPrice: 0, detailHistory5m: [68000], detailHistory1d: [68000], chartMode: '5m' },
         { name: "SK하이닉스", price: 172000, oldPrice: 172000, displayPrice: 172000, owned: 0, avgPrice: 0, detailHistory5m: [172000], detailHistory1d: [172000], chartMode: '5m' },
@@ -161,20 +182,16 @@
         { name: "에코프로비엠", price: 165000, oldPrice: 165000, displayPrice: 165000, owned: 0, avgPrice: 0, detailHistory5m: [165000], detailHistory1d: [165000], chartMode: '5m' }
     ];
 
-    let dayTickCounter = 0; // 일봉 생성을 위한 카운터
+    let dayTickCounter = 0;
 
     function updatePrices() {
         dayTickCounter++;
         stocks.forEach(s => {
             s.oldPrice = s.price;
-            // 5초마다 실시간으로 가격 변동
             s.price = Math.max(1000, Math.floor(s.price * (1 + (Math.random() * 0.2 - 0.09))));
-            
-            // 5분 단위 차트에 매 틱 기록 축적 (최대 20개)
             s.detailHistory5m.push(s.price);
             if(s.detailHistory5m.length > 20) s.detailHistory5m.shift();
 
-            // 1일 단위 차트 시뮬레이션: 5초 주기 4번(가상 하루)마다 일봉 종가 기록 누적 (최대 20개)
             if(dayTickCounter % 4 === 0) {
                 s.detailHistory1d.push(s.price);
                 if(s.detailHistory1d.length > 20) s.detailHistory1d.shift();
@@ -189,7 +206,6 @@
     }
     setInterval(updatePrices, 5000);
 
-    // 60fps 보간 애니메이션 렌더링 루프
     function animationLoop() {
         stocks.forEach((s, i) => {
             s.displayPrice += (s.price - s.displayPrice) * 0.1;
@@ -238,7 +254,6 @@
                         <div class="stock-price" id="price-${i}">${s.price.toLocaleString()}원</div>
                     </div>
                     <div class="stock-detail-chart-container" id="detail-${i}">
-                        <!-- [업데이트]: 분봉/일봉 주기를 바꿀 수 있는 호가 토글 버튼 구조 연동 -->
                         <div class="timeframe-selector">
                             <button class="tf-btn active" id="tf-5m-${i}" onclick="changeTimeframe(event, ${i}, '5m')">5분</button>
                             <button class="tf-btn" id="tf-1d-${i}" onclick="changeTimeframe(event, ${i}, '1d')">1일</button>
@@ -268,29 +283,23 @@
         }
     }
 
-    // [신규 업데이트]: 5분봉 및 1일봉 데이터 스위칭 함수
     window.changeTimeframe = function(event, index, mode) {
-        event.stopPropagation(); // 부모 종목행이 닫히는 클릭 버블링 방지
+        event.stopPropagation();
         stocks[index].chartMode = mode;
-        
-        // 버튼 활성화 스타일 포커싱 토글
         document.getElementById(`tf-5m-${index}`).classList.remove('active');
         document.getElementById(`tf-1d-${index}`).classList.remove('active');
         if(mode === '5m') document.getElementById(`tf-5m-${index}`).classList.add('active');
         else document.getElementById(`tf-1d-${index}`).classList.add('active');
     }
 
-    // [업데이트]: 실시간 금액 텍스트 표기 및 주기 결합 60fps 엔진 드로잉 함수
     function drawDetailChart(i) {
         const canvas = document.getElementById(`canvas-${i}`);
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
         
-        // 5m 일 때는 detailHistory5m 배열을 복사하고, 1d 일 때는 detailHistory1d 배열을 타겟팅함
         let h = stocks[i].chartMode === '5m' ? [...stocks[i].detailHistory5m] : [...stocks[i].detailHistory1d];
         if(h.length === 0) return;
         
-        // 차트 끄트머리에 흐르는 Lerp 보간 애니메이션 실시간 대입
         h[h.length - 1] = stocks[i].displayPrice;
 
         ctx.clearRect(0,0,canvas.width, canvas.height);
@@ -305,7 +314,6 @@
         ctx.strokeStyle = isTrendUp ? '#f56565' : '#4299e1';
         ctx.lineWidth = 1.8;
         
-        // 오른쪽에 실시간 주가 금액 글자가 써질 우측 여백 패딩(65px) 공간 확보 계산
         const chartWidth = canvas.width - 65;
         const step = chartWidth / 19;
         
@@ -314,11 +322,10 @@
             const x = idx * step;
             const y = canvas.height - ((p - minPrice) / priceRange) * (canvas.height - 14) - 7;
             idx === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-            if(idx === h.length - 1) lastY = y; // 마지막 드로잉 Y 축 높이 저장
+            if(idx === h.length - 1) lastY = y;
         });
         ctx.stroke();
 
-        // [신규 업데이트]: 차트 오른쪽 끝선 연장 수평 점선 및 실시간 현재가 금액 표기
         ctx.beginPath();
         ctx.strokeStyle = isTrendUp ? 'rgba(245, 101, 101, 0.4)' : 'rgba(66, 153, 229, 0.4)';
         ctx.lineWidth = 1;
@@ -326,12 +333,10 @@
         ctx.moveTo((h.length - 1) * step, lastY);
         ctx.lineTo(chartWidth, lastY);
         ctx.stroke();
-        ctx.setLineDash([]); // 점선 해제
+        ctx.setLineDash([]);
 
-        // 실시간 현재가 사각 뱃지 박스 및 금액 폰트 출력
         ctx.fillStyle = isTrendUp ? '#fed7d7' : '#ebf8ff';
         ctx.fillRect(chartWidth + 3, lastY - 7, 58, 14);
-        
         ctx.font = '10px sans-serif';
         ctx.fillStyle = isTrendUp ? '#c53030' : '#2b6cb0';
         ctx.textAlign = 'left';
@@ -353,6 +358,60 @@
             document.getElementById('stock-message').textContent = `💡 [최대 매수] 예수금 한도 내 풀매수 수량(${qtyInput.value}주)이 확정되었습니다.`;
         }
     }
+
+    /* ----------------------------------------------------
+       [업데이트]: 실시간 채팅 비즈니스 로직 연동 파트
+    ---------------------------------------------------- */
+    const msgZone = document.getElementById('chat-messages-zone');
+    const msgInput = document.getElementById('chat-user-msg');
+    const sendBtn = document.getElementById('chat-send-btn');
+
+    // Firestore `stock_chats` 컬렉션 실시간 이벤트 리스너 리스닝 가동
+    const chatQuery = query(collection(db, "stock_chats"), orderBy("timestamp", "asc"), limit(40));
+    onSnapshot(chatQuery, (snapshot) => {
+        msgZone.innerHTML = "";
+        if (snapshot.empty) {
+            msgZone.innerHTML = "<div style='color:#a0aec0; text-align:center; padding-top:15px;'>작성된 토론이 없습니다. 첫 마디를 건네보세요!</div>";
+            return;
+        }
+        snapshot.forEach((doc) => {
+            const chat = doc.data();
+            const div = document.createElement('div');
+            div.className = 'chat-line';
+            
+            // 본인이 쓴 글인 경우 파란색 강조 헬퍼 태그 매핑
+            const isMe = isUserLoggedIn && chat.userId === myLoggedId;
+            const authorClass = isMe ? 'author me' : 'author';
+
+            div.innerHTML = `<span class="${authorClass}">[${chat.userId}]</span><span class="msg-text">${chat.message}</span>`;
+            msgZone.appendChild(div);
+        });
+        // 대화 추가 시 스크롤 자동 하방 수렴 처리
+        msgZone.scrollTop = msgZone.scrollHeight;
+    });
+
+    // 메시지 발송 트래픽 처리 함수
+    async function sendUserChatMessage() {
+        const txt = msgInput.value.trim();
+        if(!txt) return;
+
+        // 로그인 안 한 개미는 '비회원(개미)' 이름표 할당 보호
+        const chatSenderName = isUserLoggedIn ? myLoggedId : "비회원(개미)";
+
+        try {
+            await addDoc(collection(db, "stock_chats"), {
+                userId: chatSenderName,
+                message: txt,
+                timestamp: new Date()
+            });
+            msgInput.value = "";
+            msgInput.focus();
+        } catch(e) { console.error("채팅 유실: ", e); }
+    }
+
+    sendBtn.addEventListener('click', sendUserChatMessage);
+    msgInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') sendUserChatMessage(); });
+
 
     async function showUserPortfolio(userId) {
         const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
@@ -503,7 +562,7 @@
         document.getElementById('login-form-area').style.display = "none";
         document.getElementById('logged-in-status-area').style.display = "flex";
         document.getElementById('current-user-display').textContent = id;
-        renderStockMarket();
+        renderStockInfoText();
         fetchLiveActiveUsers();
     };
 
