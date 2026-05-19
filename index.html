@@ -13,7 +13,6 @@
         
         .main-wrapper { display: flex; gap: 15px; max-width: 1200px; width: 100%; flex: 1; min-height: 0; background: #ffffff; padding: 15px; border-radius: 16px; box-shadow: 0 8px 20px rgba(160, 174, 192, 0.1); box-sizing: border-box; }
         
-        /* 주식 영역과 랭킹 영역의 높이를 고정하여 스크롤 오버플로우 방지 */
         .game-container { flex: 1.2; display: flex; flex-direction: column; background: #f7fafc; padding: 15px; border-radius: 12px; min-height: 0; box-sizing: border-box; }
         .ranking-container { flex: 0.8; display: flex; flex-direction: column; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 0; box-sizing: border-box; }
         
@@ -28,7 +27,6 @@
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ebf8ff; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
         .stats div { display: flex; justify-content: space-between; padding: 1px 2px; }
         
-        /* 종목 리스트 박스 높이 최적화 */
         .stock-market-board { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
         .stock-row-wrapper { border-bottom: 1px solid #edf2f7; }
         .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; transition: 0.2s; }
@@ -43,26 +41,23 @@
         .price-up { color: #e53e3e; } 
         .price-down { color: #3182ce; }
 
-        /* 아코디언 상세 차트 캔버스 높이 압축 다이어트 */
         .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
         .stock-detail-chart-container.open { display: block; }
         .detail-canvas { width: 100%; height: 80px; display: block; }
 
-        /* 랭킹전 영역 고정형 리스트 뷰 개편 */
         .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; text-align: left; font-size: 0.8rem; color: #22543d; }
         .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.72rem; margin-right: 4px; }
         
         .ranking-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; }
         .ranking-item { display: flex; justify-content: space-between; padding: 9px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; border-radius: 6px; font-size: 0.85rem; transition: 0.2s; }
         .ranking-item:hover { background: #edf2f7; }
+        .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
 
-        /* 상대방 포트폴리오 엿보기 창 크기 보정 */
         .peer-portfolio-card { margin-top: 10px; padding: 12px; background: #2d3748; color: white; border-radius: 10px; animation: fadeIn 0.2s; max-height: 140px; overflow-y: auto; }
         .peer-portfolio-card h3 { font-size: 0.85rem; margin: 0 0 6px 0; color: #63b3ed; }
         .peer-stock-list { font-size: 0.78rem; text-align: left; line-height: 1.5; }
         .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 2px 0; }
 
-        /* 단일 최대 버튼 통합 및 매매 패드 압축화 */
         .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
         button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.15s; }
         
@@ -81,7 +76,6 @@
 </head>
 <body>
 
-<!-- 상단 인증 바 스크롤 절약형 -->
 <div style="display:flex; justify-content:center; margin-bottom:8px; height: 36px; align-items: center;">
     <div class="auth-area" id="login-form-area">
         <input type="text" id="user-id-input" placeholder="닉네임" maxlength="12" style="padding:6px; font-size:0.85rem; width:100px;">
@@ -95,7 +89,6 @@
 </div>
 
 <div class="main-wrapper">
-    <!-- 왼쪽 주식 레이스 메인 프레임 -->
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스</h1>
         <p class="description">5초 주기 무한 시세 동적 연동 시스템</p>
@@ -107,16 +100,13 @@
         </div>
 
         <div class="stock-market-board" id="market-board"></div>
-
         <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 10분 데이터 차트 및 패드가 표출됩니다.</div>
 
-        <!-- 단일 [최대] 버튼이 수량 옆에 통합 탑재된 주문 패드 -->
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
             <div id="selected-stock-name" style="font-weight: bold; font-size: 0.9rem; text-align: left;">종목 선택됨</div>
             <div class="order-inputs-zone">
                 <span>수량:</span>
                 <input type="number" id="global-quantity" value="1" min="1" style="width: 60px; padding: 4px; text-align: center; font-size: 0.9rem;">
-                <!-- 통합 최대 단추 단 1개 배치 -->
                 <button class="btn-combined-max" onclick="triggerCombinedMaxCalculate()">최대</button>
             </div>
             <div class="order-action-group">
@@ -126,7 +116,6 @@
         </div>
     </div>
 
-    <!-- 오른쪽 실시간 랭킹 보드 프레임 -->
     <div class="ranking-container">
         <div class="live-users-panel">
             <strong>🟢 실시간 동접자</strong>
@@ -135,7 +124,6 @@
         <h2>🏆 실시간 명예의 전당</h2>
         <ul class="ranking-list" id="ranking-list"></ul>
 
-        <!-- 유저 클릭 시 오버레이되는 포트폴리오 카드 -->
         <div class="peer-portfolio-card" id="peer-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <h3>🔍 <span id="peer-name">유저</span> 포트폴리오</h3>
@@ -168,6 +156,7 @@
         { name: "에코프로비엠", price: 165000, oldPrice: 165000, owned: 0, avgPrice: 0, history: [], detailHistory: [] }
     ];
 
+    // [중요 패치]: 5초 주기 시세 변동과 함께 'loadRanking()'과 'fetchLiveActiveUsers()'를 무조건 묶어서 실시간 순위 리플레이를 수행합니다.
     function updatePrices() {
         stocks.forEach(s => {
             s.oldPrice = s.price;
@@ -176,7 +165,11 @@
             if(s.detailHistory.length > 20) s.detailHistory.shift();
         });
         renderStockMarket();
-        loadRanking();
+        loadRanking(); // 5초마다 실시간 명예의 전당 강제 리프레시
+        if(isUserLoggedIn) {
+            syncAssetToBackend();
+            fetchLiveActiveUsers(); // 5초마다 실시간 동접자 명단 갱신
+        }
     }
     setInterval(updatePrices, 5000);
 
@@ -256,20 +249,16 @@
         ctx.stroke();
     }
 
-    // [업데이트]: 스마트 통합 단일 최대 버튼 비즈니스 연산 로직
     window.triggerCombinedMaxCalculate = function() {
         if(selectedStockIndex === null) return;
         const s = stocks[selectedStockIndex];
         const qtyInput = document.getElementById('global-quantity');
-
         const cleanOwned = Number(s.owned) || 0;
 
         if (cleanOwned > 0) {
-            // 주식을 들고 있다면 잔고 전량 원터치 청산 세팅
             qtyInput.value = cleanOwned;
             document.getElementById('stock-message').textContent = `💡 [최대 매도 자동 할당] 보유 잔고 전량(${cleanOwned}주) 매도 수량이 확정되었습니다.`;
         } else {
-            // 주식이 없다면 가용 예수금 풀베팅 매수 수량 할당
             let maxBuy = Math.floor(stockCash / s.price);
             qtyInput.value = maxBuy < 0 ? 0 : maxBuy;
             document.getElementById('stock-message').textContent = `💡 [최대 매수 자동 할당] 예수금 한도 내 풀매수 수량(${qtyInput.value}주)이 확정되었습니다.`;
@@ -312,11 +301,14 @@
 
     window.closePeerCard = () => { document.getElementById('peer-card').style.display = "none"; }
 
+    // [실시간 리프레시 스캔 엔동]: 내 순위 동적 포커싱 기능 보정 탑재
     async function loadRanking() {
         const q = query(collection(db, "stock_rankings"), orderBy("score", "desc"), limit(12));
         const snap = await getDocs(q);
         const list = document.getElementById('ranking-list');
         list.innerHTML = "";
+        
+        let rank = 1;
         snap.forEach(d => {
             const data = d.data();
             const cleanScore = Number(data.score);
@@ -324,10 +316,36 @@
 
             const li = document.createElement('li');
             li.className = 'ranking-item';
-            li.innerHTML = `<span>${data.userId}</span> <b>${Math.floor(cleanScore).toLocaleString()}원</b>`;
+            
+            // 실시간 리프레시 도중 내 계정이 발견되면 초록색 배경 하이라이팅 적용
+            if(isUserLoggedIn && data.userId === myLoggedId) {
+                li.classList.add('my-rank');
+            }
+
+            li.innerHTML = `<span>${rank}위. ${data.userId}</span> <b>${Math.floor(cleanScore).toLocaleString()}원</b>`;
             li.onclick = () => showUserPortfolio(data.userId);
             list.appendChild(li);
+            rank++;
         });
+    }
+
+    // 5초 간격으로 유저들의 하트비트 트래픽 수집
+    async function fetchLiveActiveUsers() {
+        const liveUserZone = document.getElementById('live-users-list-zone');
+        if(!isUserLoggedIn) return;
+        try {
+            const allUsers = await getDocs(collection(db, "stock_rankings"));
+            let liveHtml = "";
+            let now = new Date().getTime();
+            allUsers.forEach(doc => {
+                let u = doc.data();
+                if(u.lastActive && (now - u.lastActive.toDate().getTime() < 20000)) {
+                    let meTag = u.userId === myLoggedId ? " (나)" : "";
+                    liveHtml += `<span class="live-user-dot">👤 ${u.userId}${meTag}</span>`;
+                }
+            });
+            liveUserZone.innerHTML = liveHtml === "" ? "솔로 투자 중" : liveHtml;
+        } catch(e) { console.error(e); }
     }
 
     window.tradeStock = async (type) => {
@@ -363,6 +381,7 @@
         document.getElementById('logged-in-status-area').style.display = "none";
         document.getElementById('order-panel').style.visibility = "hidden";
         document.getElementById('peer-card').style.display = "none";
+        document.getElementById('live-users-list-zone').textContent = "로그인 시 갱신";
         renderStockMarket();
     }
 
@@ -399,19 +418,7 @@
         document.getElementById('logged-in-status-area').style.display = "flex";
         document.getElementById('current-user-display').textContent = id;
         renderStockMarket();
-        
-        // 동접 명단 스캔 작동
-        const liveUserZone = document.getElementById('live-users-list-zone');
-        const allUsers = await getDocs(collection(db, "stock_rankings"));
-        let liveHtml = "";
-        let now = new Date().getTime();
-        allUsers.forEach(doc => {
-            let u = doc.data();
-            if(u.lastActive && (now - u.lastActive.toDate().getTime() < 20000)) {
-                liveHtml += `<span class="live-user-dot">👤 ${u.userId}</span>`;
-            }
-        });
-        liveUserZone.innerHTML = liveHtml === "" ? "솔로 투자 중" : liveHtml;
+        fetchLiveActiveUsers();
     };
 
     async function syncAssetToBackend() {
@@ -428,6 +435,7 @@
         });
     }
 
+    // 초기 상태 구동
     renderStockMarket();
     loadRanking();
 </script>
