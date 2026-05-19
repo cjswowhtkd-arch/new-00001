@@ -382,7 +382,10 @@
         dayTickCounter++;
         stocks.forEach(s => {
             s.oldPrice = s.price;
-            s.price = Math.max(1000, Math.floor(s.price * (1 + (Math.random() * 0.2 - 0.09))));
+            const baseMove = Math.random() * 0.042 - 0.02; // normal tick: -2.0% to +2.2%
+            const newsMove = Math.random() < 0.1 ? (Math.random() * 0.04 - 0.02) : 0; // occasional small event
+            const nextMove = Math.max(-0.04, Math.min(0.045, baseMove + newsMove));
+            s.price = Math.max(1000, Math.floor(s.price * (1 + nextMove)));
             s.detailHistory5m.push(s.price);
             if(s.detailHistory5m.length > 20) s.detailHistory5m.shift();
             if(dayTickCounter % 4 === 0) {
