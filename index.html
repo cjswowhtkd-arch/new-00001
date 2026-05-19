@@ -189,10 +189,6 @@
         .btn-logout { background: #cbd5e0; color: #4a5568; padding: 4px 10px; font-size: 0.82rem; border-radius: 6px; box-shadow: none; }
         .btn-logout:hover { background: #a0aec0; }
         
-        /* 초기화 전용 리셋 긴급 버튼 */
-        .btn-danger-reset { background: #fed7d7; color: #c53030; font-size: 0.85rem; padding: 8px 16px; margin-top: 15px; }
-        .btn-danger-reset:hover { background: #feb2b2; }
-        
         /* 랭킹 스타일 */
         .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
         .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; color: #4a5568; transition: background 0.3s ease; }
@@ -259,7 +255,6 @@
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리" maxlength="4">
             <button id="login-btn" style="padding: 10px 15px; font-size:0.9rem;">계정 접속</button>
         </div>
-        <!-- [업데이트] 로그아웃 버튼 탑재형 접속 유저 상단 바 -->
         <div id="logged-in-status-area" class="user-status-badge" style="display: none;">
             <span>🟢 접속 계정: <span id="current-user-display" class="name">-</span></span>
             <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
@@ -300,14 +295,10 @@
         </div>
 
         <div class="message" id="stock-message">상단 계정 정보를 입력하고 [계정 접속]을 누르면 내 자산 정보를 동기화합니다.</div>
-        
-        <!-- [초기화 기능 버튼] 데이터베이스 정리 후 이 태그(button)를 삭제하시면 주식방 초기화 오작동을 차단합니다. -->
-        <button class="btn-danger-reset" onclick="dangerResetStockCollection()">⚠️ 주식 전적 랭킹 완전 초기화</button>
     </div>
 
-    <!-- ================= 우측: 실시간 동접자 목록 및 명예의 전당 ================= -->
+    <!-- ================= 우측: 실시간 명예의 전당 ================= -->
     <div class="ranking-container">
-        <!-- [업데이트] 실시간 활성 접속자 리스트 컨테이너 개설 -->
         <div class="live-users-panel">
             <strong>🟢 실시간 접속자 목록</strong>
             <div id="live-users-list-zone" style="margin-top:5px; font-weight:300;">접속 대기 중...</div>
@@ -324,7 +315,7 @@
 <!-- Firebase 라이브러리 모드 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
@@ -372,7 +363,7 @@
     }
 
     /* ----------------------------------------------------
-       [계정 시스템] 무제한 불러오기 & 상시 저장 연동 + 세션 통제
+       [계정 시스템]
     ---------------------------------------------------- */
     loginBtn.addEventListener("click", async () => {
         const userId = userIdInput.value.trim();
@@ -407,7 +398,6 @@
                     });
                 }
                 
-                // [동접자 연동]: 로그인 시 활성화 타임스탬프 업데이트
                 await updateDoc(doc(db, "stock_rankings", currentDocId), {
                     lastActive: new Date()
                 });
@@ -421,7 +411,7 @@
                     cash: 2000000,  
                     ownedStocks: [0, 0, 0, 0, 0],
                     avgPrices: [0, 0, 0, 0, 0], 
-                    lastActive: new Date(), // 실시간 동접 추적 태그 추가
+                    lastActive: new Date(), 
                     timestamp: new Date()
                 });
                 currentDocId = newDoc.id;
@@ -443,27 +433,24 @@
             
             startRealtimePrices(); 
             renderStockMarket(false);
-            fetchLiveActiveUsers(); // 동접자 판 새로고침
+            fetchLiveActiveUsers(); 
 
         } catch (e) {
             console.error("계정 연동 실패: ", e);
         }
     });
 
-    // [업데이트] 로그아웃 비즈니스 처리 함수
     window.handleLogout = async function() {
         if(!confirm("정말 로그아웃 하시겠습니까? 현재까지의 자산은 안전하게 백업되었습니다.")) return;
         
-        // 동접 리스트에서 지워지도록 타임스탬프를 과거로 강제 강하
         if (currentDocId) {
             try {
                 await updateDoc(doc(db, "stock_rankings", currentDocId), {
-                    lastActive: new Date(0) // 1970년도로 밀어서 세션 만료 유도
+                    lastActive: new Date(0) 
                 });
             } catch(e) { console.error(e); }
         }
 
-        // 상태 초기화 및 로그인 인풋 영역 복구
         isUserLoggedIn = false;
         myLoggedId = "";
         currentDocId = null;
@@ -482,7 +469,6 @@
         document.getElementById('live-users-list-zone').textContent = "로그인 후 확인 가능";
     }
 
-    // [업데이트] 🟢 최근 15초 이내에 액션이 있었던 실시간 동접 유저들을 스캔하는 로직
     async function fetchLiveActiveUsers() {
         const zone = document.getElementById('live-users-list-zone');
         if(!isUserLoggedIn) {
@@ -499,7 +485,6 @@
                 let data = doc.data();
                 if(data.lastActive) {
                     let lastTime = data.lastActive.toDate().getTime();
-                    // 현재 시간 기준 15초 미만 간격으로 데이터 트래픽이 찍힌 계정만 추림
                     if (now - lastTime < 15000) {
                         let meTag = data.userId === myLoggedId ? " (나)" : "";
                         html += `<span class="live-user-dot">👤 ${data.userId}${meTag}</span>`;
@@ -513,30 +498,6 @@
         }
     }
 
-    // [업데이트] 주식 랭킹 뱅크 완전 초기화 내부 로직 (비밀 리셋 함수)
-    window.dangerResetStockCollection = async function() {
-        if(!confirm("⚠️ [경고] 진짜 명예의 전당에 등록된 모든 사람들의 주식 전적 데이터를 공중 분해하시겠습니까? 복구는 절대 불가능합니다.")) return;
-        if(prompt("보안 확인을 위해 '조상희리셋' 이라고 정확히 타이핑해 주세요.") !== "조상희리셋") {
-            alert("입력 문구가 일치하지 않아 초기화 명령이 기각되었습니다.");
-            return;
-        }
-
-        try {
-            const snap = await getDocs(collection(db, "stock_rankings"));
-            let deletePromises = [];
-            snap.forEach((documentSnapshot) => {
-                deletePromises.push(deleteDoc(doc(db, "stock_rankings", documentSnapshot.id)));
-            });
-            await Promise.all(deletePromises);
-            
-            alert("💥 성공: 기존 유저들의 모든 자산 및 랭킹 데이터가 완벽하게 밀렸습니다! 페이지를 새로고침합니다.");
-            location.reload();
-        } catch(e) {
-            console.error("초기화 실패", e);
-            alert("권한 거부 또는 Firestore 보안 규칙 문제로 초기화에 실패했습니다.");
-        }
-    }
-
     async function syncAssetToBackend() {
         if (!isUserLoggedIn || !currentDocId) return;
 
@@ -547,13 +508,13 @@
         let avgPricesArray = stocks.map(s => s.avgPrice);
 
         try {
-            const userDocRef = doc(db, "stock_rankings", currentDocId);
+            const userDocRef = doc(db, "stock_rankings", currentDocRef ?? currentDocId);
             await updateDoc(userDocRef, {
                 score: totalAsset, 
                 cash: stockCash,   
                 ownedStocks: stockOwnedArray,
                 avgPrices: avgPricesArray,
-                lastActive: new Date(), // 생존 신호 타임스탬프 갱신
+                lastActive: new Date(), 
                 timestamp: new Date()
             });
         } catch (e) {
@@ -656,7 +617,7 @@
             });
             renderStockMarket(false); 
             syncAssetToBackend(); 
-            fetchLiveActiveUsers(); // 5초마다 실시간 동접자 명단 갱신
+            fetchLiveActiveUsers(); 
             loadRanking(activeTab === 'number' ? 'rankings' : 'stock_rankings', activeTab === 'number' ? '연승' : '원');
         }, 5000);
     }
