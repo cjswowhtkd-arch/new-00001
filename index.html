@@ -34,7 +34,7 @@
         }
         .ranking-container {
             max-height: 80vh;
-            overflow-y: auto; /* 20위까지 나오므로 스크롤바 추가 */
+            overflow-y: auto; /* 20위까지 스크롤바 제공 */
         }
         h1, h2 { color: #333; margin-bottom: 10px; }
         .description { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
@@ -106,11 +106,10 @@
         <h1>🔢 조상희숫자 랭킹전</h1>
         <p class="description">서버에 실시간으로 기록되는 백엔드 연동 게임!</p>
         
-        <!-- 아이디 및 비밀번호 입력칸 추가 -->
+        <!-- 아이디(닉네임 겸용)와 비밀번호만 입력 받음 -->
         <div class="auth-area">
-            <input type="text" id="user-id-input" placeholder="아이디 입력 (기록 저장용)" maxlength="15">
+            <input type="text" id="user-id-input" placeholder="닉네임(아이디) 입력" maxlength="12">
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리 숫자" maxlength="4">
-            <input type="text" id="nickname-input" placeholder="표시될 닉네임 (필수)" maxlength="10">
         </div>
 
         <div class="stats">
@@ -118,7 +117,7 @@
             <div>현재 연승: <span id="current-streak">0</span>승</div>
         </div>
 
-        <div class="message" id="message">계정 정보와 닉네임을 입력하고 숫자를 맞춰!</div>
+        <div class="message" id="message">닉네임과 비밀번호를 입력하고 숫자를 맞춰!</div>
 
         <div id="input-area">
             <input type="number" id="guess-input" min="1" max="100" placeholder="1-100">
@@ -169,7 +168,6 @@
     const guessInput = document.getElementById('guess-input');
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
-    const nicknameInput = document.getElementById('nickname-input');
     const guessBtn = document.getElementById('guess-btn');
     const restartBtn = document.getElementById('restart-btn');
 
@@ -188,57 +186,54 @@
         loadRanking(); 
     }
 
-    // 백엔드로 점수 전송 (아이디/비밀번호 검증 로직 포함)
-    async function saveScoreToBackend(userId, userPw, nickname, score) {
-        if (!userId || !userPw || !nickname) return;
+    // 백엔드로 점수 전송 (아이디=닉네임 기준으로 검증)
+    async function saveScoreToBackend(userId, userPw, score) {
+        if (!userId || !userPw) return;
         
         try {
-            // 1. 해당 아이디로 등록된 기존 기록이 있는지 확인
+            // 1. 해당 닉네임(아이디)으로 등록된 기존 기록이 있는지 확인
             const q = query(collection(db, "rankings"), where("userId", "==", userId));
             const querySnapshot = await getDocs(q);
             
             if (!querySnapshot.empty) {
-                // 기존 유저 데이터가 존재하는 경우
                 let existingDoc = querySnapshot.docs[0];
                 let existingData = existingDoc.data();
                 
-                // 비밀번호가 틀리면 저장 거부
+                // 비밀번호가 틀리면 튕겨내기
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 기존에 등록된 아이디지만 비밀번호가 일치하지 않아 랭킹이 저장되지 않았습니다!");
+                    alert("⚠️ 기존에 등록된 닉네임이지만 비밀번호가 일치하지 않아 기록이 갱신되지 않았습니다!");
                     return;
                 }
                 
-                // 비밀번호가 맞고, 기존 최고 점수보다 현재 점수가 높을 때만 새로 등록
+                // 최고 점수보다 낮거나 같으면 저장 안 함
                 if (parseInt(score) <= existingData.score) {
-                    console.log("기존 최고 기록이 더 높거나 같아서 업데이트하지 않습니다.");
+                    console.log("기존 최고 기록이 더 높거나 같아서 유지합니다.");
                     return;
                 }
             }
 
-            // 2. 새 점수 기록 추가 (기존 내역이 없거나 최고 기록을 경신한 경우)
+            // 2. 새 점수 기록 추가
             await addDoc(collection(db, "rankings"), {
-                userId: userId,
-                userPw: userPw, // 주의: 학습/테스트용 단순 비교용 보관
-                nickname: nickname,
+                userId: userId, // 닉네임이자 아이디 역할
+                userPw: userPw, 
                 score: parseInt(score),
                 timestamp: new Date()
             });
             
             console.log("백엔드 서버에 점수 저장 완료!");
-            alert(`🎉 축하합니다! ${score}연승 기록이 새롭게 등록되었습니다.`);
+            alert(`🎉 축하합니다! '${userId}'님의 기록이 ${score}연승으로 새롭게 등록되었습니다.`);
             loadRanking(); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
     }
 
-    // 백엔드에서 랭킹 데이터 불러오기 (TOP 20으로 제한 수정)
+    // 백엔드에서 랭킹 데이터 불러오기 (TOP 20)
     async function loadRanking() {
         const rankingListEl = document.getElementById('ranking-list');
         rankingListEl.innerHTML = "";
 
         try {
-            // limit(5)에서 limit(20)으로 수정하여 20위까지 로드
             const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(20));
             const querySnapshot = await getDocs(q);
             
@@ -252,7 +247,8 @@
                 const data = doc.data();
                 const li = document.createElement('li');
                 li.className = 'ranking-item';
-                li.innerHTML = `<span>${rank}위. ${data.nickname} (${data.userId})</span> <span>${data.score}연승</span>`;
+                // 아이디(닉네임) 하나만 깔끔하게 출력
+                li.innerHTML = `<span>${rank}위. ${data.userId}</span> <span>${data.score}연승</span>`;
                 rankingListEl.appendChild(li);
                 rank++;
             });
@@ -266,14 +262,12 @@
     function checkGuess() {
         const userId = userIdInput.value.trim();
         const userPw = userPwInput.value.trim();
-        const nickname = nicknameInput.value.trim();
         const userGuess = parseInt(guessInput.value);
 
-        if (!userId || !userPw || !nickname) {
-            alert("게임을 시작하기 전에 아이디, 비밀번호, 닉네임을 모두 입력해 주세요!");
+        if (!userId || !userPw) {
+            alert("게임을 시작하기 전에 닉네임과 비밀번호를 모두 입력해 주세요!");
             if(!userId) userIdInput.focus();
-            else if(!userPw) userPwInput.focus();
-            else nicknameInput.focus();
+            else userPwInput.focus();
             return;
         }
 
@@ -283,10 +277,9 @@
             return;
         }
 
-        // 게임 진행 시 계정 정보 입력창 비활성화
+        // 게임 진행 중에는 입력창 수정 불가하게 잠금
         userIdInput.disabled = true;
         userPwInput.disabled = true;
-        nicknameInput.disabled = true; 
         
         remainingChances--;
         chancesEl.textContent = remainingChances;
@@ -325,15 +318,13 @@
                 saveScoreToBackend(
                     userIdInput.value.trim(), 
                     userPwInput.value.trim(), 
-                    nicknameInput.value.trim(), 
                     currentStreak
                 );
             }
             currentStreak = 0; 
-            // 실패 시 다시 입력할 수 있도록 활성화
+            // 게임오버 시 다시 입력할 수 있도록 입력창 잠금 해제
             userIdInput.disabled = false;
             userPwInput.disabled = false;
-            nicknameInput.disabled = false; 
         } else {
             setTimeout(() => {
                 alert(`연승 행진 중! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`);
