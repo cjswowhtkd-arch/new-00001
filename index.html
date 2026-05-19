@@ -101,17 +101,40 @@
         .user-status-badge {
             background: #e2e8f0;
             color: #4a5568;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             font-size: 0.95rem;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
         .user-status-badge span.name {
             color: #3182ce;
             font-weight: 700;
+        }
+
+        /* 🟢 실시간 동접자 보드 스타일 */
+        .live-users-panel {
+            background: #f0fff4;
+            border: 1px solid #c6f6d5;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            text-align: left;
+            font-size: 0.88rem;
+            color: #22543d;
+        }
+        .live-user-dot {
+            display: inline-block;
+            background: #38a169;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-right: 5px;
+            margin-top: 5px;
         }
 
         /* 스탯 보드 */
@@ -162,6 +185,13 @@
             margin-top: 15px; display: none; box-shadow: 0 2px 4px rgba(252, 129, 129, 0.2);
         }
         .restart-btn:hover { background: #f56565; }
+
+        .btn-logout { background: #cbd5e0; color: #4a5568; padding: 4px 10px; font-size: 0.82rem; border-radius: 6px; box-shadow: none; }
+        .btn-logout:hover { background: #a0aec0; }
+        
+        /* 초기화 전용 리셋 긴급 버튼 */
+        .btn-danger-reset { background: #fed7d7; color: #c53030; font-size: 0.85rem; padding: 8px 16px; margin-top: 15px; }
+        .btn-danger-reset:hover { background: #feb2b2; }
         
         /* 랭킹 스타일 */
         .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
@@ -169,7 +199,6 @@
         .ranking-item:nth-child(1) { font-weight: 700; color: #dd6b20; background: #fffaf0; border-radius: 6px; } 
         .ranking-item:nth-child(2) { font-weight: 700; color: #4a5568; background: #f7fafc; border-radius: 6px; } 
         .ranking-item:nth-child(3) { font-weight: 700; color: #b7791f; background: #fffaf0; border-radius: 6px; } 
-        /* 내 순위 하이라이트 효과 */
         .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
 
         /* 주식 게임 UI */
@@ -230,9 +259,10 @@
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리" maxlength="4">
             <button id="login-btn" style="padding: 10px 15px; font-size:0.9rem;">계정 접속</button>
         </div>
-        <!-- [업데이트] 로그인 완료 시 노출될 현재 접속 상태 배지 (초기엔 숨김) -->
+        <!-- [업데이트] 로그아웃 버튼 탑재형 접속 유저 상단 바 -->
         <div id="logged-in-status-area" class="user-status-badge" style="display: none;">
-            🟢 현재 접속 계정: <span id="current-user-display" class="name">-</span>
+            <span>🟢 접속 계정: <span id="current-user-display" class="name">-</span></span>
+            <button class="btn-logout" onclick="handleLogout()">로그아웃</button>
         </div>
     </div>
 
@@ -270,10 +300,19 @@
         </div>
 
         <div class="message" id="stock-message">상단 계정 정보를 입력하고 [계정 접속]을 누르면 내 자산 정보를 동기화합니다.</div>
+        
+        <!-- [초기화 기능 버튼] 데이터베이스 정리 후 이 태그(button)를 삭제하시면 주식방 초기화 오작동을 차단합니다. -->
+        <button class="btn-danger-reset" onclick="dangerResetStockCollection()">⚠️ 주식 전적 랭킹 완전 초기화</button>
     </div>
 
-    <!-- ================= 우측: 실시간 명예의 전당 ================= -->
+    <!-- ================= 우측: 실시간 동접자 목록 및 명예의 전당 ================= -->
     <div class="ranking-container">
+        <!-- [업데이트] 실시간 활성 접속자 리스트 컨테이너 개설 -->
+        <div class="live-users-panel">
+            <strong>🟢 실시간 접속자 목록</strong>
+            <div id="live-users-list-zone" style="margin-top:5px; font-weight:300;">접속 대기 중...</div>
+        </div>
+
         <h2 id="ranking-title">🏆 조상희 명예의 전당 (TOP 20)</h2>
         <p class="description" id="ranking-desc">실시간 조상희 게임 마스터 랭킹 리스트</p>
         <ul class="ranking-list" id="ranking-list">
@@ -285,7 +324,7 @@
 <!-- Firebase 라이브러리 모드 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
@@ -303,7 +342,7 @@
     let activeTab = 'number'; 
     let currentDocId = null; 
     let isUserLoggedIn = false;
-    let myLoggedId = ""; // 현재 로그인 성공한 유저 아이디 임시 보관용
+    let myLoggedId = ""; 
 
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
@@ -333,7 +372,7 @@
     }
 
     /* ----------------------------------------------------
-       [계정 시스템] 무제한 불러오기 & 상시 저장 연동
+       [계정 시스템] 무제한 불러오기 & 상시 저장 연동 + 세션 통제
     ---------------------------------------------------- */
     loginBtn.addEventListener("click", async () => {
         const userId = userIdInput.value.trim();
@@ -367,6 +406,12 @@
                         if(userData.avgPrices[idx] !== undefined) s.avgPrice = userData.avgPrices[idx];
                     });
                 }
+                
+                // [동접자 연동]: 로그인 시 활성화 타임스탬프 업데이트
+                await updateDoc(doc(db, "stock_rankings", currentDocId), {
+                    lastActive: new Date()
+                });
+
                 alert(`🔓 반갑습니다, '${userId}'님! 기존 투자 정보를 성공적으로 불러왔습니다.`);
             } else {
                 const newDoc = await addDoc(collection(db, "stock_rankings"), {
@@ -376,6 +421,7 @@
                     cash: 2000000,  
                     ownedStocks: [0, 0, 0, 0, 0],
                     avgPrices: [0, 0, 0, 0, 0], 
+                    lastActive: new Date(), // 실시간 동접 추적 태그 추가
                     timestamp: new Date()
                 });
                 currentDocId = newDoc.id;
@@ -385,9 +431,8 @@
             }
 
             isUserLoggedIn = true;
-            myLoggedId = userId; // [업데이트] 내 로그인 ID 기록 채우기
+            myLoggedId = userId; 
             
-            // [업데이트] 로그인 완료 시 인풋창 숨기고 "현재 접속중인 아이디" 배지 가시화
             loginFormArea.style.display = "none";
             currentUserDisplay.textContent = userId;
             loggedInStatusArea.style.display = "flex";
@@ -398,11 +443,99 @@
             
             startRealtimePrices(); 
             renderStockMarket(false);
+            fetchLiveActiveUsers(); // 동접자 판 새로고침
 
         } catch (e) {
             console.error("계정 연동 실패: ", e);
         }
     });
+
+    // [업데이트] 로그아웃 비즈니스 처리 함수
+    window.handleLogout = async function() {
+        if(!confirm("정말 로그아웃 하시겠습니까? 현재까지의 자산은 안전하게 백업되었습니다.")) return;
+        
+        // 동접 리스트에서 지워지도록 타임스탬프를 과거로 강제 강하
+        if (currentDocId) {
+            try {
+                await updateDoc(doc(db, "stock_rankings", currentDocId), {
+                    lastActive: new Date(0) // 1970년도로 밀어서 세션 만료 유도
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        // 상태 초기화 및 로그인 인풋 영역 복구
+        isUserLoggedIn = false;
+        myLoggedId = "";
+        currentDocId = null;
+        clearInterval(priceInterval);
+
+        userIdInput.value = "";
+        userPwInput.value = "";
+        loggedInStatusArea.style.display = "none";
+        loginFormArea.style.display = "flex";
+
+        document.getElementById('stock-status-text').textContent = "로그인 필요";
+        document.getElementById('stock-status-text').style.color = "#4a5568";
+        document.getElementById('stock-message').textContent = "로그아웃되었습니다. 다시 거래하려면 상단 계정 접속을 이용하세요.";
+        
+        initStockGame();
+        document.getElementById('live-users-list-zone').textContent = "로그인 후 확인 가능";
+    }
+
+    // [업데이트] 🟢 최근 15초 이내에 액션이 있었던 실시간 동접 유저들을 스캔하는 로직
+    async function fetchLiveActiveUsers() {
+        const zone = document.getElementById('live-users-list-zone');
+        if(!isUserLoggedIn) {
+            zone.textContent = "로그인 후 확인 가능";
+            return;
+        }
+
+        try {
+            const snap = await getDocs(collection(db, "stock_rankings"));
+            let html = "";
+            let now = new Date().getTime();
+
+            snap.forEach(doc => {
+                let data = doc.data();
+                if(data.lastActive) {
+                    let lastTime = data.lastActive.toDate().getTime();
+                    // 현재 시간 기준 15초 미만 간격으로 데이터 트래픽이 찍힌 계정만 추림
+                    if (now - lastTime < 15000) {
+                        let meTag = data.userId === myLoggedId ? " (나)" : "";
+                        html += `<span class="live-user-dot">👤 ${data.userId}${meTag}</span>`;
+                    }
+                }
+            });
+
+            zone.innerHTML = html === "" ? "현재 접속 중인 다른 유저가 없습니다." : html;
+        } catch(e) {
+            console.error("동접자 로드 실패", e);
+        }
+    }
+
+    // [업데이트] 주식 랭킹 뱅크 완전 초기화 내부 로직 (비밀 리셋 함수)
+    window.dangerResetStockCollection = async function() {
+        if(!confirm("⚠️ [경고] 진짜 명예의 전당에 등록된 모든 사람들의 주식 전적 데이터를 공중 분해하시겠습니까? 복구는 절대 불가능합니다.")) return;
+        if(prompt("보안 확인을 위해 '조상희리셋' 이라고 정확히 타이핑해 주세요.") !== "조상희리셋") {
+            alert("입력 문구가 일치하지 않아 초기화 명령이 기각되었습니다.");
+            return;
+        }
+
+        try {
+            const snap = await getDocs(collection(db, "stock_rankings"));
+            let deletePromises = [];
+            snap.forEach((documentSnapshot) => {
+                deletePromises.push(deleteDoc(doc(db, "stock_rankings", documentSnapshot.id)));
+            });
+            await Promise.all(deletePromises);
+            
+            alert("💥 성공: 기존 유저들의 모든 자산 및 랭킹 데이터가 완벽하게 밀렸습니다! 페이지를 새로고침합니다.");
+            location.reload();
+        } catch(e) {
+            console.error("초기화 실패", e);
+            alert("권한 거부 또는 Firestore 보안 규칙 문제로 초기화에 실패했습니다.");
+        }
+    }
 
     async function syncAssetToBackend() {
         if (!isUserLoggedIn || !currentDocId) return;
@@ -420,9 +553,9 @@
                 cash: stockCash,   
                 ownedStocks: stockOwnedArray,
                 avgPrices: avgPricesArray,
+                lastActive: new Date(), // 생존 신호 타임스탬프 갱신
                 timestamp: new Date()
             });
-            // 랭킹 리스트 리프레시는 시세 변동 타이머가 5초마다 자동 호출하므로 실시간 유지됨
         } catch (e) {
             console.error("실시간 자산 백업 오류: ", e);
         }
@@ -515,7 +648,6 @@
 
     function startRealtimePrices() {
         clearInterval(priceInterval);
-        // [업데이트] 5초마다 주가 변동 및 백엔드 랭킹 스크린판 실시간 무한 호출 동기화
         priceInterval = setInterval(() => {
             stocks.forEach(stock => {
                 stock.oldPrice = stock.price;
@@ -524,7 +656,7 @@
             });
             renderStockMarket(false); 
             syncAssetToBackend(); 
-            // 5초마다 랭킹 데이터를 새로 긁어와서 무한 리프레시 구현
+            fetchLiveActiveUsers(); // 5초마다 실시간 동접자 명단 갱신
             loadRanking(activeTab === 'number' ? 'rankings' : 'stock_rankings', activeTab === 'number' ? '연승' : '원');
         }, 5000);
     }
@@ -655,7 +787,6 @@
         }
     }
 
-    // [업데이트] 실시간 랭킹 추적 및 내 순위 색상 강조 기능 강화
     async function loadRanking(colName, unit) {
         const titleEl = document.getElementById('ranking-title');
         const descEl = document.getElementById('ranking-desc');
@@ -685,7 +816,6 @@
                 const li = document.createElement('li');
                 li.className = 'ranking-item';
                 
-                // [업데이트] 리스트 순회 중 현재 로그인된 아이디가 포착되면 특수 배경색(.my-rank) 부여
                 if(isUserLoggedIn && data.userId === myLoggedId) {
                     li.classList.add('my-rank');
                 }
