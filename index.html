@@ -9,28 +9,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #f4f7f6 0%, #e9eff1 100%); color: #4a5568; display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; padding: 10px 20px; box-sizing: border-box; overflow: hidden; }
-        
-        /* 탭 전환 상단 바 */
         .market-tab-bar { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; max-width: 1200px; justify-content: flex-start; }
         .market-tab-btn { padding: 8px 20px; font-size: 0.9rem; font-weight: bold; border: 1px solid #cbd5e0; background: #ffffff; color: #718096; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .market-tab-btn.active { background: #3182ce; color: white; border-color: #2b6cb0; box-shadow: 0 4px 10px rgba(49, 130, 206, 0.2); }
-
         .main-wrapper { display: flex; gap: 15px; max-width: 1200px; width: 100%; flex: 1; min-height: 0; background: #ffffff; padding: 15px; border-radius: 16px; box-shadow: 0 8px 20px rgba(160, 174, 192, 0.1); box-sizing: border-box; }
-        
         .game-container { flex: 1.2; display: flex; flex-direction: column; background: #f7fafc; padding: 15px; border-radius: 12px; min-height: 0; box-sizing: border-box; }
         .ranking-container { flex: 0.8; display: flex; flex-direction: column; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 0; box-sizing: border-box; }
-        
         h1 { font-size: 1.25rem; color: #2d3748; font-weight: 700; margin: 0 0 5px 0; }
         h2 { font-size: 1.1rem; color: #2d3748; margin: 0 0 5px 0; }
         .description { color: #718096; font-size: 0.8rem; margin-bottom: 10px; font-weight: 300; }
-        
         .auth-area { display: flex; flex-direction: row; gap: 8px; align-items: center; }
         .user-status-badge { background: #e2e8f0; color: #4a5568; padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ebf8ff; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
         .stats div { display: flex; justify-content: space-between; padding: 1px 2px; }
-        
-        /* 주식 마켓 보드 */
         .stock-market-board { display: flex; flex-direction: column; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
         .stock-row-wrapper { border-bottom: 1px solid #edf2f7; }
         .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; transition: 0.2s; }
@@ -38,26 +29,24 @@
         .stock-row-wrapper.selected .stock-item { background: #eaf6ff; }
         .stock-price { font-weight: 700; min-width: 85px; text-align: right; font-size: 0.88rem; }
         .price-up { color: #e53e3e; } .price-down { color: #3182ce; }
-
         .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
         .stock-detail-chart-container.open { display: block; }
         .timeframe-selector { display: flex; gap: 4px; margin-bottom: 6px; }
         .tf-btn { padding: 3px 8px; font-size: 0.72rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; }
         .tf-btn.active { background: #ebf8ff; color: #3182ce; font-weight: bold; }
         .detail-canvas { width: 100%; height: 90px; display: block; }
-
-        /* 🏢 [부동산 전용 마켓 스타일] */
         .estate-market-board { display: none; flex-direction: column; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
-        .estate-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #edf2f7; }
+        .estate-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #edf2f7; gap: 10px; }
         .estate-info { text-align: left; }
         .estate-name { font-weight: bold; color: #2d3748; font-size: 0.88rem; }
         .estate-rent-info { font-size: 0.72rem; color: #38a169; font-weight: 500; margin-top: 2px; }
-        .estate-btn-zone { display: flex; align-items: center; gap: 8px; }
+        .estate-btn-zone { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
         .estate-count { font-size: 0.82rem; font-weight: bold; color: #dd6b20; min-width: 45px; text-align: right; }
         .btn-estate-buy { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
         .btn-estate-buy:hover { background: #b2f5ea; }
-
-        /* 하단 오퍼레이션 영역 */
+        .btn-estate-sell { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-estate-sell:hover { background: #fed7d7; }
+        .btn-estate-sell:disabled { opacity: 0.45; cursor: not-allowed; }
         .bottom-media-layout { display: flex; gap: 10px; width: 100%; align-items: stretch; margin-top: auto; }
         .ai-hint-panel { flex: 1.1; background: #2d3748; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; height: 130px; box-sizing: border-box; color: #e2e8f0; text-align: left; }
         .ai-hint-title { font-size: 0.85rem; font-weight: 700; color: #63b3ed; border-bottom: 1px solid #4a5568; padding-bottom: 4px; margin-bottom: 4px; }
@@ -65,20 +54,16 @@
         .ai-hint-row { display: flex; justify-content: space-between; padding: 2px 0; }
         .ai-badge { font-weight: bold; padding: 1px 4px; border-radius: 4px; font-size: 0.68rem; }
         .badge-buy { background: #e53e3e; } .badge-sell { background: #3182ce; } .badge-hold { background: #718096; }
-
         .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; width: 55%; justify-content: center; }
         .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
         .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 5px 10px; font-size: 0.78rem; border-radius: 6px; }
         .order-action-group { display: flex; gap: 6px; width: 100%; justify-content: center; }
         .btn-buy { background: #fed7d7; color: #c53030; padding: 8px; flex: 1; font-size: 0.88rem; }
         .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 8px; flex: 1; font-size: 0.88rem; }
-
-        /* 우측 레이아웃 */
         .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 6px 12px; margin-bottom: 6px; text-align: left; font-size: 0.78rem; color: #22543d; }
         .ranking-list { list-style: none; padding: 0; margin: 0; max-height: 160px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 8px; }
         .ranking-item { display: flex; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; font-size: 0.82rem; }
         .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; font-weight: 700; }
-        
         .chat-panel-container { display: flex; flex-direction: column; background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 10px; margin-top: 8px; flex: 1; min-height: 0; padding: 6px; }
         .chat-messages-zone { flex: 1; overflow-y: auto; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; padding: 6px; font-size: 0.78rem; text-align: left; min-height: 0; }
         .chat-line { margin-bottom: 4px; }
@@ -87,24 +72,17 @@
         .chat-input-row { display: flex; gap: 4px; margin-top: 4px; }
         .chat-input-row input { flex: 1; padding: 5px; font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e0; }
         .chat-send-btn { background: #63b3ed; color: white; border: none; padding: 0 10px; font-size: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
         .peer-portfolio-card { margin-top: 6px; padding: 8px; background: #2d3748; color: white; border-radius: 8px; max-height: 90px; overflow-y: auto; }
         .peer-stock-list { font-size: 0.72rem; text-align: left; line-height: 1.4; }
-        .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; }
-        
         .red-text { color: #e53e3e !important; } .blue-text { color: #3182ce !important; }
     </style>
 </head>
 <body>
-
-<!-- 상단 인증 및 제어바 -->
 <div style="display:flex; justify-content:space-between; width:100%; max-width:1200px; margin-bottom:6px; height: 36px; align-items: center;">
-    <!-- 🏢 대형 마켓 전환 멀티 탭 단추 링크 -->
     <div class="market-tab-bar">
         <button class="market-tab-btn active" id="m-tab-stock" onclick="switchMarketView('stock')">📈 주식 마켓</button>
         <button class="market-tab-btn" id="m-tab-estate" onclick="switchMarketView('estate')">🏢 부동산 마켓</button>
     </div>
-    
     <div class="auth-area" id="login-form-area">
         <input type="text" id="user-id-input" placeholder="닉네임" maxlength="12" style="padding:5px; font-size:0.8rem; width:90px;">
         <input type="password" id="user-pw-input" placeholder="비번" maxlength="4" style="padding:5px; font-size:0.8rem; width:50px;">
@@ -117,25 +95,17 @@
 </div>
 
 <div class="main-wrapper">
-    <!-- 왼쪽 거래 메인 컨테이너 -->
     <div class="game-container">
         <h1 id="panel-main-title">📈 조상희 우량주 시뮬레이터</h1>
         <p class="description" id="panel-main-desc">주식으로 시드를 불려 대지주 건물주로 등극해 보세요!</p>
-        
         <div class="stats">
             <div>가용 예수금: <span id="stock-cash">2,000,000</span>원</div>
             <div>총 평가자산: <span id="stock-asset">2,000,000</span>원</div>
             <div colspan="2" style="grid-column: span 2;">주식 포트 수익률: <span id="stock-profit">0%</span></div>
         </div>
-
-        <!-- 탭 1: 주식 시장판 -->
         <div class="stock-market-board" id="market-board"></div>
-
-        <!-- 탭 2: 부동산 시장판 (신설) -->
         <div class="estate-market-board" id="estate-board"></div>
-
         <div class="message" id="stock-message" style="font-size:0.75rem; margin:3px 0; min-height:16px; color:#a0aec0;">원하는 타겟 요소를 클릭하면 상세 제어 패널이 활성화됩니다.</div>
-
         <div class="bottom-media-layout">
             <div class="ai-hint-panel">
                 <div class="ai-hint-title">🔮 실시간 AI 매매 힌트 오라클</div>
@@ -143,8 +113,6 @@
                     <div style="text-align:center; color:#a0aec0; padding-top:20px;">시세 루프 분석 대기 중...</div>
                 </div>
             </div>
-
-            <!-- 주식 주문 패드 (주식 탭에서만 활성화 관리) -->
             <div class="order-panel" id="order-panel" style="visibility: hidden;">
                 <div id="selected-stock-name" style="font-weight: bold; font-size: 0.82rem; text-align: left;">종목 선택됨</div>
                 <div class="order-inputs-zone">
@@ -159,8 +127,6 @@
             </div>
         </div>
     </div>
-
-    <!-- 우측 대시보드 및 실시간 소통계 프레임 -->
     <div class="ranking-container">
         <div class="live-users-panel">
             <strong>🟢 실시간 동접자 명단</strong>
@@ -168,7 +134,6 @@
         </div>
         <h2>🏆 실시간 연합 명예의 전당</h2>
         <ul class="ranking-list" id="ranking-list"></ul>
-
         <div class="peer-portfolio-card" id="peer-card" style="display: none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
                 <h3 style="margin:0;"><span id="peer-name">유저</span> 자산 정보</h3>
@@ -176,7 +141,6 @@
             </div>
             <div class="peer-stock-list" id="peer-stock-list"></div>
         </div>
-
         <div class="chat-panel-container">
             <h2 style="font-size: 0.85rem; text-align: left; margin: 0 0 4px 0;">💬 실시간 개미 토론방</h2>
             <div class="chat-messages-zone" id="chat-messages-zone"></div>
@@ -201,7 +165,8 @@
     let myLoggedId = "";
     let isUserLoggedIn = false;
     let currentDocId = null;
-    let activeMarketTab = "stock"; // 'stock' 또는 'estate'
+    let activeMarketTab = "stock";
+    let dayTickCounter = 0;
 
     let stocks = [
         { name: "삼성전자", price: 68000, oldPrice: 68000, displayPrice: 68000, owned: 0, avgPrice: 0, detailHistory5m: [68000], detailHistory1d: [68000], chartMode: '5m' },
@@ -211,7 +176,6 @@
         { name: "에코프로비엠", price: 165000, oldPrice: 165000, displayPrice: 165000, owned: 0, avgPrice: 0, detailHistory5m: [165000], detailHistory1d: [165000], chartMode: '5m' }
     ];
 
-// 🏢 [부동산 마켓 데이터셋]: 난이도 상향 조정 (가성비 하향)
     let estates = [
         { name: "낡은 주차장", cost: 1000000, rent: 1500, owned: 0 },
         { name: "편의점 입점 상가", cost: 5000000, rent: 8000, owned: 0 },
@@ -223,12 +187,8 @@
         { name: "랜드마크 초고층 타워", cost: 10000000000, rent: 12000000, owned: 0 }
     ];
 
-    let dayTickCounter = 0;
-
     function updatePrices() {
         dayTickCounter++;
-        
-        // 1. 주가 유동 갱신
         stocks.forEach(s => {
             s.oldPrice = s.price;
             s.price = Math.max(1000, Math.floor(s.price * (1 + (Math.random() * 0.2 - 0.09))));
@@ -240,17 +200,16 @@
             }
         });
 
-        // 2. 🏢 부동산 건물주 월세 자동 정산 연동 로직
         let totalPassiveIncome = estates.reduce((acc, cur) => acc + (cur.owned * cur.rent), 0);
         if (totalPassiveIncome > 0) {
-            stockCash += totalPassiveIncome; // 예수금 잔고로 다이렉트 입금
+            stockCash += totalPassiveIncome;
             if(isUserLoggedIn) {
                 document.getElementById('stock-message').textContent = `🏪 [월세 자동 정산] 건물 수입 총 +${totalPassiveIncome.toLocaleString()}원이 통장 입금되었습니다.`;
             }
         }
 
         renderStockInfoText();
-        renderEstateMarket(); // 부동산 뷰어 리프레시
+        renderEstateMarket();
         calculateAIHints();
         loadRanking();
         if(isUserLoggedIn) {
@@ -260,7 +219,6 @@
     }
     setInterval(updatePrices, 5000);
 
-    // 60fps 애니메이션 연산 가동
     function animationLoop() {
         stocks.forEach((s, i) => {
             s.displayPrice += (s.price - s.displayPrice) * 0.1;
@@ -270,7 +228,6 @@
     }
     requestAnimationFrame(animationLoop);
 
-    // 🏢 [신설] 주식과 부동산 마켓 탭 전환 엔진 함수
     window.switchMarketView = function(viewMode) {
         activeMarketTab = viewMode;
         document.getElementById('m-tab-stock').classList.remove('active');
@@ -294,7 +251,6 @@
         }
     }
 
-    // 🏢 [신설] 부동산 마켓 렌더러 및 즉시 계약 엔진
     function renderEstateMarket() {
         const board = document.getElementById('estate-board');
         board.innerHTML = "";
@@ -309,18 +265,18 @@
                 <div class="estate-btn-zone">
                     <div class="estate-count">${e.owned} 채 보유</div>
                     <button class="btn-estate-buy" onclick="buyEstateAsset(${idx})">매입 등기</button>
+                    <button class="btn-estate-sell" onclick="sellEstateAsset(${idx})" ${e.owned <= 0 ? 'disabled' : ''}>매도</button>
                 </div>`;
             board.appendChild(row);
         });
     }
 
-    // 🏢 [신설] 부동산 계약 등기 처리 함수
     window.buyEstateAsset = function(idx) {
         if(!isUserLoggedIn) { alert("⚠️ 부동산 등기를 양도하고 계약하려면 먼저 상단 계정 접속을 하십시오."); return; }
         let targetEstate = estates[idx];
 
         if(stockCash >= targetEstate.cost) {
-            stockCash -= targetEstate.cost; // 가용 주식 시드머니 출금
+            stockCash -= targetEstate.cost;
             targetEstate.owned++;
             document.getElementById('stock-message').textContent = `🏢 [부동산 등기] '${targetEstate.name}' 1채 매입 계약이 완료되었습니다!`;
             renderStockInfoText();
@@ -329,6 +285,20 @@
         } else {
             alert("❌ 예수금 잔고가 부족합니다! 주식 매도나 월세를 모아 시드를 마련하십시오.");
         }
+    }
+
+    window.sellEstateAsset = function(idx) {
+        if(!isUserLoggedIn) { alert("⚠️ 부동산 매도는 로그인 후 가능합니다."); return; }
+        const targetEstate = estates[idx];
+        if((targetEstate.owned || 0) <= 0) { alert("❌ 매도할 부동산을 보유하고 있지 않습니다."); return; }
+
+        const sellPrice = Math.floor(targetEstate.cost * 0.9);
+        targetEstate.owned--;
+        stockCash += sellPrice;
+        document.getElementById('stock-message').textContent = `🏢 [부동산 매도] '${targetEstate.name}' 1채를 ${sellPrice.toLocaleString()}원에 매도했습니다.`;
+        renderStockInfoText();
+        renderEstateMarket();
+        syncAssetToBackend();
     }
 
     function renderStockInfoText() {
@@ -341,21 +311,16 @@
             const displayOwned = isNaN(s.owned) ? 0 : s.owned;
             const displayAvg = isNaN(s.avgPrice) ? 0 : s.avgPrice;
             cEl.textContent = `평단: ${Math.floor(displayAvg).toLocaleString()}원 | 잔고: ${displayOwned}주`;
-            if (displayOwned > 0) cEl.className = "cap has-balance";
-            else cEl.className = "cap";
         });
 
-        // 총자산 산출 공식에 부동산 매입 원가 밸류 가치 전량 합산 보정
         let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
         let totalPurchase = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * (Number(cur.avgPrice) || 0)), 0);
         let totalEstateValue = estates.reduce((acc, cur) => acc + (cur.owned * cur.cost), 0);
-        
-        // 총자산 = 현금 + 주가평가액 + 부동산 가치
         let asset = (Number(stockCash) || 0) + totalStockValue + totalEstateValue;
 
         document.getElementById('stock-asset').textContent = isNaN(asset) ? "2,000,000" : asset.toLocaleString();
         document.getElementById('stock-cash').textContent = isNaN(stockCash) ? "2,000,000" : stockCash.toLocaleString();
-        
+
         let profit = totalStockValue - totalPurchase;
         let rate = totalPurchase > 0 ? (profit / totalPurchase) * 100 : 0;
         const pEl = document.getElementById('stock-profit');
@@ -390,7 +355,7 @@
         const isOpen = container.classList.contains('open');
         document.querySelectorAll('.stock-detail-chart-container').forEach(el => el.classList.remove('open'));
         document.querySelectorAll('.stock-row-wrapper').forEach(el => el.classList.remove('selected'));
-        
+
         if(!isOpen) {
             container.classList.add('open');
             document.getElementById(`stock-wrapper-${i}`).classList.add('selected');
@@ -418,22 +383,19 @@
         const ctx = canvas.getContext('2d');
         let h = stocks[i].chartMode === '5m' ? [...stocks[i].detailHistory5m] : [...stocks[i].detailHistory1d];
         if(h.length === 0) return;
-        
         h[h.length - 1] = stocks[i].displayPrice;
         ctx.clearRect(0,0,canvas.width, canvas.height);
         if(h.length < 2) return;
-        
+
         const maxPrice = Math.max(...h);
         const minPrice = Math.min(...h);
         const priceRange = (maxPrice - minPrice) === 0 ? 1 : (maxPrice - minPrice);
-        
         ctx.beginPath();
         const isTrendUp = stocks[i].price >= stocks[i].oldPrice;
         ctx.strokeStyle = isTrendUp ? '#f56565' : '#4299e1';
         ctx.lineWidth = 1.8;
         const chartWidth = canvas.width - 65;
         const step = chartWidth / 19;
-        
         let lastY = 0;
         h.forEach((p, idx) => {
             const x = idx * step;
@@ -442,7 +404,6 @@
             if(idx === h.length - 1) lastY = y;
         });
         ctx.stroke();
-
         ctx.beginPath();
         ctx.strokeStyle = isTrendUp ? 'rgba(245, 101, 101, 0.4)' : 'rgba(66, 153, 229, 0.4)';
         ctx.lineWidth = 1;
@@ -451,7 +412,6 @@
         ctx.lineTo(chartWidth, lastY);
         ctx.stroke();
         ctx.setLineDash([]);
-
         ctx.fillStyle = isTrendUp ? '#fed7d7' : '#ebf8ff';
         ctx.fillRect(chartWidth + 3, lastY - 7, 58, 14);
         ctx.font = '10px sans-serif';
@@ -482,15 +442,10 @@
         const s = stocks[selectedStockIndex];
         const qtyInput = document.getElementById('global-quantity');
         const cleanOwned = Number(s.owned) || 0;
-        if (cleanOwned > 0) {
-            qtyInput.value = cleanOwned;
-        } else {
-            let maxBuy = Math.floor(stockCash / s.price);
-            qtyInput.value = maxBuy < 0 ? 0 : maxBuy;
-        }
+        if (cleanOwned > 0) qtyInput.value = cleanOwned;
+        else qtyInput.value = Math.max(0, Math.floor(stockCash / s.price));
     }
 
-    // 채팅 리스너
     const msgZone = document.getElementById('chat-messages-zone');
     const msgInput = document.getElementById('chat-user-msg');
     const sendBtn = document.getElementById('chat-send-btn');
@@ -516,7 +471,6 @@
     sendBtn.addEventListener('click', sendUserChatMessage);
     msgInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') sendUserChatMessage(); });
 
-    // 랭킹 및 포트폴리오 스캔에 부동산 연동 추가
     async function showUserPortfolio(userId) {
         const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
         const snap = await getDocs(q);
@@ -527,12 +481,8 @@
             const peerList = document.getElementById('peer-stock-list');
             peerName.textContent = userId; peerCard.style.display = "block";
             let html = "";
-            if(data.ownedStocks) {
-                data.ownedStocks.forEach((count, idx) => { if(count > 0 && stocks[idx]) html += `<div>📈 ${stocks[idx].name}: ${count}주</div>`; });
-            }
-            if(data.ownedEstates) {
-                data.ownedEstates.forEach((count, idx) => { if(count > 0 && estates[idx]) html += `<div>🏢 ${estates[idx].name}: ${count}채</div>`; });
-            }
+            if(data.ownedStocks) data.ownedStocks.forEach((count, idx) => { if(count > 0 && stocks[idx]) html += `<div>📈 ${stocks[idx].name}: ${count}주</div>`; });
+            if(data.ownedEstates) data.ownedEstates.forEach((count, idx) => { if(count > 0 && estates[idx]) html += `<div>🏢 ${estates[idx].name}: ${count}채</div>`; });
             peerList.innerHTML = html || "자산이 비어있습니다.";
         }
     }
@@ -546,7 +496,7 @@
         let rank = 1;
         snap.forEach(d => {
             const data = d.data();
-            const cleanScore = Number(data.score); if (isNaN(cleanScore)) return; 
+            const cleanScore = Number(data.score); if (isNaN(cleanScore)) return;
             const li = document.createElement('li');
             li.className = isUserLoggedIn && data.userId === myLoggedId ? 'ranking-item my-rank' : 'ranking-item';
             li.innerHTML = `<span>${rank}위. ${data.userId}</span> <b>${Math.floor(cleanScore).toLocaleString()}원</b>`;
@@ -610,10 +560,9 @@
             currentDocId = user.id; stockCash = Number(user.data().cash) || 2000000;
             if(user.data().ownedStocks) user.data().ownedStocks.forEach((cnt, idx) => { if(stocks[idx]) stocks[idx].owned = Number(cnt) || 0; });
             if(user.data().avgPrices) user.data().avgPrices.forEach((prc, idx) => { if(stocks[idx]) stocks[idx].avgPrice = Number(prc) || 0; });
-            // 구데이터 복구 유연성 가드 추가 (부동산 보유 내역 복원)
             if(user.data().ownedEstates) user.data().ownedEstates.forEach((cnt, idx) => { if(estates[idx]) estates[idx].owned = Number(cnt) || 0; });
         } else {
-            const res = await addDoc(collection(db, "stock_rankings"), { userId: id, userPw: pw, score: 2000000, cash: 2000000, ownedStocks:[0,0,0,0,0], avgPrices:[0,0,0,0,0], ownedEstates:[0,0,0,0], lastActive: new Date() });
+            const res = await addDoc(collection(db, "stock_rankings"), { userId: id, userPw: pw, score: 2000000, cash: 2000000, ownedStocks: stocks.map(() => 0), avgPrices: stocks.map(() => 0), ownedEstates: estates.map(() => 0), lastActive: new Date() });
             currentDocId = res.id; stockCash = 2000000; stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; }); estates.forEach(e => e.owned = 0);
         }
         isUserLoggedIn = true; myLoggedId = id;
@@ -628,18 +577,18 @@
         let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
         let totalEstateValue = estates.reduce((acc, cur) => acc + (cur.owned * cur.cost), 0);
         const total = (Number(stockCash) || 0) + totalStockValue + totalEstateValue;
-        
-        await updateDoc(doc(db, "stock_rankings", currentDocId), { 
-            score: isNaN(total) ? 2000000 : total, 
-            cash: isNaN(stockCash) ? 2000000 : stockCash, 
-            ownedStocks: stocks.map(s=> s.owned), 
+        await updateDoc(doc(db, "stock_rankings", currentDocId), {
+            score: isNaN(total) ? 2000000 : total,
+            cash: isNaN(stockCash) ? 2000000 : stockCash,
+            ownedStocks: stocks.map(s=> s.owned),
             avgPrices: stocks.map(s=> s.avgPrice),
-            ownedEstates: estates.map(e=> e.owned), // 부동산 보유 수 파이어베이스에 안전 저장 연동
-            lastActive: new Date() 
+            ownedEstates: estates.map(e=> e.owned),
+            lastActive: new Date()
         });
     }
 
     initStockBoardFrame();
+    renderEstateMarket();
     loadRanking();
 </script>
 </body>
