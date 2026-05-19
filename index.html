@@ -182,16 +182,6 @@
         .btn-buy:hover { background: #feb2b2; }
         .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; }
         .btn-sell:hover { background: #bee3f8; }
-        
-        /* 마감 버튼 스타일 */
-        .btn-close-market {
-            background: #ed8936;
-            color: white;
-            box-shadow: 0 2px 4px rgba(237, 137, 54, 0.2);
-        }
-        .btn-close-market:hover {
-            background: #dd6b20;
-        }
     </style>
 </head>
 <body>
@@ -207,8 +197,9 @@
     <!-- 공통 계정 설정 영역 -->
     <div style="width:100%; display:flex; justify-content:center; margin-bottom:10px;">
         <div class="auth-area" style="margin-bottom: 0; flex-direction: row; gap: 15px;">
-            <input type="text" id="user-id-input" placeholder="닉네임(아이디)" maxlength="12">
+            <input type="text" id="user-id-input" placeholder="닉네임(아이디) 입력" maxlength="12">
             <input type="password" id="user-pw-input" placeholder="비밀번호 4자리" maxlength="4">
+            <button id="login-btn" style="padding: 10px 15px; font-size:0.9rem;">계정 접속</button>
         </div>
     </div>
 
@@ -232,24 +223,19 @@
     <!-- ================= 2. 주식 게임 화면 ================= -->
     <div class="game-container id-game-content stock-screen" id="stock-game-screen">
         <h1>📈 조상희 가치주 레이스 (REALTIME)</h1>
-        <p class="description">5초마다 무제한으로 주가 변동! 원하는 타이밍에 장을 마감하세요.</p>
+        <p class="description">5초마다 변하는 실시간 시세! 내 계정에 자산이 자동 세이브됩니다.</p>
         
         <div class="stats">
-            <!-- [업데이트] 무제한 상태 표시 -->
-            <div>시장 상태: <span id="stock-status-text" style="color: #4a5568;">장 개시 전</span></div>
-            <div>보유 자산: <span id="stock-asset" class="red-text">2,000,000</span> 원</div>
-            <div>보유 주식: <span id="stock-owned">0</span> 주</div>
+            <div>시장 상태: <span id="stock-status-text" style="color: #4a5568; font-weight:700;">로그인 필요</span></div>
+            <div>총 평가자산: <span id="stock-asset" class="red-text">2,000,000</span> 원</div>
+            <div>보유 예수금: <span id="stock-cash">2,000,000</span> 원</div>
         </div>
 
         <div class="stock-market-board" id="market-board">
             <!-- 종목 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">상단 계정 정보를 입력하고 시작 버튼을 누르세요! 실제 주식처럼 무제한 거래가 가능합니다.</div>
-        <button id="start-stock-btn" style="width: 100%; margin-bottom: 10px; background: #63b3ed; color:#fff;">🕹️ 실시간 주식시장 개장하기</button>
-        <!-- [업데이트] 사용자가 원할 때 마감하는 버튼 추가 -->
-        <button id="close-stock-btn" class="btn-close-market" style="width: 100%; margin-bottom: 10px; display: none;" onclick="endStockGame()">🏁 장마감 및 전적 기록하기</button>
-        <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
+        <div class="message" id="stock-message">상단 계정 정보를 입력하고 [계정 접속]을 누르면 내 자산 정보를 동기화합니다.</div>
     </div>
 
     <!-- ================= 우측: 실시간 명예의 전당 ================= -->
@@ -265,7 +251,7 @@
 <!-- Firebase 라이브러리 모드 -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
@@ -281,8 +267,12 @@
     const db = getFirestore(app);
 
     let activeTab = 'number'; 
+    let currentDocId = null; // 로그인된 Firebase 문서 고유 ID 보관용
+    let isUserLoggedIn = false;
+
     const userIdInput = document.getElementById('user-id-input');
     const userPwInput = document.getElementById('user-pw-input');
+    const loginBtn = document.getElementById('login-btn');
 
     /* ----------------------------------------------------
        [공통] 탭 전환 시스템
@@ -302,6 +292,99 @@
             loadRanking('stock_rankings', '원');
         }
     }
+
+    /* ----------------------------------------------------
+       [계정 시스템] 무제한 불러오기 & 상시 저장 연동
+    ---------------------------------------------------- */
+    loginBtn.addEventListener("click", async () => {
+        const userId = userIdInput.value.trim();
+        const userPw = userPwInput.value.trim();
+
+        if (!userId || !userPw) { alert("계정 아이디와 패스워드를 적어주세요."); return; }
+
+        try {
+            const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                // 1. 기존 유저 데이터가 존재할 때
+                let userDoc = querySnapshot.docs[0];
+                let userData = userDoc.data();
+
+                if (userData.userPw !== userPw) {
+                    alert("⚠️ 패스워드가 다릅니다! 다른 닉네임을 쓰거나 비번을 확인하세요.");
+                    return;
+                }
+
+                currentDocId = userDoc.id;
+                stockCash = userData.cash !== undefined ? userData.cash : userData.score; 
+                
+                // 기존 보유 주식 데이터 매핑 복구
+                if(userData.ownedStocks) {
+                    stocks.forEach((s, idx) => {
+                        if(userData.ownedStocks[idx] !== undefined) {
+                            s.owned = userData.ownedStocks[idx];
+                        }
+                    });
+                }
+                alert(`🔓 반갑습니다, '${userId}'님! 기존 투자 정보를 성공적으로 불러왔습니다.`);
+            } else {
+                // 2. 신규 계정 개설할 때 (기본금 200만 원 지급)
+                const newDoc = await addDoc(collection(db, "stock_rankings"), {
+                    userId: userId,
+                    userPw: userPw,
+                    score: 2000000, // 총평가자산
+                    cash: 2000000,  // 예수금
+                    ownedStocks: [0, 0, 0, 0, 0],
+                    timestamp: new Date()
+                });
+                currentDocId = newDoc.id;
+                stockCash = 2000000;
+                stocks.forEach(s => s.owned = 0);
+                alert(`✨ 신규 계정 '${userId}' 등록 완료! 초기 자본금 2,000,000원이 입금되었습니다.`);
+            }
+
+            isUserLoggedIn = true;
+            userIdInput.disabled = true;
+            userPwInput.disabled = true;
+            loginBtn.disabled = true;
+            loginBtn.textContent = "접속됨";
+            
+            document.getElementById('stock-status-text').textContent = "실시간 거래 중";
+            document.getElementById('stock-status-text').style.color = "#e53e3e";
+            document.getElementById('stock-message').textContent = "주가가 5초마다 자동 갱신됩니다. 매매 시 자산 정보는 계정에 즉시 영구 저장됩니다.";
+            
+            startRealtimePrices(); // 주가 등락 가동
+            renderStockMarket(false);
+
+        } catch (e) {
+            console.error("계정 연동 실패: ", e);
+        }
+    });
+
+    // 실시간 계정 자산 정보를 백엔드에 다이렉트로 업데이트하는 함수
+    async function syncAssetToBackend() {
+        if (!isUserLoggedIn || !currentDocId) return;
+
+        let totalStockValue = stocks.reduce((acc, cur) => acc + (cur.owned * cur.price), 0);
+        let totalAsset = stockCash + totalStockValue; // 현재 시세 기준 총 자산 산출
+
+        let stockOwnedArray = stocks.map(s => s.owned);
+
+        try {
+            const userDocRef = doc(db, "stock_rankings", currentDocId);
+            await updateDoc(userDocRef, {
+                score: totalAsset, // 랭킹 정렬용 총자산
+                cash: stockCash,   // 보유 현금
+                ownedStocks: stockOwnedArray,
+                timestamp: new Date()
+            });
+            loadRanking('stock_rankings', '원'); // 우측 명예의 전당 즉시 동기화
+        } catch (e) {
+            console.error("실시간 자산 백업 오류: ", e);
+        }
+    }
+
 
     /* ----------------------------------------------------
        [게임 1] 숫자 맞추기 내부 로직
@@ -333,10 +416,9 @@
         const userPw = userPwInput.value.trim();
         const userGuess = parseInt(guessInput.value);
 
-        if (!userId || !userPw) { alert("닉네임과 비밀번호를 모두 채워야 합니다."); return; }
+        if (!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
         if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) { numMsg.textContent = "범위 초과! (1~100 사이)"; return; }
 
-        userIdInput.disabled = true; userPwInput.disabled = true;
         remainingChances--; chancesEl.textContent = remainingChances;
 
         if (userGuess === targetNumber) {
@@ -358,16 +440,16 @@
         streakEl.textContent = currentStreak;
         if (!isWin) {
             if (currentStreak > 0) saveScore('rankings', userIdInput.value.trim(), userPwInput.value.trim(), currentStreak);
-            currentStreak = 0; userIdInput.disabled = false; userPwInput.disabled = false;
+            currentStreak = 0; 
         } else {
             setTimeout(() => { alert(`연승 성공! 이어서 ${currentStreak + 1}번째 판을 시작합니다.`); initNumberGame(); }, 1000);
         }
     }
 
     /* ----------------------------------------------------
-       [게임 2] 실시간 주식 투자 게임 로직 (시간 무제한 버전)
+       [게임 2] 실시간 주식 투자 게임 로직 (시간 무제한 상시 저장형)
     ---------------------------------------------------- */
-    let stockAsset = 2000000, stockGameActive = false; 
+    let stockCash = 2000000; 
     let priceInterval;
     
     let stocks = [
@@ -378,47 +460,22 @@
         { name: "상희 디바이스 가치주", price: 45000, oldPrice: 45000, cap: "시총 3,100억", owned: 0 }
     ];
 
-    const statusTextEl = document.getElementById('stock-status-text');
     const assetEl = document.getElementById('stock-asset');
+    const cashEl = document.getElementById('stock-cash');
     const ownedEl = document.getElementById('stock-owned');
     const marketBoard = document.getElementById('market-board');
     const stockMsg = document.getElementById('stock-message');
-    const startStockBtn = document.getElementById('start-stock-btn');
-    const closeStockBtn = document.getElementById('close-stock-btn');
-    const stockRestartBtn = document.getElementById('stock-restart-btn');
 
     function initStockGame() {
-        clearInterval(priceInterval);
-        stockAsset = 2000000; stockGameActive = false;
-        stocks.forEach(s => { s.owned = 0; s.price = s.oldPrice; });
-        startStockBtn.disabled = false;
-        startStockBtn.style.display = "inline-block";
-        closeStockBtn.style.display = "none";
-        stockRestartBtn.style.display = "none";
-        userIdInput.disabled = false; userPwInput.disabled = false;
-        
         renderStockMarket(true); 
-        statusTextEl.textContent = "장 개시 전";
-        statusTextEl.style.color = "#4a5568";
-        assetEl.textContent = stockAsset.toLocaleString();
+        assetEl.textContent = stockCash.toLocaleString();
+        cashEl.textContent = stockCash.toLocaleString();
         ownedEl.textContent = 0;
-        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 실제 주식처럼 시간 제한 없이 계속 움직입니다.";
     }
 
-    function startRealtimeStockGame() {
-        const userId = userIdInput.value.trim();
-        const userPw = userPwInput.value.trim();
-        if (!userId || !userPw) { alert("계정 정보(닉네임/비번)를 상단에 먼저 입력해야 게임 시작이 가능합니다."); return; }
-
-        userIdInput.disabled = true; userPwInput.disabled = true;
-        stockGameActive = true;
-        startStockBtn.style.display = "none";
-        closeStockBtn.style.display = "inline-block"; // 마감 버튼 노출
-        statusTextEl.textContent = "실시간 거래 중 (무제한)";
-        statusTextEl.style.color = "#e53e3e";
-        stockMsg.textContent = "🚀 주식 시장이 활성화되었습니다. 원하는 만큼 매매를 즐기시다가 '장마감'을 누르세요!";
-
-        // 5초마다 시세 변동
+    function startRealtimePrices() {
+        clearInterval(priceInterval);
+        // 5초마다 무한 가격 등락 가동
         priceInterval = setInterval(() => {
             stocks.forEach(stock => {
                 stock.oldPrice = stock.price;
@@ -426,9 +483,8 @@
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
             });
             renderStockMarket(false); 
+            syncAssetToBackend(); // 시세 바뀔 때마다 계정 총 자산 가치도 백엔드에 자동 동기화 갱신
         }, 5000);
-
-        renderStockMarket(true); 
     }
 
     function renderStockMarket(isInit = false) {
@@ -468,13 +524,19 @@
             });
         }
 
-        assetEl.textContent = stockAsset.toLocaleString();
+        // 스탯 창 리프레시 수치 계산
+        let totalStockValue = stocks.reduce((acc, cur) => acc + (cur.owned * cur.price), 0);
+        let totalAsset = stockCash + totalStockValue;
+
+        assetEl.textContent = totalAsset.toLocaleString();
+        cashEl.textContent = stockCash.toLocaleString();
+        
         let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
         ownedEl.textContent = totalOwned;
     }
 
     window.tradeStock = function(index, type) {
-        if(!stockGameActive) { alert("먼저 '실시간 주식시장 개장하기' 버튼을 눌러주세요!"); return; }
+        if(!isUserLoggedIn) { alert("[계정 접속] 단추를 먼저 눌러 계정 인증을 완료해 주세요."); return; }
         
         let stock = stocks[index];
         const qtyInput = document.getElementById(`quantity-${index}`);
@@ -484,47 +546,24 @@
         let totalCost = stock.price * qty;
 
         if (type === 'buy') {
-            if (stockAsset >= totalCost) {
-                stockAsset -= totalCost;
+            if (stockCash >= totalCost) {
+                stockCash -= totalCost;
                 stock.owned += qty;
                 stockMsg.textContent = `🎯 [${stock.name}] ${qty}주 실시간 매수 체결 완료.`;
             } else { alert("예수금이 부족합니다!"); }
         } else {
             if (stock.owned >= qty) {
-                stockAsset += totalCost;
+                stockCash += totalCost;
                 stock.owned -= qty;
                 stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 매도 완료.`;
             } else { alert("방출 가능한 보유 주식 수량이 부족합니다."); }
         }
         renderStockMarket(false); 
-    }
-
-    // [업데이트] 유저가 직접 수동으로 장을 종료하는 함수로 변경
-    window.endStockGame = function() {
-        if(!confirm("정말 장을 마감하고 명예의 전당에 최종 자산을 등록하시겠습니까?")) return;
-
-        stockGameActive = false;
-        clearInterval(priceInterval);
-
-        // 보유 종목 현재가로 전량 강제 자동 매도 청산
-        stocks.forEach(stock => {
-            stockAsset += stock.owned * stock.price;
-            stock.owned = 0;
-        });
-
-        closeStockBtn.style.display = "none";
-        stockRestartBtn.style.display = "inline-block";
-        statusTextEl.textContent = "장 마감 (종료됨)";
-        statusTextEl.style.color = "#718096";
-        stockMsg.textContent = `🏁 거래가 종료되었습니다. 최종 평가금액: ${stockAsset.toLocaleString()} 원`;
-        renderStockMarket(true); 
-        
-        // 최종 스코어 백엔드 업로드
-        saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
+        syncAssetToBackend(); // 거래 체결 순간 즉시 DB 자동 세이브 저장
     }
 
     /* ----------------------------------------------------
-       [공통 백엔드 데이터 연동] Firebase 저장/조회
+       [공통 백엔드 데이터 연동] 숫자게임용 하방 호환성 스코어 저장
     ---------------------------------------------------- */
     async function saveScore(colName, userId, userPw, score) {
         try {
@@ -534,20 +573,17 @@
             if (!querySnapshot.empty) {
                 let existingData = querySnapshot.docs[0].data();
                 if (existingData.userPw !== userPw) {
-                    alert("⚠️ 보안 인증 에러: 기존 등록 패스워드 불일치로 기록 등재가 무산되었습니다.");
+                    alert("⚠️ 보안 인증 에러: 패스워드 불일치로 숫자 연승 기록 등재 무산.");
                     return;
                 }
-                if (parseInt(score) <= existingData.score) {
-                    console.log("기존 랭킹 기록이 더 높아 스킵.");
-                    return;
-                }
+                if (parseInt(score) <= existingData.score) return;
             }
 
             await addDoc(collection(db, colName), {
                 userId: userId, userPw: userPw, score: parseInt(score), timestamp: new Date()
             });
             
-            loadRanking(colName, colName === 'rankings' ? '연승' : '원'); 
+            loadRanking(colName, '연승'); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
         }
@@ -564,7 +600,7 @@
             descEl.textContent = "가장 높은 연속 정답 기록 리스트";
         } else {
             titleEl.textContent = "🏆 조상희 실시간 주식 명예의 전당 (TOP 20)";
-            descEl.textContent = "무제한 실시간 레이스 최고 자산가 리스트";
+            descEl.textContent = "실시간 자산 현황 자동 반영 랭킹 리스트";
         }
 
         try {
@@ -572,7 +608,7 @@
             const querySnapshot = await getDocs(q);
             
             if(querySnapshot.empty) {
-                rankingListEl.innerHTML = "<li class='ranking-item'>아직 랭커가 없습니다. 첫 챔피언에 등극해 보십시오!</li>";
+                rankingListEl.innerHTML = "<li class='ranking-item'>아직 랭커가 없습니다. 첫 투자에 등극해 보십시오!</li>";
                 return;
             }
 
@@ -587,14 +623,11 @@
             });
         } catch (e) {
             console.error("랭킹 로드 실패: ", e);
-            rankingListEl.innerHTML = "<li class='ranking-item'>서버 연결 실패 (보안 세팅을 확인하세요)</li>";
         }
     }
 
     guessBtn.addEventListener("click", checkGuess);
     restartBtn.addEventListener("click", initNumberGame);
-    startStockBtn.addEventListener("click", startRealtimeStockGame);
-    stockRestartBtn.addEventListener("click", initStockGame);
     guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
 
     initNumberGame();
