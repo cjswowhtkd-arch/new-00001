@@ -47,22 +47,33 @@
         .tf-btn.active { background: #ebf8ff; color: #3182ce; border-color: #a3bffa; font-weight: bold; }
         .detail-canvas { width: 100%; height: 90px; display: block; }
 
+        /* [신규 스타일]: 하단 유튜브 숏츠 멀티미디어 뷰어 영역 레이아웃 */
+        .bottom-media-layout { display: flex; gap: 10px; width: 100%; align-items: stretch; margin-top: auto; }
+        .shorts-viewer-container { flex: 1; background: #000000; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; position: relative; height: 145px; }
+        .shorts-iframe { width: 100%; height: 100%; border: none; }
+        
+        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; width: 60%; justify-content: center; }
+        .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
+        .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
+        .order-action-group { display: flex; gap: 6px; width: 100%; justify-content: center; }
+        .btn-buy { background: #fed7d7; color: #c53030; padding: 8px; flex: 1; font-size: 0.88rem; }
+        .btn-buy:hover { background: #feb2b2; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 8px; flex: 1; font-size: 0.88rem; }
+        .btn-sell:hover { background: #bee3f8; }
+
+        /* 우측 랭킹 및 채팅 */
         .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 6px 12px; margin-bottom: 8px; text-align: left; font-size: 0.78rem; color: #22543d; }
         .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.7rem; margin-right: 4px; }
-        
-        /* 스크롤 제어를 위해 랭킹 목록 크기 소폭 패킹축소 */
-        .ranking-list { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 8px; }
+        .ranking-list { list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 8px; }
         .ranking-item { display: flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; font-size: 0.82rem; }
         .ranking-item:hover { background: #edf2f7; }
         .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; border-radius: 6px; font-weight: 700; }
 
-        /* [신규 스타일]: 하단 고정 실시간 대화창 영역 디자인 */
         .chat-panel-container { display: flex; flex-direction: column; background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 10px; margin-top: 10px; flex: 1; min-height: 0; box-sizing: border-box; padding: 8px; }
         .chat-messages-zone { flex: 1; overflow-y: auto; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; padding: 8px; font-size: 0.8rem; text-align: left; line-height: 1.4; min-height: 0; }
         .chat-line { margin-bottom: 6px; word-break: break-all; }
         .chat-line .author { font-weight: 700; color: #4a5568; margin-right: 4px; }
         .chat-line .author.me { color: #3182ce; }
-        .chat-line .msg-text { color: #2d3748; }
         .chat-input-row { display: flex; gap: 6px; margin-top: 6px; width: 100%; }
         .chat-input-row input { flex: 1; padding: 6px; font-size: 0.82rem; border-radius: 6px; border: 1px solid #cbd5e0; }
         .chat-send-btn { background: #63b3ed; color: white; border: none; padding: 0 14px; font-size: 0.82rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
@@ -71,17 +82,7 @@
         .peer-portfolio-card h3 { font-size: 0.8rem; margin: 0 0 4px 0; color: #63b3ed; }
         .peer-stock-list { font-size: 0.75rem; text-align: left; line-height: 1.4; }
         .peer-stock-row { display: flex; justify-content: space-between; border-bottom: 1px solid #4a5568; padding: 2px 0; }
-
-        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
-        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.15s; }
-        .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
-        .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
-        .order-action-group { display: flex; gap: 8px; width: 100%; justify-content: center; }
-        .btn-buy { background: #fed7d7; color: #c53030; padding: 10px; flex: 1; font-size: 0.9rem; }
-        .btn-buy:hover { background: #feb2b2; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 10px; flex: 1; font-size: 0.9rem; }
-        .btn-sell:hover { background: #bee3f8; }
-
+        button { button-shadow: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -100,10 +101,10 @@
 </div>
 
 <div class="main-wrapper">
-    <!-- 왼쪽 프레임 -->
+    <!-- 왼쪽 프레임 (주식 리스트 + 하단 멀티 미디어 주문 결합 구조) -->
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스</h1>
-        <p class="description">60fps 실시간 유동식 꺾은선 차트 탑재 버전</p>
+        <p class="description">60fps 실시간 주가 변동 및 유튜브 멀티플레이어 탑재</p>
         
         <div class="stats">
             <div>예수금: <span id="stock-cash">2,000,000</span>원</div>
@@ -112,23 +113,36 @@
         </div>
 
         <div class="stock-market-board" id="market-board"></div>
-        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 정밀 데이터 차트가 가동됩니다.</div>
+        <div class="message" id="stock-message" style="font-size:0.75rem; margin:3px 0; min-height:16px; color:#a0aec0;">종목 선택 시 차트와 하단 매매 주문창이 활성화됩니다.</div>
 
-        <div class="order-panel" id="order-panel" style="visibility: hidden;">
-            <div id="selected-stock-name" style="font-weight: bold; font-size: 0.9rem; text-align: left;">종목 선택됨</div>
-            <div class="order-inputs-zone">
-                <span>수량:</span>
-                <input type="number" id="global-quantity" value="1" min="1" style="width: 60px; padding: 4px; text-align: center; font-size: 0.9rem;">
-                <button class="btn-combined-max" onclick="triggerCombinedMaxCalculate()">최대</button>
+        <!-- [하단 레이아웃 변경]: 빈 공간에 숏츠 플레이어와 주문 패드를 가로 병렬 배치 -->
+        <div class="bottom-media-layout">
+            <!-- 📺 유튜브 숏츠 뷰어 (기본 트렌딩 플레이리스트 임베드) -->
+            <div class="shorts-viewer-container">
+                <iframe class="shorts-iframe" 
+                        src="https://www.youtube.com/embed/videoseries?list=PLGR6fH68fEXwdb3YInp-eor6F0w_G_V6B&autoplay=1&mute=1&loop=1" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
             </div>
-            <div class="order-action-group">
-                <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
-                <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
+
+            <!-- 📌 호가 거래 주문창 (크기 컴팩트 조율) -->
+            <div class="order-panel" id="order-panel" style="visibility: hidden;">
+                <div id="selected-stock-name" style="font-weight: bold; font-size: 0.85rem; text-align: left; color:#2d3748;">종목 선택됨</div>
+                <div class="order-inputs-zone">
+                    <span>수량:</span>
+                    <input type="number" id="global-quantity" value="1" min="1" style="width: 50px; padding: 4px; text-align: center; font-size: 0.85rem;">
+                    <button class="btn-combined-max" onclick="triggerCombinedMaxCalculate()" style="padding: 5px 8px; font-size: 0.75rem;">최대</button>
+                </div>
+                <div class="order-action-group">
+                    <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
+                    <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 오른쪽 프레임 (랭킹 + 실시간 채팅 결합) -->
+    <!-- 오른쪽 프레임 (랭킹 + 실시간 채팅) -->
     <div class="ranking-container">
         <div class="live-users-panel">
             <strong>🟢 실시간 동접자</strong>
@@ -145,7 +159,6 @@
             <div class="peer-stock-list" id="peer-stock-list"></div>
         </div>
 
-        <!-- [업데이트]: 실시간 토론 채팅 패널 인터페이스 단추 컴포넌트 -->
         <div class="chat-panel-container">
             <h2 style="font-size: 0.9rem; text-align: left; margin: 0 0 6px 0;">💬 토론 스페이스 (실시간)</h2>
             <div class="chat-messages-zone" id="chat-messages-zone">
@@ -160,7 +173,6 @@
 </div>
 
 <script type="module">
-    // [업데이트]: 실시간 채팅 청취를 위해 Firestore 라이브러리 추가 모듈(onSnapshot) 임포트 연동
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -276,7 +288,7 @@
             document.getElementById(`stock-wrapper-${i}`).classList.add('selected');
             selectedStockIndex = i;
             document.getElementById('order-panel').style.visibility = "visible";
-            document.getElementById('selected-stock-name').textContent = `📌 ${stocks[i].name} 실시간 호가 주문`;
+            document.getElementById('selected-stock-name').textContent = `📌 ${stocks[i].name} 주문`;
         } else {
             document.getElementById('order-panel').style.visibility = "hidden";
             selectedStockIndex = null;
@@ -359,59 +371,42 @@
         }
     }
 
-    /* ----------------------------------------------------
-       [업데이트]: 실시간 채팅 비즈니스 로직 연동 파트
-    ---------------------------------------------------- */
+    // 실시간 채팅 로직
     const msgZone = document.getElementById('chat-messages-zone');
     const msgInput = document.getElementById('chat-user-msg');
     const sendBtn = document.getElementById('chat-send-btn');
 
-    // Firestore `stock_chats` 컬렉션 실시간 이벤트 리스너 리스닝 가동
     const chatQuery = query(collection(db, "stock_chats"), orderBy("timestamp", "asc"), limit(40));
     onSnapshot(chatQuery, (snapshot) => {
         msgZone.innerHTML = "";
         if (snapshot.empty) {
-            msgZone.innerHTML = "<div style='color:#a0aec0; text-align:center; padding-top:15px;'>작성된 토론이 없습니다. 첫 마디를 건네보세요!</div>";
+            msgZone.innerHTML = "<div style='color:#a0aec0; text-align:center; padding-top:15px;'>작성된 토론이 없습니다.</div>";
             return;
         }
         snapshot.forEach((doc) => {
             const chat = doc.data();
             const div = document.createElement('div');
             div.className = 'chat-line';
-            
-            // 본인이 쓴 글인 경우 파란색 강조 헬퍼 태그 매핑
             const isMe = isUserLoggedIn && chat.userId === myLoggedId;
             const authorClass = isMe ? 'author me' : 'author';
-
             div.innerHTML = `<span class="${authorClass}">[${chat.userId}]</span><span class="msg-text">${chat.message}</span>`;
             msgZone.appendChild(div);
         });
-        // 대화 추가 시 스크롤 자동 하방 수렴 처리
         msgZone.scrollTop = msgZone.scrollHeight;
     });
 
-    // 메시지 발송 트래픽 처리 함수
     async function sendUserChatMessage() {
         const txt = msgInput.value.trim();
         if(!txt) return;
-
-        // 로그인 안 한 개미는 '비회원(개미)' 이름표 할당 보호
         const chatSenderName = isUserLoggedIn ? myLoggedId : "비회원(개미)";
-
         try {
-            await addDoc(collection(db, "stock_chats"), {
-                userId: chatSenderName,
-                message: txt,
-                timestamp: new Date()
-            });
+            await addDoc(collection(db, "stock_chats"), { userId: chatSenderName, message: txt, timestamp: new Date() });
             msgInput.value = "";
             msgInput.focus();
-        } catch(e) { console.error("채팅 유실: ", e); }
+        } catch(e) { console.error(e); }
     }
-
     sendBtn.addEventListener('click', sendUserChatMessage);
     msgInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') sendUserChatMessage(); });
-
 
     async function showUserPortfolio(userId) {
         const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
@@ -435,11 +430,7 @@
                         hasStock = true;
                         const currentPrice = stocks[idx].price;
                         const evalAmount = currentPrice * cleanCount;
-                        html += `
-                            <div class="peer-stock-row">
-                                <span>${stocks[idx].name} (${cleanCount}주)</span>
-                                <span>평가: ${evalAmount.toLocaleString()}원</span>
-                            </div>`;
+                        html += `<div class="peer-stock-row"><span>${stocks[idx].name} (${cleanCount}주)</span><span>평가: ${evalAmount.toLocaleString()}원</span></div>`;
                     }
                 });
             }
@@ -454,20 +445,14 @@
         const snap = await getDocs(q);
         const list = document.getElementById('ranking-list');
         list.innerHTML = "";
-        
         let rank = 1;
         snap.forEach(d => {
             const data = d.data();
             const cleanScore = Number(data.score);
             if (isNaN(cleanScore)) return; 
-
             const li = document.createElement('li');
             li.className = 'ranking-item';
-            
-            if(isUserLoggedIn && data.userId === myLoggedId) {
-                li.classList.add('my-rank');
-            }
-
+            if(isUserLoggedIn && data.userId === myLoggedId) li.classList.add('my-rank');
             li.innerHTML = `<span>${rank}위. ${data.userId}</span> <b>${Math.floor(cleanScore).toLocaleString()}원</b>`;
             li.onclick = () => showUserPortfolio(data.userId);
             list.appendChild(li);
@@ -517,10 +502,7 @@
     }
 
     window.handleLogout = function() {
-        isUserLoggedIn = false;
-        myLoggedId = "";
-        currentDocId = null;
-        stockCash = 2000000;
+        isUserLoggedIn = false; myLoggedId = ""; currentDocId = null; stockCash = 2000000;
         stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
         document.getElementById('login-form-area').style.display = "flex";
         document.getElementById('logged-in-status-area').style.display = "none";
@@ -534,50 +516,35 @@
         const id = document.getElementById('user-id-input').value.trim();
         const pw = document.getElementById('user-pw-input').value.trim();
         if(!id || !pw) return;
-
         const q = query(collection(db, "stock_rankings"), where("userId", "==", id));
         const snap = await getDocs(q);
         if(!snap.empty) {
             const user = snap.docs[0];
             if(user.data().userPw !== pw) { alert("비밀번호 불일치"); return; }
-            currentDocId = user.id;
-            stockCash = Number(user.data().cash) || 2000000;
-            
+            currentDocId = user.id; stockCash = Number(user.data().cash) || 2000000;
             if(user.data().ownedStocks && Array.isArray(user.data().ownedStocks)) {
                 user.data().ownedStocks.forEach((cnt, idx) => { if(stocks[idx]) stocks[idx].owned = Number(cnt) || 0; });
             }
             if(user.data().avgPrices && Array.isArray(user.data().avgPrices)) {
                 user.data().avgPrices.forEach((prc, idx) => { if(stocks[idx]) stocks[idx].avgPrice = Number(prc) || 0; });
             }
-            
             await updateDoc(doc(db, "stock_rankings", currentDocId), { lastActive: new Date() });
         } else {
             const res = await addDoc(collection(db, "stock_rankings"), { userId: id, userPw: pw, score: 2000000, cash: 2000000, ownedStocks:[0,0,0,0,0], avgPrices:[0,0,0,0,0], lastActive: new Date() });
-            currentDocId = res.id;
-            stockCash = 2000000;
-            stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
+            currentDocId = res.id; stockCash = 2000000; stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
         }
-        isUserLoggedIn = true;
-        myLoggedId = id;
+        isUserLoggedIn = true; myLoggedId = id;
         document.getElementById('login-form-area').style.display = "none";
         document.getElementById('logged-in-status-area').style.display = "flex";
         document.getElementById('current-user-display').textContent = id;
-        renderStockInfoText();
-        fetchLiveActiveUsers();
+        renderStockInfoText(); fetchLiveActiveUsers();
     };
 
     async function syncAssetToBackend() {
         if(!currentDocId) return;
         let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
         const total = (Number(stockCash) || 0) + totalStockValue;
-        
-        await updateDoc(doc(db, "stock_rankings", currentDocId), { 
-            score: isNaN(total) ? 2000000 : total, 
-            cash: isNaN(stockCash) ? 2000000 : stockCash, 
-            ownedStocks: stocks.map(s=> isNaN(s.owned) ? 0 : s.owned), 
-            avgPrices: stocks.map(s=> isNaN(s.avgPrice) ? 0 : s.avgPrice), 
-            lastActive: new Date() 
-        });
+        await updateDoc(doc(db, "stock_rankings", currentDocId), { score: isNaN(total) ? 2000000 : total, cash: isNaN(stockCash) ? 2000000 : stockCash, ownedStocks: stocks.map(s=> isNaN(s.owned) ? 0 : s.owned), avgPrices: stocks.map(s=> isNaN(s.avgPrice) ? 0 : s.avgPrice), lastActive: new Date() });
     }
 
     initStockBoardFrame();
