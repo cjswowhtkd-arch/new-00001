@@ -38,9 +38,15 @@
         .price-up { color: #e53e3e; } 
         .price-down { color: #3182ce; }
 
+        /* 상세 차트 및 주기 변경 탭 스타일 */
         .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
         .stock-detail-chart-container.open { display: block; }
-        .detail-canvas { width: 100%; height: 80px; display: block; }
+        
+        .timeframe-selector { display: flex; gap: 4px; margin-bottom: 6px; justify-content: flex-start; }
+        .tf-btn { padding: 3px 8px; font-size: 0.72rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; color: #718096; }
+        .tf-btn.active { background: #ebf8ff; color: #3182ce; border-color: #a3bffa; font-weight: bold; }
+
+        .detail-canvas { width: 100%; height: 90px; display: block; }
 
         .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; text-align: left; font-size: 0.8rem; color: #22543d; }
         .live-user-dot { display: inline-block; background: #38a169; color: white; padding: 1px 6px; border-radius: 12px; font-size: 0.72rem; margin-right: 4px; }
@@ -88,7 +94,7 @@
 <div class="main-wrapper">
     <div class="game-container">
         <h1>📈 조상희 우량주 레이스</h1>
-        <p class="description">60fps 실시간 유동식 꺾은선 차트 탑재 버전</p>
+        <p class="description">금액 표시 및 분봉/일봉 주가 조회 기능 반영 에디션</p>
         
         <div class="stats">
             <div>예수금: <span id="stock-cash">2,000,000</span>원</div>
@@ -97,7 +103,7 @@
         </div>
 
         <div class="stock-market-board" id="market-board"></div>
-        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 정밀 10분 데이터 프레임 차트가 가동됩니다.</div>
+        <div class="message" id="stock-message" style="font-size:0.78rem; margin:5px 0; min-height:20px; color:#a0aec0;">종목 선택 시 차트와 주문 패드가 활성화됩니다.</div>
 
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
             <div id="selected-stock-name" style="font-weight: bold; font-size: 0.9rem; text-align: left;">종목 선택됨</div>
@@ -145,21 +151,34 @@
     let isUserLoggedIn = false;
     let currentDocId = null;
 
-    // [애니메이션 탑재]: 실시간 부드러운 드로잉 추적을 위해 displayPrice(현재 드로잉중인 가상가)를 구조에 도입
+    // [업데이트]: 5분 단위 데이터(detailHistory5m)와 1일 단위 데이터(detailHistory1d) 주기를 분리 저장
+    // 현재 보고 있는 차트 모드(chartMode) 기본값은 '5m'
     let stocks = [
-        { name: "삼성전자", price: 68000, oldPrice: 68000, displayPrice: 68000, owned: 0, avgPrice: 0, detailHistory: [68000] },
-        { name: "SK하이닉스", price: 172000, oldPrice: 172000, displayPrice: 172000, owned: 0, avgPrice: 0, detailHistory: [172000] },
-        { name: "현대차", price: 245000, oldPrice: 245000, displayPrice: 245000, owned: 0, avgPrice: 0, detailHistory: [245000] },
-        { name: "NAVER", price: 185000, oldPrice: 185000, displayPrice: 185000, owned: 0, avgPrice: 0, detailHistory: [185000] },
-        { name: "에코프로비엠", price: 165000, oldPrice: 165000, displayPrice: 165000, owned: 0, avgPrice: 0, detailHistory: [165000] }
+        { name: "삼성전자", price: 68000, oldPrice: 68000, displayPrice: 68000, owned: 0, avgPrice: 0, detailHistory5m: [68000], detailHistory1d: [68000], chartMode: '5m' },
+        { name: "SK하이닉스", price: 172000, oldPrice: 172000, displayPrice: 172000, owned: 0, avgPrice: 0, detailHistory5m: [172000], detailHistory1d: [172000], chartMode: '5m' },
+        { name: "현대차", price: 245000, oldPrice: 245000, displayPrice: 245000, owned: 0, avgPrice: 0, detailHistory5m: [245000], detailHistory1d: [245000], chartMode: '5m' },
+        { name: "NAVER", price: 185000, oldPrice: 185000, displayPrice: 185000, owned: 0, avgPrice: 0, detailHistory5m: [185000], detailHistory1d: [185000], chartMode: '5m' },
+        { name: "에코프로비엠", price: 165000, oldPrice: 165000, displayPrice: 165000, owned: 0, avgPrice: 0, detailHistory5m: [165000], detailHistory1d: [165000], chartMode: '5m' }
     ];
 
+    let dayTickCounter = 0; // 일봉 생성을 위한 카운터
+
     function updatePrices() {
+        dayTickCounter++;
         stocks.forEach(s => {
             s.oldPrice = s.price;
+            // 5초마다 실시간으로 가격 변동
             s.price = Math.max(1000, Math.floor(s.price * (1 + (Math.random() * 0.2 - 0.09))));
-            s.detailHistory.push(s.price);
-            if(s.detailHistory.length > 20) s.detailHistory.shift();
+            
+            // 5분 단위 차트에 매 틱 기록 축적 (최대 20개)
+            s.detailHistory5m.push(s.price);
+            if(s.detailHistory5m.length > 20) s.detailHistory5m.shift();
+
+            // 1일 단위 차트 시뮬레이션: 5초 주기 4번(가상 하루)마다 일봉 종가 기록 누적 (최대 20개)
+            if(dayTickCounter % 4 === 0) {
+                s.detailHistory1d.push(s.price);
+                if(s.detailHistory1d.length > 20) s.detailHistory1d.shift();
+            }
         });
         renderStockInfoText();
         loadRanking();
@@ -170,13 +189,10 @@
     }
     setInterval(updatePrices, 5000);
 
-    // [60fps 렌더링 루프]: 차트의 선을 끊기지 않고 부드럽게 매 프레임 그리는 애니메이션 코어 인터벌
+    // 60fps 보간 애니메이션 렌더링 루프
     function animationLoop() {
         stocks.forEach((s, i) => {
-            // 보간 연산 알고리즘(Lerp): 현재 드로잉값에서 실제 타겟 가격까지 매 프레임 10%씩 부드럽게 슬라이딩 접근
             s.displayPrice += (s.price - s.displayPrice) * 0.1;
-            
-            // 실시간 차트 상시 업데이트 드로잉
             drawDetailChart(i);
         });
         requestAnimationFrame(animationLoop);
@@ -211,7 +227,6 @@
         pEl.className = profit >= 0 ? 'red-text' : 'blue-text';
     }
 
-    // 초기 보드판 레이아웃 뼈대 생성
     function initStockBoardFrame() {
         const board = document.getElementById('market-board');
         board.innerHTML = "";
@@ -222,7 +237,14 @@
                         <div style="text-align:left"><span class="name"><b>${s.name}</b></span><br><small class="cap" id="cap-${i}">평단: 0원 | 잔고: 0주</small></div>
                         <div class="stock-price" id="price-${i}">${s.price.toLocaleString()}원</div>
                     </div>
-                    <div class="stock-detail-chart-container" id="detail-${i}"><canvas id="canvas-${i}" class="detail-canvas" width="400" height="80"></canvas></div>
+                    <div class="stock-detail-chart-container" id="detail-${i}">
+                        <!-- [업데이트]: 분봉/일봉 주기를 바꿀 수 있는 호가 토글 버튼 구조 연동 -->
+                        <div class="timeframe-selector">
+                            <button class="tf-btn active" id="tf-5m-${i}" onclick="changeTimeframe(event, ${i}, '5m')">5분</button>
+                            <button class="tf-btn" id="tf-1d-${i}" onclick="changeTimeframe(event, ${i}, '1d')">1일</button>
+                        </div>
+                        <canvas id="canvas-${i}" class="detail-canvas" width="460" height="90"></canvas>
+                    </div>
                 </div>`;
         });
         renderStockInfoText();
@@ -246,34 +268,74 @@
         }
     }
 
-    // [60fps 애니메이션 렌더러]: 5초간 제자리에 멈춰있지 않고, 실시간 보간 데이터(displayPrice)를 활용해 매 순간 부드럽게 파동치며 움직입니다.
+    // [신규 업데이트]: 5분봉 및 1일봉 데이터 스위칭 함수
+    window.changeTimeframe = function(event, index, mode) {
+        event.stopPropagation(); // 부모 종목행이 닫히는 클릭 버블링 방지
+        stocks[index].chartMode = mode;
+        
+        // 버튼 활성화 스타일 포커싱 토글
+        document.getElementById(`tf-5m-${index}`).classList.remove('active');
+        document.getElementById(`tf-1d-${index}`).classList.remove('active');
+        if(mode === '5m') document.getElementById(`tf-5m-${index}`).classList.add('active');
+        else document.getElementById(`tf-1d-${index}`).classList.add('active');
+    }
+
+    // [업데이트]: 실시간 금액 텍스트 표기 및 주기 결합 60fps 엔진 드로잉 함수
     function drawDetailChart(i) {
         const canvas = document.getElementById(`canvas-${i}`);
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
         
-        // 정적 주가 데이터 백업본 복사 생성
-        let h = [...stocks[i].detailHistory];
+        // 5m 일 때는 detailHistory5m 배열을 복사하고, 1d 일 때는 detailHistory1d 배열을 타겟팅함
+        let h = stocks[i].chartMode === '5m' ? [...stocks[i].detailHistory5m] : [...stocks[i].detailHistory1d];
         if(h.length === 0) return;
         
-        // 차트의 가장 마지막 포인트(현재가)를 딱딱한 데이터 대신 실시간 흐르는 displayPrice로 대체하여 역동성 연출
+        // 차트 끄트머리에 흐르는 Lerp 보간 애니메이션 실시간 대입
         h[h.length - 1] = stocks[i].displayPrice;
 
         ctx.clearRect(0,0,canvas.width, canvas.height);
         if(h.length < 2) return;
         
-        ctx.beginPath();
-        // 타겟 트렌드 색상 지정
-        ctx.strokeStyle = stocks[i].price >= stocks[i].oldPrice ? '#f56565' : '#4299e1';
-        ctx.lineWidth = 1.8;
-        const step = canvas.width / 19;
+        const maxPrice = Math.max(...h);
+        const minPrice = Math.min(...h);
+        const priceRange = (maxPrice - minPrice) === 0 ? 1 : (maxPrice - minPrice);
         
+        ctx.beginPath();
+        const isTrendUp = stocks[i].price >= stocks[i].oldPrice;
+        ctx.strokeStyle = isTrendUp ? '#f56565' : '#4299e1';
+        ctx.lineWidth = 1.8;
+        
+        // 오른쪽에 실시간 주가 금액 글자가 써질 우측 여백 패딩(65px) 공간 확보 계산
+        const chartWidth = canvas.width - 65;
+        const step = chartWidth / 19;
+        
+        let lastY = 0;
         h.forEach((p, idx) => {
             const x = idx * step;
-            const y = canvas.height - ((p - Math.min(...h)) / (Math.max(...h)-Math.min(...h)+1)) * (canvas.height - 10) - 5;
+            const y = canvas.height - ((p - minPrice) / priceRange) * (canvas.height - 14) - 7;
             idx === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+            if(idx === h.length - 1) lastY = y; // 마지막 드로잉 Y 축 높이 저장
         });
         ctx.stroke();
+
+        // [신규 업데이트]: 차트 오른쪽 끝선 연장 수평 점선 및 실시간 현재가 금액 표기
+        ctx.beginPath();
+        ctx.strokeStyle = isTrendUp ? 'rgba(245, 101, 101, 0.4)' : 'rgba(66, 153, 229, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo((h.length - 1) * step, lastY);
+        ctx.lineTo(chartWidth, lastY);
+        ctx.stroke();
+        ctx.setLineDash([]); // 점선 해제
+
+        // 실시간 현재가 사각 뱃지 박스 및 금액 폰트 출력
+        ctx.fillStyle = isTrendUp ? '#fed7d7' : '#ebf8ff';
+        ctx.fillRect(chartWidth + 3, lastY - 7, 58, 14);
+        
+        ctx.font = '10px sans-serif';
+        ctx.fillStyle = isTrendUp ? '#c53030' : '#2b6cb0';
+        ctx.textAlign = 'left';
+        ctx.fillText(Math.floor(stocks[i].displayPrice).toLocaleString(), chartWidth + 6, lastY + 3);
     }
 
     window.triggerCombinedMaxCalculate = function() {
@@ -284,7 +346,7 @@
 
         if (cleanOwned > 0) {
             qtyInput.value = cleanOwned;
-            document.getElementById('stock-message').textContent = `💡 [최대 매도 자동 할당] 보유 잔고 전량(${cleanOwned}주) 매도 수량이 확정되었습니다.`;
+            document.getElementById('stock-message').textContent = `💡 [최대 매도] 보유 잔고 전량(${cleanOwned}주) 매도 수량이 확정되었습니다.`;
         } else {
             let maxBuy = Math.floor(stockCash / s.price);
             qtyInput.value = maxBuy < 0 ? 0 : maxBuy;
@@ -389,7 +451,7 @@
             stockCash += s.price * qty;
             s.owned = (s.owned || 0) - qty;
             if(s.owned === 0) s.avgPrice = 0;
-            document.getElementById('stock-message').textContent = `💰 [매도 체결] ${s.name} ${qty}주 정상 방출 청산 완료.`;
+            document.getElementById('stock-message').textContent = `💰 [개인 청산] ${s.name} ${qty}주 정상 방출 청산 완료.`;
         }
         renderStockInfoText();
         if(isUserLoggedIn) await syncAssetToBackend();
@@ -441,7 +503,7 @@
         document.getElementById('login-form-area').style.display = "none";
         document.getElementById('logged-in-status-area').style.display = "flex";
         document.getElementById('current-user-display').textContent = id;
-        renderStockInfoText();
+        renderStockMarket();
         fetchLiveActiveUsers();
     };
 
@@ -459,7 +521,6 @@
         });
     }
 
-    // 프레임 워크 구동
     initStockBoardFrame();
     loadRanking();
 </script>
