@@ -39,10 +39,22 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* 주문 패드 스타일 고도화 */
         .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; }
-        .btn-buy { background: #fed7d7; color: #c53030; padding: 10px; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 10px; }
+        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: background 0.2s; }
+        
+        /* 버튼 그룹 배치 */
+        .order-action-group { display: flex; gap: 8px; width: 100%; }
+        .btn-buy { background: #fed7d7; color: #c53030; padding: 12px; flex: 2; font-size: 0.95rem; }
+        .btn-buy:hover { background: #feb2b2; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 12px; flex: 2; font-size: 0.95rem; }
+        .btn-sell:hover { background: #bee3f8; }
+        
+        /* 미니 서브 최대 버튼 */
+        .btn-sub-max-buy { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; padding: 12px; flex: 1; font-size: 0.85rem; }
+        .btn-sub-max-buy:hover { background: #fed7d7; }
+        .btn-sub-max-sell { background: #f7fafc; color: #3182ce; border: 1px solid #bee3f8; padding: 12px; flex: 1; font-size: 0.85rem; }
+        .btn-sub-max-sell:hover { background: #ebf8ff; }
     </style>
 </head>
 <body>
@@ -70,12 +82,26 @@
 
         <div class="stock-market-board" id="market-board"></div>
 
+        <div class="message" id="stock-message">종목을 선택하고 주문창을 이용하세요.</div>
+
+        <!-- 하단 분리형 통합 주문 패드 -->
         <div class="order-panel" id="order-panel" style="visibility: hidden;">
-            <div id="selected-stock-name" style="font-weight: bold;">종목을 선택하세요</div>
-            <input type="number" id="global-quantity" value="1" style="width: 60px; text-align: center;">
-            <div style="display: flex; gap: 5px;">
-                <button class="btn-buy" style="flex:1" onclick="tradeStock('buy')">매수</button>
-                <button class="btn-sell" style="flex:1" onclick="tradeStock('sell')">매도</button>
+            <div id="selected-stock-name" style="font-weight: bold; font-size: 1.05rem; margin-bottom: 5px;">종목을 선택하세요</div>
+            <div style="margin-bottom: 5px;">
+                <span style="font-size: 0.9rem; color: #718096; margin-right: 8px;">주문수량:</span>
+                <input type="number" id="global-quantity" value="1" min="1" style="width: 80px; padding: 6px; text-align: center; font-size: 1rem;">
+            </div>
+            
+            <!-- 버튼 근처에 각각 최대 버튼 결합 배치 -->
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                <div class="order-action-group">
+                    <button class="btn-sub-max-buy" onclick="triggerMaxCalculate('buy')">최대</button>
+                    <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
+                </div>
+                <div class="order-action-group">
+                    <button class="btn-sub-max-sell" onclick="triggerMaxCalculate('sell')">최대</button>
+                    <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +138,7 @@
         { name: "SK하이닉스", price: 172000, oldPrice: 172000, owned: 0, avgPrice: 0, history: [], detailHistory: [] },
         { name: "현대차", price: 245000, oldPrice: 245000, owned: 0, avgPrice: 0, history: [], detailHistory: [] },
         { name: "NAVER", price: 185000, oldPrice: 185000, owned: 0, avgPrice: 0, history: [], detailHistory: [] },
-        { name: "에코프로비엠", price: 165000, oldPrice: 165000, cap: "시총 16조", owned: 0, avgPrice: 0, history: [], detailHistory: [] }
+        { name: "에코프로비엠", price: 165000, oldPrice: 165000, owned: 0, avgPrice: 0, history: [], detailHistory: [] }
     ];
 
     function updatePrices() {
@@ -144,13 +170,11 @@
         stocks.forEach((s, i) => {
             document.getElementById(`price-${i}`).textContent = s.price.toLocaleString() + "원";
             document.getElementById(`price-${i}`).className = `stock-price ${s.price > s.oldPrice ? 'price-up' : 'price-down'}`;
-            // NaN 방어: 수치 데이터가 깨져있으면 0으로 강제 보정
             const displayOwned = isNaN(s.owned) ? 0 : s.owned;
             const displayAvg = isNaN(s.avgPrice) ? 0 : s.avgPrice;
             document.getElementById(`own-${i}`).textContent = `${displayOwned}주 보유 (평단: ${Math.floor(displayAvg).toLocaleString()}원)`;
         });
 
-        // 내 총 자산 연산 NaN 방어 보정
         let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
         let totalPurchase = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * (Number(cur.avgPrice) || 0)), 0);
         let asset = (Number(stockCash) || 0) + totalStockValue;
@@ -176,7 +200,7 @@
             document.getElementById(`stock-wrapper-${i}`).classList.add('selected');
             selectedStockIndex = i;
             document.getElementById('order-panel').style.visibility = "visible";
-            document.getElementById('selected-stock-name').textContent = stocks[i].name;
+            document.getElementById('selected-stock-name').textContent = stocks[i].name + " 주문";
             drawChart(i);
         } else {
             document.getElementById('order-panel').style.visibility = "hidden";
@@ -200,7 +224,24 @@
         ctx.stroke();
     }
 
-    // 상대방 포트폴리오 보기 및 랭킹 NaN 철저 보정
+    // [최대수량 입력 엔진 연동] 매수/매도 버튼 바로 옆 최대 버튼 핸들러
+    window.triggerMaxCalculate = function(type) {
+        if(selectedStockIndex === null) return;
+        const s = stocks[selectedStockIndex];
+        const qtyInput = document.getElementById('global-quantity');
+
+        if(type === 'buy') {
+            // 예수금 기반 최대 매수 수량 산출
+            let maxBuy = Math.floor(stockCash / s.price);
+            qtyInput.value = maxBuy < 0 ? 0 : maxBuy;
+            stockMsg.textContent = `💡 [최대 매수] 현재 잔액으로 가능한 풀매수 수량(${qtyInput.value}주)이 설정되었습니다.`;
+        } else {
+            // 주식 잔고 기반 최대 매도 수량 산출
+            qtyInput.value = isNaN(s.owned) ? 0 : s.owned;
+            stockMsg.textContent = `💡 [최대 매도] 현재 보유 중인 잔고 전량(${qtyInput.value}주)이 설정되었습니다.`;
+        }
+    }
+
     async function showUserPortfolio(userId) {
         const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
         const snap = await getDocs(q);
@@ -218,7 +259,7 @@
             
             if(data.ownedStocks && Array.isArray(data.ownedStocks)) {
                 data.ownedStocks.forEach((count, idx) => {
-                    const cleanCount = Number(count) || 0; // 데이터 검증 오버헤드 보정
+                    const cleanCount = Number(count) || 0;
                     if(cleanCount > 0 && stocks[idx]) {
                         hasStock = true;
                         const currentPrice = stocks[idx].price;
@@ -244,7 +285,6 @@
         list.innerHTML = "";
         snap.forEach(d => {
             const data = d.data();
-            // 파이어베이스 내부 점수가 가끔 NaN으로 깨져 올라간 구데이터 방어
             const cleanScore = Number(data.score);
             if (isNaN(cleanScore)) return; 
 
@@ -267,11 +307,13 @@
             stockCash -= s.price * qty;
             s.avgPrice = (((s.owned || 0) * (s.avgPrice || 0)) + (s.price * qty)) / ((s.owned || 0) + qty);
             s.owned = (s.owned || 0) + qty;
+            stockMsg.textContent = `🎯 [${s.name}] ${qty}주 실시간 매수 완료!`;
         } else {
             if((s.owned || 0) < qty) return alert("주식 부족");
             stockCash += s.price * qty;
             s.owned = (s.owned || 0) - qty;
             if(s.owned === 0) s.avgPrice = 0;
+            stockMsg.textContent = `💰 [${s.name}] ${qty}주 실시간 매도 완료!`;
         }
         renderStockMarket();
         if(isUserLoggedIn) await syncAssetToBackend();
@@ -302,7 +344,6 @@
             currentDocId = user.id;
             stockCash = Number(user.data().cash) || 2000000;
             
-            // 기존 유저 구버전 종목 갯수 오버플로우 검증 복구
             if(user.data().ownedStocks && Array.isArray(user.data().ownedStocks)) {
                 user.data().ownedStocks.forEach((cnt, idx) => { if(stocks[idx]) stocks[idx].owned = Number(cnt) || 0; });
             }
