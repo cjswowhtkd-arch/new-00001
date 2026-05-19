@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>조상희 멀티게임 랭킹전</title>
+    <!-- 깔끔하고 세련된 구글 Noto Sans KR 폰트 로드 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 글로벌 사이버 펑크 / 아케이드 테마 스타일 */
+        /* 글로벌 부드러운 모던 소프트 테마 스타일 */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
-            color: #fff;
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #f4f7f6 0%, #e9eff1 100%);
+            color: #4a5568;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -23,76 +27,73 @@
         /* 게임 전환 탭 영역 */
         .game-selector {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 25px;
             width: 100%;
             max-width: 1050px;
             justify-content: center;
         }
         .tab-btn {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            background: rgba(20, 26, 46, 0.8);
-            color: #8fa0dd;
-            border: 2px solid rgba(0, 242, 254, 0.3);
-            border-radius: 10px;
+            padding: 12px 28px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            background: #ffffff;
+            color: #a0aec0;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
         }
         .tab-btn.active {
-            color: #00f2fe;
-            background: rgba(0, 242, 254, 0.15);
-            border-color: #00f2fe;
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            color: #63b3ed;
+            background: #ebf8ff;
+            border-color: #bee3f8;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(99, 179, 237, 0.15);
         }
 
-        /* 메인 프레임: 네온 그라데이션 테두리 효과 */
+        /* 메인 프레임 */
         .main-wrapper {
             display: flex;
             gap: 30px;
             max-width: 1050px;
             width: 100%;
             flex-wrap: wrap;
-            background: rgba(10, 15, 30, 0.85);
+            background: #ffffff;
             padding: 30px;
             border-radius: 20px;
-            border: 3px solid transparent;
-            background-image: linear-gradient(rgba(10, 15, 30, 0.9), rgba(10, 15, 30, 0.9)), 
-                              linear-gradient(135deg, #00f2fe 0%, #4facfe 40%, #ff0844 70%, #ffb199 100%);
-            background-origin: border-box;
-            background-clip: content-box, border-box;
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.25), inset 0 0 20px rgba(255, 8, 68, 0.15);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px rgba(160, 174, 192, 0.15);
         }
 
         /* 컨테이너 공통 */
         .game-container, .ranking-container {
-            background: rgba(20, 26, 46, 0.7);
+            background: #f7fafc;
             padding: 30px;
-            border-radius: 15px;
-            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 16px;
+            border: 1px solid #edf2f7;
             flex: 1.2;
             min-width: 340px;
             text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            backdrop-filter: blur(4px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
         }
 
         .ranking-container {
             flex: 0.8;
             max-height: 640px;
             overflow-y: auto;
+            background: #fdfdfd;
+            border: 1px solid #e2e8f0;
         }
 
-        /* 스크롤바 커스텀 */
+        /* 스크롤바 디자인 */
         .ranking-container::-webkit-scrollbar { width: 6px; }
-        .ranking-container::-webkit-scrollbar-thumb { background: #00f2fe; border-radius: 10px; }
+        .ranking-container::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
 
-        h1 { font-size: 1.9rem; color: #00f2fe; text-shadow: 0 0 10px rgba(0, 242, 254, 0.6); margin: 0 0 5px 0; }
-        h2 { font-size: 1.5rem; color: #ff0844; text-shadow: 0 0 10px rgba(255, 8, 68, 0.6); margin: 0 0 5px 0; }
-        .description { color: #8fa0dd; font-size: 0.9rem; margin-bottom: 20px; }
+        h1 { font-size: 1.7rem; color: #2d3748; font-weight: 700; margin: 0 0 5px 0; letter-spacing: -0.5px; }
+        h2 { font-size: 1.35rem; color: #4a5568; font-weight: 700; margin: 0 0 5px 0; letter-spacing: -0.5px; }
+        .description { color: #718096; font-size: 0.88rem; margin-bottom: 20px; font-weight: 300; }
         
         .auth-area { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-bottom: 20px; }
         
@@ -100,88 +101,87 @@
         .stats {
             display: flex;
             justify-content: space-around;
-            background: rgba(255, 255, 255, 0.05);
+            background: #ebf8ff;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             margin-bottom: 20px;
-            font-size: 0.95rem;
-            border-left: 4px solid #00f2fe;
+            font-size: 0.92rem;
+            color: #2b6cb0;
+            border-left: 4px solid #63b3ed;
+            font-weight: 500;
         }
-        .stats span { color: #00f2fe; font-weight: bold; text-shadow: 0 0 5px rgba(0, 242, 254, 0.4); }
-        .red-text { color: #ff0844 !important; text-shadow: 0 0 5px rgba(255, 8, 68, 0.4) !important; }
+        .stats span { color: #2b6cb0; font-weight: 700; }
+        .red-text { color: #e53e3e !important; }
 
-        .message { font-size: 1.1rem; font-weight: bold; margin: 15px 0; min-height: 35px; color: #00f2fe; }
+        .message { font-size: 1rem; font-weight: 500; margin: 15px 0; min-height: 35px; color: #4a5568; }
         
+        /* 인풋 폼 스타일링 */
         input[type="number"], input[type="text"], input[type="password"] {
-            padding: 12px; font-size: 1.1rem; background: rgba(10, 14, 28, 0.9);
-            border: 2px solid rgba(0, 242, 254, 0.4); border-radius: 6px; color: #fff;
-            text-align: center; box-sizing: border-box; transition: all 0.3s ease;
+            padding: 10px 12px; font-size: 0.95rem; background: #ffffff;
+            border: 1px solid #cbd5e0; border-radius: 8px; color: #2d3748;
+            text-align: center; box-sizing: border-box; transition: all 0.2s ease;
         }
-        input:focus { outline: none; border-color: #ff0844; box-shadow: 0 0 10px rgba(255, 8, 68, 0.5); }
-        input::placeholder { color: #53658a; }
+        input:focus { outline: none; border-color: #63b3ed; box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2); }
+        input::placeholder { color: #a0aec0; font-weight: 300; }
         
         input[type="number"] { width: 100px; }
         .auth-area input { width: 80%; max-width: 260px; }
         
+        /* 버튼 테마 */
         button {
-            padding: 12px 24px; font-size: 1.1rem; font-weight: bold;
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #090a0f;
-            border: none; border-radius: 6px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+            padding: 10px 22px; font-size: 1rem; font-weight: 500;
+            background: #63b3ed; color: #ffffff;
+            border: none; border-radius: 8px; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(99, 179, 237, 0.2);
             transition: all 0.2s ease;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6); }
+        button:hover { background: #4299e1; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(66, 153, 225, 0.3); }
         .restart-btn { 
-            background: linear-gradient(135deg, #f5515f 0%, #9f031b 100%); color: white;
-            margin-top: 15px; display: none; box-shadow: 0 4px 15px rgba(245, 81, 95, 0.4);
+            background: #fc8181; color: white;
+            margin-top: 15px; display: none; box-shadow: 0 2px 4px rgba(252, 129, 129, 0.2);
         }
+        .restart-btn:hover { background: #f56565; }
         
         /* 랭킹 스타일 */
         .ranking-list { text-align: left; margin-top: 10px; padding-left: 0; list-style: none; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 1.05rem; }
-        .ranking-item:nth-child(1) { font-weight: bold; color: #ffd700; } 
-        .ranking-item:nth-child(2) { font-weight: bold; color: #e0e0e0; } 
-        .ranking-item:nth-child(3) { font-weight: bold; color: #cd7f32; } 
+        .ranking-item { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #edf2f7; font-size: 0.95rem; color: #4a5568; }
+        .ranking-item:nth-child(1) { font-weight: 700; color: #dd6b20; background: #fffaf0; border-radius: 6px; } 
+        .ranking-item:nth-child(2) { font-weight: 700; color: #4a5568; background: #f7fafc; border-radius: 6px; } 
+        .ranking-item:nth-child(3) { font-weight: 700; color: #b7791f; background: #fffaf0; border-radius: 6px; } 
 
-        /* 📈 주식 게임 전용 UI */
+        /* 주식 게임 UI */
         .stock-screen { display: none; }
         .stock-market-board {
-            background: rgba(10, 14, 28, 0.8);
-            border: 1px solid rgba(255, 8, 68, 0.3);
-            border-radius: 10px;
-            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 15px;
             margin-bottom: 20px;
             text-align: left;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .stock-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 14px 0;
+            border-bottom: 1px solid #edf2f7;
         }
         .stock-item:last-child { border-bottom: none; }
-        .stock-info .name { font-weight: bold; color: #fff; font-size: 1.05rem; }
-        .stock-info .cap { font-size: 0.8rem; color: #8fa0dd; margin-top: 2px; }
-        .stock-price { font-weight: bold; text-align: right; min-width: 110px; color: #ffb199; transition: color 0.2s ease; }
+        .stock-info .name { font-weight: 500; color: #2d3748; font-size: 0.98rem; }
+        .stock-info .cap { font-size: 0.78rem; color: #718096; margin-top: 2px; font-weight: 300; }
+        .stock-price { font-weight: 700; text-align: right; min-width: 110px; color: #4a5568; font-size: 1rem; transition: color 0.2s ease; }
         
-        .price-up { color: #ff0844 !important; text-shadow: 0 0 5px rgba(255,8,68,0.4); }
-        .price-down { color: #00f2fe !important; text-shadow: 0 0 5px rgba(0,242,254,0.4); }
+        .price-up { color: #e53e3e !important; } 
+        .price-down { color: #3182ce !important; } 
 
-        /* 수량 입력 및 거래 버튼 레이아웃 */
-        .stock-trade-zone {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .stock-trade-zone input[type="number"] {
-            width: 70px;
-            padding: 6px;
-            font-size: 0.95rem;
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        .stock-trade-zone button { padding: 8px 14px; font-size: 0.9rem; }
-        .btn-buy { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); color: white; box-shadow: 0 2px 8px rgba(255,8,68,0.3); }
-        .btn-sell { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); color: white; box-shadow: 0 2px 8px rgba(48,207,208,0.3); }
+        .stock-trade-zone { display: flex; align-items: center; gap: 6px; }
+        .stock-trade-zone input[type="number"] { width: 65px; padding: 6px; font-size: 0.9rem; border: 1px solid #e2e8f0; border-radius: 6px; }
+        .stock-trade-zone button { padding: 7px 12px; font-size: 0.88rem; border-radius: 6px; font-weight: 400; }
+        .btn-buy { background: #fed7d7; color: #c53030; box-shadow: none; }
+        .btn-buy:hover { background: #feb2b2; }
+        .btn-sell { background: #ebf8ff; color: #2b6cb0; box-shadow: none; }
+        .btn-sell:hover { background: #bee3f8; }
     </style>
 </head>
 <body>
@@ -205,10 +205,10 @@
     <!-- ================= 1. 숫자 게임 화면 ================= -->
     <div class="game-container id-game-content" id="number-game-screen">
         <h1>🔢 조상희숫자 랭킹전</h1>
-        <p class="description">조상희의 아케이드 에디션 : 백엔드 실시간 연동</p>
+        <p class="description">조상희의 모던 라이트 에디션 : 백엔드 실시간 연동</p>
         
         <div class="stats">
-            <div>남은 기회: <span id="chances">5</span>회</div>
+            <div>남은 기회: <span id="chances">6</span>회</div>
             <div>현재 연승: <span id="current-streak" class="red-text">0</span>승</div>
         </div>
         <div class="message" id="number-message">조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.</div>
@@ -225,21 +225,22 @@
         <p class="description">1.5초마다 변하는 실시간 시세! 최적의 타이밍에 매매하라!</p>
         
         <div class="stats">
-            <div>남은 시간: <span id="stock-timer" class="red-text">90</span> 초</div>
+            <!-- [업데이트] 제한시간 기본 노출 30초로 변경 -->
+            <div>남은 시간: <span id="stock-timer" class="red-text">30</span> 초</div>
             <div>보유 자산: <span id="stock-asset" class="red-text">2,000,000</span> 원</div>
             <div>보유 주식: <span id="stock-owned">0</span> 주</div>
         </div>
 
         <div class="stock-market-board" id="market-board">
-            <!-- 5개 종목 동적 렌더링 영역 -->
+            <!-- 종목 렌더링 영역 -->
         </div>
 
-        <div class="message" id="stock-message">상단 계정 정보를 입력하고 시작 버튼을 누르세요! 제한시간은 90초입니다.</div>
-        <button id="start-stock-btn" style="width: 100%; margin-bottom: 10px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color:#000;">🕹️ 실시간 게임 시작하기</button>
+        <div class="message" id="stock-message">상단 계정 정보를 입력하고 시작 버튼을 누르세요! 제한시간은 30초입니다.</div>
+        <button id="start-stock-btn" style="width: 100%; margin-bottom: 10px; background: #63b3ed; color:#fff;">🕹️ 실시간 게임 시작하기</button>
         <button class="restart-btn" id="stock-restart-btn" style="width: 100%;">자산 초기화하고 재도전</button>
     </div>
 
-    <!-- ================= 우측: 실시간 통합 명예의 전당 ================= -->
+    <!-- ================= 우측: 실시간 명예의 전당 ================= -->
     <div class="ranking-container">
         <h2 id="ranking-title">🏆 조상희 명예의 전당 (TOP 20)</h2>
         <p class="description" id="ranking-desc">실시간 조상희 게임 마스터 랭킹 리스트</p>
@@ -307,7 +308,7 @@
         chancesEl.textContent = remainingChances;
         streakEl.textContent = currentStreak;
         numMsg.textContent = "조상희가 숨긴 1~100 사이의 숫자를 맞춰보세요.";
-        numMsg.style.color = "#00f2fe";
+        numMsg.style.color = "#4a5568";
         guessInput.value = "";
         guessInput.disabled = false;
         guessBtn.disabled = false;
@@ -354,10 +355,9 @@
     /* ----------------------------------------------------
        [게임 2] 실시간 주식 투자 게임 로직
     ---------------------------------------------------- */
-    let stockTimeLeft = 90, stockAsset = 2000000, stockGameActive = false; // 대폭 하향: 2,000,000원(200만 원)으로 설정
+    let stockTimeLeft = 30, stockAsset = 2000000, stockGameActive = false; // [업데이트] 제한시간 변수 30초로 설정
     let priceInterval, clockInterval;
     
-    // 자산 하향에 맞추어 적절하게 시작 주가 밸런싱 수정
     let stocks = [
         { name: "리가켐바이오 테마", price: 65000, oldPrice: 65000, cap: "시총 4,200억", owned: 0 },
         { name: "한스바이오메드 테마", price: 14000, oldPrice: 14000, cap: "시총 1,500억", owned: 0 },
@@ -377,19 +377,19 @@
     function initStockGame() {
         clearInterval(priceInterval);
         clearInterval(clockInterval);
-        stockTimeLeft = 90; stockAsset = 2000000; stockGameActive = false;
+        stockTimeLeft = 30; // [업데이트] 리셋 시 제한시간 30초 설정
+        stockAsset = 2000000; stockGameActive = false;
         stocks.forEach(s => { s.owned = 0; s.price = s.oldPrice; });
         startStockBtn.disabled = false;
         startStockBtn.style.display = "inline-block";
         stockRestartBtn.style.display = "none";
         userIdInput.disabled = false; userPwInput.disabled = false;
         
-        // 초기 렌더링 시에는 비어있는 상태이거나 기본 UI 그리기
         renderStockMarket(true); 
         timerEl.textContent = stockTimeLeft;
         assetEl.textContent = stockAsset.toLocaleString();
         ownedEl.textContent = 0;
-        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 초기자산은 200만 원, 제한시간은 90초입니다.";
+        stockMsg.textContent = "상단 계정 정보를 입력하고 시작 버튼을 누르세요! 초기자산은 200만 원, 제한시간은 30초입니다.";
     }
 
     function startRealtimeStockGame() {
@@ -402,17 +402,15 @@
         startStockBtn.style.display = "none";
         stockMsg.textContent = "🚀 실시간 주식 레이스가 시작되었습니다! 단타 타이밍을 잡으세요!";
 
-        // 1.5초마다 무작위 주가 폭등락 변동 루프
         priceInterval = setInterval(() => {
             stocks.forEach(stock => {
                 stock.oldPrice = stock.price;
                 let changePercent = (Math.random() * 34 - 16) / 100; 
                 stock.price = Math.max(1000, Math.floor(stock.price * (1 + changePercent)));
             });
-            renderStockMarket(false); // 수량창 값을 유지하기 위해 false 전달
+            renderStockMarket(false); 
         }, 1500);
 
-        // 1초마다 타이머 구동
         clockInterval = setInterval(() => {
             stockTimeLeft--;
             timerEl.textContent = stockTimeLeft;
@@ -422,10 +420,9 @@
             }
         }, 1000);
 
-        renderStockMarket(true); // 처음 시작할 때 한 번 인풋 생성
+        renderStockMarket(true); 
     }
 
-    // [핵심 버그 수정]: isInit 변수를 도입하여, 실시간 주가 리프레시 시 HTML을 통째로 갈아끼우지 않고 가격과 텍스트만 콕 집어서 업데이트합니다.
     function renderStockMarket(isInit = false) {
         if (isInit || marketBoard.children.length === 0) {
             marketBoard.innerHTML = "";
@@ -448,7 +445,6 @@
                 marketBoard.appendChild(item);
             });
         } else {
-            // 게임 진행 중 실시간 루프가 돌 때는 입력창 요소를 건드리지 않고 '가격'과 '보유 수량 텍스트'만 바꿈으로써 수량 초기화 버그 전면 해결!
             stocks.forEach((stock, index) => {
                 const priceEl = document.getElementById(`stock-price-${index}`);
                 const capEl = document.getElementById(`stock-cap-${index}`);
@@ -457,7 +453,6 @@
                     priceEl.textContent = `${stock.price.toLocaleString()} 원`;
                     capEl.textContent = `${stock.cap} | 보유: ${stock.owned}주`;
 
-                    // 등락 색상 클래스 제어
                     priceEl.className = "stock-price";
                     if (stock.price > stock.oldPrice) priceEl.classList.add("price-up");
                     else if (stock.price < stock.oldPrice) priceEl.classList.add("price-down");
@@ -465,7 +460,6 @@
             });
         }
 
-        // 보유 자산 및 총 지표 새로고침
         assetEl.textContent = stockAsset.toLocaleString();
         let totalOwned = stocks.reduce((acc, cur) => acc + cur.owned, 0);
         ownedEl.textContent = totalOwned;
@@ -491,10 +485,10 @@
             if (stock.owned >= qty) {
                 stockAsset += totalCost;
                 stock.owned -= qty;
-                stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 매도(익절/손절) 완료.`;
+                stockMsg.textContent = `💰 [${stock.name}] ${qty}주 실시간 매도 완료.`;
             } else { alert("방출 가능한 보유 주식 수량이 부족합니다."); }
         }
-        renderStockMarket(false); // 인풋박스를 유지하며 데이터 동기화
+        renderStockMarket(false); 
     }
 
     function endStockGame() {
@@ -502,7 +496,6 @@
         clearInterval(priceInterval);
         clearInterval(clockInterval);
 
-        // 장마감 후 보유 종목 전량 자동 전적 매도 청산
         stocks.forEach(stock => {
             stockAsset += stock.owned * stock.price;
             stock.owned = 0;
@@ -510,9 +503,8 @@
 
         stockRestartBtn.style.display = "inline-block";
         stockMsg.textContent = `🏁 장마감! 최종 평가금액: ${stockAsset.toLocaleString()} 원`;
-        renderStockMarket(true); // 종료 시에는 전체 리셋 구조로 한 번 리렌더링
+        renderStockMarket(true); 
         
-        // 최종 스코어 백엔드 업로드
         saveScore('stock_rankings', userIdInput.value.trim(), userPwInput.value.trim(), stockAsset);
     }
 
@@ -540,8 +532,6 @@
                 userId: userId, userPw: userPw, score: parseInt(score), timestamp: new Date()
             });
             
-            let unit = colName === 'rankings' ? '연승' : '원 자산';
-            alert(`🎉 명예의 전당 경신: '${userId}'님의 기록이 실시간 데이터베이스에 업로드되었습니다.`);
             loadRanking(colName, colName === 'rankings' ? '연승' : '원'); 
         } catch (e) {
             console.error("점수 저장 실패: ", e);
@@ -559,7 +549,7 @@
             descEl.textContent = "가장 높은 연속 정답 기록 리스트";
         } else {
             titleEl.textContent = "🏆 조상희 실시간 주식 명예의 전당 (TOP 20)";
-            descEl.textContent = "90초 스캘핑 레이스 최고 자산가 리스트";
+            descEl.textContent = "30초 스캘핑 레이스 최고 자산가 리스트";
         }
 
         try {
@@ -586,14 +576,12 @@
         }
     }
 
-    // 초기 이벤트 핸들러 바인딩
     guessBtn.addEventListener("click", checkGuess);
     restartBtn.addEventListener("click", initNumberGame);
     startStockBtn.addEventListener("click", startRealtimeStockGame);
     stockRestartBtn.addEventListener("click", initStockGame);
     guessInput.addEventListener("keyup", (e) => { if (e.key === "Enter") checkGuess(); });
 
-    // 첫 세팅 로드
     initNumberGame();
     initStockGame();
 </script>
