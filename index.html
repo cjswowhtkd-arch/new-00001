@@ -3,787 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>조상희 실시간 주식투자 & 부동산 랭킹전</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>퍼즐 가챠 디펜스 (30 Stages)</title>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background: linear-gradient(135deg, #f4f7f6 0%, #e9eff1 100%); color: #4a5568; display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; padding: 10px 20px; box-sizing: border-box; overflow: hidden; }
-        .market-tab-bar { display: flex; gap: 8px; margin-bottom: 8px; width: 100%; max-width: 1200px; justify-content: flex-start; }
-        .market-tab-btn { padding: 8px 20px; font-size: 0.9rem; font-weight: bold; border: 1px solid #cbd5e0; background: #ffffff; color: #718096; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .market-tab-btn.active { background: #3182ce; color: white; border-color: #2b6cb0; box-shadow: 0 4px 10px rgba(49, 130, 206, 0.2); }
-        .top-control-bar { display:flex; justify-content:space-between; width:100%; max-width:1200px; margin-bottom:6px; min-height: 36px; align-items: center; gap: 10px; }
-        .main-wrapper { display: flex; gap: 15px; max-width: 1200px; width: 100%; flex: 1; min-height: 0; background: #ffffff; padding: 15px; border-radius: 16px; box-shadow: 0 8px 20px rgba(160, 174, 192, 0.1); box-sizing: border-box; }
-        .game-container { flex: 1.2; display: flex; flex-direction: column; background: #f7fafc; padding: 15px; border-radius: 12px; min-height: 0; box-sizing: border-box; }
-        .ranking-container { flex: 0.8; display: flex; flex-direction: column; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 0; box-sizing: border-box; }
-        h1 { font-size: 1.25rem; color: #2d3748; font-weight: 700; margin: 0 0 5px 0; }
-        h2 { font-size: 1.1rem; color: #2d3748; margin: 0 0 5px 0; }
-        .description { color: #718096; font-size: 0.8rem; margin-bottom: 10px; font-weight: 300; }
-        .auth-area { display: flex; flex-direction: row; gap: 8px; align-items: center; }
-        .user-status-badge { background: #e2e8f0; color: #4a5568; padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 8px; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ebf8ff; padding: 10px 12px; border-radius: 8px; margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
-        .stats div { display: flex; justify-content: space-between; padding: 1px 2px; }
-        .stock-market-board { display: flex; flex-direction: column; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
-        .stock-row-wrapper { border-bottom: 1px solid #edf2f7; }
-        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; transition: 0.2s; }
-        .stock-item:hover { background: #f7fafc; }
-        .stock-row-wrapper.selected .stock-item { background: #eaf6ff; }
-        .stock-price { font-weight: 700; min-width: 85px; text-align: right; font-size: 0.88rem; }
-        .price-up { color: #e53e3e; } .price-down { color: #3182ce; }
-        .stock-detail-chart-container { display: none; padding: 8px; background: #fdfdfd; border-top: 1px dashed #e2e8f0; }
-        .stock-detail-chart-container.open { display: block; }
-        .timeframe-selector { display: flex; gap: 4px; margin-bottom: 6px; }
-        .tf-btn { padding: 3px 8px; font-size: 0.72rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 4px; cursor: pointer; }
-        .tf-btn.active { background: #ebf8ff; color: #3182ce; font-weight: bold; }
-        .detail-canvas { width: 100%; height: 90px; display: block; }
-        .estate-market-board { display: none; flex-direction: column; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px; }
-        .estate-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #edf2f7; gap: 10px; }
-        .estate-info { text-align: left; }
-        .estate-name { font-weight: bold; color: #2d3748; font-size: 0.88rem; }
-        .estate-rent-info { font-size: 0.72rem; color: #38a169; font-weight: 500; margin-top: 2px; }
-        .estate-btn-zone { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-        .estate-count { font-size: 0.82rem; font-weight: bold; color: #dd6b20; min-width: 45px; text-align: right; }
-        .btn-estate-buy { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .btn-estate-buy:hover { background: #b2f5ea; }
-        .btn-estate-sell { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        .btn-estate-sell:hover { background: #fed7d7; }
-        .btn-estate-sell:disabled { opacity: 0.45; cursor: not-allowed; }
-        .bottom-media-layout { display: flex; gap: 10px; width: 100%; align-items: stretch; margin-top: auto; }
-        .ai-hint-panel { flex: 1.1; background: #2d3748; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; height: 130px; box-sizing: border-box; color: #e2e8f0; text-align: left; }
-        .ai-hint-title { font-size: 0.85rem; font-weight: 700; color: #63b3ed; border-bottom: 1px solid #4a5568; padding-bottom: 4px; margin-bottom: 4px; }
-        .ai-hint-content { font-size: 0.75rem; line-height: 1.4; overflow-y: auto; flex: 1; }
-        .ai-hint-row { display: flex; justify-content: space-between; padding: 2px 0; }
-        .ai-badge { font-weight: bold; padding: 1px 4px; border-radius: 4px; font-size: 0.68rem; }
-        .badge-buy { background: #e53e3e; } .badge-sell { background: #3182ce; } .badge-hold { background: #718096; }
-        .order-panel { background: #ffffff; border: 2px solid #63b3ed; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; width: 55%; justify-content: center; }
-        .order-inputs-zone { display: flex; align-items: center; gap: 6px; justify-content: center; font-size: 0.85rem; }
-        .btn-combined-max { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; padding: 5px 10px; font-size: 0.78rem; border-radius: 6px; }
-        .order-action-group { display: flex; gap: 6px; width: 100%; justify-content: center; }
-        .btn-buy { background: #fed7d7; color: #c53030; padding: 8px; flex: 1; font-size: 0.88rem; }
-        .btn-sell { background: #ebf8ff; color: #2b6cb0; padding: 8px; flex: 1; font-size: 0.88rem; }
-        .live-users-panel { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 8px; padding: 6px 12px; margin-bottom: 6px; text-align: left; font-size: 0.78rem; color: #22543d; }
-        .ranking-list { list-style: none; padding: 0; margin: 0; max-height: 160px; overflow-y: auto; border: 1px solid #edf2f7; border-radius: 8px; }
-        .ranking-item { display: flex; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid #edf2f7; cursor: pointer; font-size: 0.82rem; }
-        .ranking-item.my-rank { background: #e6fffa !important; border: 1px dashed #319795; font-weight: 700; }
-        .chat-panel-container { display: flex; flex-direction: column; background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 10px; margin-top: 8px; flex: 1; min-height: 0; padding: 6px; }
-        .chat-messages-zone { flex: 1; overflow-y: auto; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; padding: 6px; font-size: 0.78rem; text-align: left; min-height: 0; }
-        .chat-line { margin-bottom: 4px; }
-        .chat-line .author { font-weight: 700; color: #4a5568; }
-        .chat-line .author.me { color: #3182ce; }
-        .chat-input-row { display: flex; gap: 4px; margin-top: 4px; }
-        .chat-input-row input { flex: 1; padding: 5px; font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e0; }
-        .chat-send-btn { background: #63b3ed; color: white; border: none; padding: 0 10px; font-size: 0.8rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .peer-portfolio-card { margin-top: 6px; padding: 8px; background: #2d3748; color: white; border-radius: 8px; max-height: 90px; overflow-y: auto; }
-        .peer-stock-list { font-size: 0.72rem; text-align: left; line-height: 1.4; }
-        .red-text { color: #e53e3e !important; } .blue-text { color: #3182ce !important; }
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #ffffff;
+        }
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { margin-bottom: 10px; color: #ffcc00; }
+        .currency-panel {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+        .game-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 2px solid #444;
+        }
+        /* 1. 퍼즐 섹션 */
+        #puzzle-section { width: 340px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            background: #111;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .tile {
+            width: 55px;
+            height: 55px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+        .tile:active { transform: scale(0.9); }
+        .tile.selected { border: 3px solid white; box-sizing: border-box; }
 
-        @media (max-width: 820px) {
-            body {
-                height: auto;
-                min-height: 100vh;
-                padding: 8px;
-                overflow-y: auto;
-                align-items: stretch;
-            }
-
-            .top-control-bar {
-                flex-direction: column;
-                align-items: stretch;
-                height: auto;
-                margin-bottom: 8px;
-            }
-
-            .market-tab-bar {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-                margin-bottom: 0;
-            }
-
-            .market-tab-btn {
-                width: 100%;
-                padding: 10px 8px;
-                font-size: 0.84rem;
-                white-space: nowrap;
-            }
-
-            .auth-area {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) 72px 64px;
-                width: 100%;
-                gap: 6px;
-            }
-
-            .auth-area input,
-            .auth-area button {
-                width: 100% !important;
-                box-sizing: border-box;
-                min-height: 34px;
-            }
-
-            .user-status-badge {
-                justify-content: space-between;
-                width: 100%;
-                box-sizing: border-box;
-                font-size: 0.8rem;
-            }
-
-            .main-wrapper {
-                flex-direction: column;
-                padding: 10px;
-                border-radius: 12px;
-                gap: 10px;
-                min-height: auto;
-                flex: none;
-            }
-
-            .game-container,
-            .ranking-container {
-                width: 100%;
-                padding: 10px;
-                min-height: auto;
-            }
-
-            h1 { font-size: 1rem; line-height: 1.3; }
-            h2 { font-size: 0.95rem; }
-            .description { font-size: 0.74rem; margin-bottom: 8px; }
-
-            .stats {
-                grid-template-columns: 1fr;
-                font-size: 0.78rem;
-                padding: 8px;
-            }
-
-            .stats div[style*="grid-column"] {
-                grid-column: auto !important;
-            }
-
-            .stock-market-board,
-            .estate-market-board {
-                flex: none;
-                max-height: 48vh;
-                min-height: 220px;
-            }
-
-            .stock-item {
-                align-items: flex-start;
-                gap: 8px;
-                padding: 10px;
-            }
-
-            .stock-price {
-                min-width: 80px;
-                font-size: 0.8rem;
-            }
-
-            .detail-canvas {
-                height: 78px;
-            }
-
-            .estate-item {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 10px;
-            }
-
-            .estate-name {
-                font-size: 0.82rem;
-                line-height: 1.35;
-            }
-
-            .estate-rent-info {
-                font-size: 0.7rem;
-            }
-
-            .estate-btn-zone {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-                justify-content: stretch;
-            }
-
-            .estate-count {
-                grid-column: 1 / -1;
-                text-align: left;
-                min-width: 0;
-            }
-
-            .btn-estate-buy,
-            .btn-estate-sell {
-                width: 100%;
-                min-height: 34px;
-            }
-
-            .bottom-media-layout {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .ai-hint-panel {
-                height: 110px;
-            }
-
-            .order-panel {
-                width: 100%;
-                padding: 10px;
-            }
-
-            .order-inputs-zone {
-                justify-content: stretch;
-            }
-
-            .order-inputs-zone input {
-                flex: 1;
-                min-width: 0;
-            }
-
-            .ranking-list {
-                max-height: 180px;
-            }
-
-            .ranking-item {
-                gap: 8px;
-                font-size: 0.78rem;
-            }
-
-            .chat-panel-container {
-                min-height: 230px;
-                flex: none;
-            }
-
-            .chat-messages-zone {
-                min-height: 150px;
-            }
+        /* 2. 가챠 섹션 */
+        #gacha-section { width: 300px; text-align: center; }
+        .btn {
+            background: #ff5722;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .btn:hover { background: #f44336; }
+        .gacha-result {
+            min-height: 100px;
+            background: #111;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .inventory {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #111;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .inv-item {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
         }
 
-        @media (max-width: 420px) {
-            body { padding: 6px; }
-            .market-tab-btn { font-size: 0.78rem; padding: 9px 4px; }
-            .auth-area { grid-template-columns: 1fr 58px; }
-            #login-btn { grid-column: 1 / -1; }
-            .main-wrapper { padding: 8px; }
-            .game-container, .ranking-container { padding: 8px; }
-            .stock-price { min-width: 72px; font-size: 0.76rem; }
-            .chat-send-btn { padding: 0 8px; }
+        /* 등급별 색상 정의 */
+        .COMMON { background: #888; color: #fff; }
+        .RARE { background: #2196F3; color: #fff; }
+        .EPIC { background: #9C27B0; color: #fff; }
+        .LEGENDARY { background: #FF9800; color: #fff; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* 3. 디펜스 섹션 */
+        #defense-section { width: 450px; }
+        .defense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .battle-field {
+            height: 180px;
+            background: #15202b;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .line {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            height: 2px;
+            background: dashed #444;
+        }
+        .unit {
+            position: absolute;
+            bottom: 20px;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+        .my-unit { left: 20px; }
+        .enemy-unit { right: 20px; }
+        .hp-bar {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: red;
+        }
+        .hp-inner { height: 100%; background: lime; width: 100%; }
+        .defense-status {
+            margin-top: 10px;
+            background: #111;
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 60px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-<div class="top-control-bar">
-    <div class="market-tab-bar">
-        <button class="market-tab-btn active" id="m-tab-stock" onclick="switchMarketView('stock')">📈 주식 마켓</button>
-        <button class="market-tab-btn" id="m-tab-estate" onclick="switchMarketView('estate')">🏢 부동산 마켓</button>
-    </div>
-    <div class="auth-area" id="login-form-area">
-        <input type="text" id="user-id-input" placeholder="닉네임" maxlength="12" style="padding:5px; font-size:0.8rem; width:90px;">
-        <input type="password" id="user-pw-input" placeholder="비번" maxlength="4" style="padding:5px; font-size:0.8rem; width:50px;">
-        <button id="login-btn" style="padding: 5px 10px; font-size:0.8rem; background:#63b3ed; color:white; border:none; border-radius:4px; cursor:pointer;">접속</button>
-    </div>
-    <div id="logged-in-status-area" class="user-status-badge" style="display: none;">
-        <span>🟢 <span id="current-user-display" class="name">-</span>님 계정 자산 연동중</span>
-        <button onclick="handleLogout()" style="cursor:pointer; border:none; background:none; color:#718096; text-decoration:underline; font-size:0.78rem; margin-left:8px;">로그아웃</button>
-    </div>
-</div>
 
-<div class="main-wrapper">
+    <h1>🔮 퍼즐 가챠 디펜스 RPG</h1>
+    <div class="currency-panel">💰 소지 골드: <span id="gold-display">100</span>G</div>
+
     <div class="game-container">
-        <h1 id="panel-main-title">📈 조상희 우량주 시뮬레이터</h1>
-        <p class="description" id="panel-main-desc">주식으로 시드를 불려 대지주 건물주로 등극해 보세요!</p>
-        <div class="stats">
-            <div>가용 예수금: <span id="stock-cash">2,000,000</span>원</div>
-            <div>총 평가자산: <span id="stock-asset">2,000,000</span>원</div>
-            <div colspan="2" style="grid-column: span 2;">주식 포트 수익률: <span id="stock-profit">0%</span></div>
+        
+        <div id="puzzle-section" class="section">
+            <h3>🧩 골드 광산 퍼즐</h3>
+            <p style="font-size:0.85rem; color:#aaa;">같은 아이콘을 연속으로 3개 맞추면 골드 획득! (클릭하여 서로 교환)</p>
+            <div id="puzzle-grid" class="grid"></div>
         </div>
-        <div class="stock-market-board" id="market-board"></div>
-        <div class="estate-market-board" id="estate-board"></div>
-        <div class="message" id="stock-message" style="font-size:0.75rem; margin:3px 0; min-height:16px; color:#a0aec0;">원하는 타겟 요소를 클릭하면 상세 제어 패널이 활성화됩니다.</div>
-        <div class="bottom-media-layout">
-            <div class="ai-hint-panel">
-                <div class="ai-hint-title">🔮 실시간 AI 매매 힌트 오라클</div>
-                <div class="ai-hint-content" id="ai-hint-content">
-                    <div style="text-align:center; color:#a0aec0; padding-top:20px;">시세 루프 분석 대기 중...</div>
-                </div>
-            </div>
-            <div class="order-panel" id="order-panel" style="visibility: hidden;">
-                <div id="selected-stock-name" style="font-weight: bold; font-size: 0.82rem; text-align: left;">종목 선택됨</div>
-                <div class="order-inputs-zone">
-                    <span>수량:</span>
-                    <input type="number" id="global-quantity" value="1" min="1" style="width: 50px; padding: 4px; text-align: center; font-size: 0.85rem;">
-                    <button class="btn-combined-max" onclick="triggerCombinedMaxCalculate()">최대</button>
-                </div>
-                <div class="order-action-group">
-                    <button class="btn-buy" onclick="tradeStock('buy')">매수</button>
-                    <button class="btn-sell" onclick="tradeStock('sell')">매도</button>
-                </div>
-            </div>
+
+        <div id="gacha-section" class="section">
+            <h3>✨ 캐릭터 갓챠</h3>
+            <button class="btn" onclick="drawGacha()">1회 뽑기 (30 Gold)</button>
+            <div id="gacha-result" class="gacha-result">무엇이 나올까?</div>
+            <h4>내 캐릭터 부대</h4>
+            <div id="inventory" class="inventory"></div>
         </div>
+
+        <div id="defense-section" class="section">
+            <div class="defense-header">
+                <h3>⚔️ 디펜스 모드 (<span id="stage-display">1</span> / 30 탄)</h3>
+                <button class="btn" id="start-battle-btn" onclick="startBattle()" style="width:auto; margin:0; padding:5px 15px;">전투 시작</button>
+            </div>
+            <div class="battle-field" id="battle-field">
+                <div class="line"></div>
+                </div>
+            <div id="defense-status" class="defense-status">전투 준비 완료. 부대원 중 가장 강한 캐릭터가 자동으로 출전합니다!</div>
+        </div>
+
     </div>
-    <div class="ranking-container">
-        <div class="live-users-panel">
-            <strong>🟢 실시간 동접자 명단</strong>
-            <div id="live-users-list-zone" style="margin-top:2px; font-size:0.72rem;">로그인 후 조율</div>
-        </div>
-        <h2>🏆 실시간 연합 명예의 전당</h2>
-        <ul class="ranking-list" id="ranking-list"></ul>
-        <div class="peer-portfolio-card" id="peer-card" style="display: none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                <h3 style="margin:0;"><span id="peer-name">유저</span> 자산 정보</h3>
-                <span onclick="closePeerCard()" style="cursor:pointer; font-size:0.7rem; color:#a0aec0;">[닫기]</span>
-            </div>
-            <div class="peer-stock-list" id="peer-stock-list"></div>
-        </div>
-        <div class="chat-panel-container">
-            <h2 style="font-size: 0.85rem; text-align: left; margin: 0 0 4px 0;">💬 실시간 개미 토론방</h2>
-            <div class="chat-messages-zone" id="chat-messages-zone"></div>
-            <div class="chat-input-row">
-                <input type="text" id="chat-user-msg" placeholder="메시지 입력..." maxlength="50">
-                <button class="chat-send-btn" id="chat-send-btn">전송</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, where, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <script>
+        // === 게임 데이터 및 상태 ===
+        let gold = 100;
+        let currentStage = 1;
+        let myInventory = [];
+        let selectedTile = null;
 
-    const firebaseConfig = { apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4", authDomain: "chosanghee00001.firebaseapp.com", projectId: "chosanghee00001", storageBucket: "chosanghee00001.firebasestorage.app", messagingSenderId: "705786109560", appId: "1:705786109560:web:01b69c754e13df96e8978d" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        // 가챠 캐릭터 테이블 (등급별 확률 및 디펜스 스펙)
+        const GACHA_POOL = [
+            { name: "슬라임", grade: "COMMON", emoji: "💧", power: 10, hp: 50 },
+            { name: "고블린", grade: "COMMON", emoji: "👺", power: 12, hp: 45 },
+            { name: "아처", grade: "RARE", emoji: "🏹", power: 25, hp: 70 },
+            { name: "나이트", grade: "RARE", emoji: "⚔️", power: 20, hp: 100 },
+            { name: "마법사", grade: "EPIC", emoji: "🧙", power: 45, hp: 120 },
+            { name: "드래곤", grade: "LEGENDARY", emoji: "🐉", power: 100, hp: 300 }
+        ];
 
-    let stockCash = 2000000;
-    let selectedStockIndex = null;
-    let myLoggedId = "";
-    let isUserLoggedIn = false;
-    let currentDocId = null;
-    let activeMarketTab = "stock";
-    let dayTickCounter = 0;
+        // 퍼즐 아이콘 리스트
+        const PUZZLE_ICONS = ["💎", "🪙", "👑", "🔥", "🍀"];
+        const GRID_SIZE = 5;
+        let puzzleGrid = [];
 
-    let stocks = [
-        { name: "삼성전자", price: 68000, oldPrice: 68000, displayPrice: 68000, owned: 0, avgPrice: 0, detailHistory5m: [68000], detailHistory1d: [68000], chartMode: '5m' },
-        { name: "SK하이닉스", price: 172000, oldPrice: 172000, displayPrice: 172000, owned: 0, avgPrice: 0, detailHistory5m: [172000], detailHistory1d: [172000], chartMode: '5m' },
-        { name: "현대차", price: 245000, oldPrice: 245000, displayPrice: 245000, owned: 0, avgPrice: 0, detailHistory5m: [245000], detailHistory1d: [245000], chartMode: '5m' },
-        { name: "NAVER", price: 185000, oldPrice: 185000, displayPrice: 185000, owned: 0, avgPrice: 0, detailHistory5m: [185000], detailHistory1d: [185000], chartMode: '5m' },
-        { name: "에코프로비엠", price: 165000, oldPrice: 165000, displayPrice: 165000, owned: 0, avgPrice: 0, detailHistory5m: [165000], detailHistory1d: [165000], chartMode: '5m' }
-    ];
+        // === 초기화 실행 ===
+        window.onload = function() {
+            initPuzzle();
+            updateUI();
+        };
 
-    let estates = [
-        { name: "낡은 주차장", cost: 1000000, rent: 1500, owned: 0 },
-        { name: "편의점 입점 상가", cost: 5000000, rent: 8000, owned: 0 },
-        { name: "오피스텔 한 채", cost: 15000000, rent: 25000, owned: 0 },
-        { name: "분당 주공 아파트", cost: 50000000, rent: 80000, owned: 0 },
-        { name: "성수동 플레이스 빌라", cost: 200000000, rent: 300000, owned: 0 },
-        { name: "역세권 주상복합 빌딩", cost: 800000000, rent: 1100000, owned: 0 },
-        { name: "강남 테헤란로 프라임 빌딩", cost: 3000000000, rent: 4000000, owned: 0 },
-        { name: "랜드마크 초고층 타워", cost: 10000000000, rent: 12000000, owned: 0 }
-    ];
-
-    function updatePrices() {
-        dayTickCounter++;
-        stocks.forEach(s => {
-            s.oldPrice = s.price;
-            const baseMove = Math.random() * 0.042 - 0.02; // normal tick: -2.0% to +2.2%
-            const newsMove = Math.random() < 0.1 ? (Math.random() * 0.04 - 0.02) : 0; // occasional small event
-            const nextMove = Math.max(-0.04, Math.min(0.045, baseMove + newsMove));
-            s.price = Math.max(1000, Math.floor(s.price * (1 + nextMove)));
-            s.detailHistory5m.push(s.price);
-            if(s.detailHistory5m.length > 20) s.detailHistory5m.shift();
-            if(dayTickCounter % 4 === 0) {
-                s.detailHistory1d.push(s.price);
-                if(s.detailHistory1d.length > 20) s.detailHistory1d.shift();
-            }
-        });
-
-        let totalPassiveIncome = estates.reduce((acc, cur) => acc + (cur.owned * cur.rent), 0);
-        if (totalPassiveIncome > 0) {
-            stockCash += totalPassiveIncome;
-            if(isUserLoggedIn) {
-                document.getElementById('stock-message').textContent = `🏪 [월세 자동 정산] 건물 수입 총 +${totalPassiveIncome.toLocaleString()}원이 통장 입금되었습니다.`;
-            }
-        }
-
-        renderStockInfoText();
-        renderEstateMarket();
-        calculateAIHints();
-        loadRanking();
-        if(isUserLoggedIn) {
-            syncAssetToBackend();
-            fetchLiveActiveUsers();
-        }
-    }
-    setInterval(updatePrices, 5000);
-
-    function animationLoop() {
-        stocks.forEach((s, i) => {
-            s.displayPrice += (s.price - s.displayPrice) * 0.1;
-            if(activeMarketTab === "stock") drawDetailChart(i);
-        });
-        requestAnimationFrame(animationLoop);
-    }
-    requestAnimationFrame(animationLoop);
-
-    window.switchMarketView = function(viewMode) {
-        activeMarketTab = viewMode;
-        document.getElementById('m-tab-stock').classList.remove('active');
-        document.getElementById('m-tab-estate').classList.remove('active');
-        document.getElementById('market-board').style.display = "none";
-        document.getElementById('estate-board').style.display = "none";
-        document.getElementById('order-panel').style.visibility = "hidden";
-
-        if(viewMode === 'stock') {
-            document.getElementById('m-tab-stock').classList.add('active');
-            document.getElementById('market-board').style.display = "flex";
-            document.getElementById('panel-main-title').textContent = "📈 조상희 우량주 시뮬레이터";
-            document.getElementById('panel-main-desc').textContent = "5초 주기 무한 시세 동적 연동 시스템";
-            if(selectedStockIndex !== null) document.getElementById('order-panel').style.visibility = "visible";
-        } else {
-            document.getElementById('m-tab-estate').classList.add('active');
-            document.getElementById('estate-board').style.display = "flex";
-            document.getElementById('panel-main-title').textContent = "🏢 조상희 부동산 자산 마켓";
-            document.getElementById('panel-main-desc').textContent = "매입 시 5초마다 대량의 월세 파시브 인컴 수입이 보장됩니다.";
-            renderEstateMarket();
-        }
-    }
-
-    function renderEstateMarket() {
-        const board = document.getElementById('estate-board');
-        board.innerHTML = "";
-        estates.forEach((e, idx) => {
-            const row = document.createElement('div');
-            row.className = 'estate-item';
-            row.innerHTML = `
-                <div class="estate-info">
-                    <div class="estate-name">${e.name} <span style="font-weight:300; color:#a0aec0;">| 매입가 ${e.cost.toLocaleString()}원</span></div>
-                    <div class="estate-rent-info">💰 5초당 월세 수입: +${e.rent.toLocaleString()}원 고정 입금</div>
-                </div>
-                <div class="estate-btn-zone">
-                    <div class="estate-count">${e.owned} 채 보유</div>
-                    <button class="btn-estate-buy" onclick="buyEstateAsset(${idx})">매입 등기</button>
-                    <button class="btn-estate-sell" onclick="sellEstateAsset(${idx})" ${e.owned <= 0 ? 'disabled' : ''}>매도</button>
-                </div>`;
-            board.appendChild(row);
-        });
-    }
-
-    window.buyEstateAsset = function(idx) {
-        if(!isUserLoggedIn) { alert("⚠️ 부동산 등기를 양도하고 계약하려면 먼저 상단 계정 접속을 하십시오."); return; }
-        let targetEstate = estates[idx];
-
-        if(stockCash >= targetEstate.cost) {
-            stockCash -= targetEstate.cost;
-            targetEstate.owned++;
-            document.getElementById('stock-message').textContent = `🏢 [부동산 등기] '${targetEstate.name}' 1채 매입 계약이 완료되었습니다!`;
-            renderStockInfoText();
-            renderEstateMarket();
-            syncAssetToBackend();
-        } else {
-            alert("❌ 예수금 잔고가 부족합니다! 주식 매도나 월세를 모아 시드를 마련하십시오.");
-        }
-    }
-
-    window.sellEstateAsset = function(idx) {
-        if(!isUserLoggedIn) { alert("⚠️ 부동산 매도는 로그인 후 가능합니다."); return; }
-        const targetEstate = estates[idx];
-        if((targetEstate.owned || 0) <= 0) { alert("❌ 매도할 부동산을 보유하고 있지 않습니다."); return; }
-
-        const sellPrice = Math.floor(targetEstate.cost * 0.9);
-        targetEstate.owned--;
-        stockCash += sellPrice;
-        document.getElementById('stock-message').textContent = `🏢 [부동산 매도] '${targetEstate.name}' 1채를 ${sellPrice.toLocaleString()}원에 매도했습니다.`;
-        renderStockInfoText();
-        renderEstateMarket();
-        syncAssetToBackend();
-    }
-
-    function renderStockInfoText() {
-        stocks.forEach((s, i) => {
-            const pEl = document.getElementById(`price-${i}`);
-            const cEl = document.getElementById(`cap-${i}`);
-            if(!pEl) return;
-            pEl.textContent = `${s.price.toLocaleString()} 원`;
-            pEl.className = `stock-price ${s.price > s.oldPrice ? 'price-up' : 'price-down'}`;
-            const displayOwned = isNaN(s.owned) ? 0 : s.owned;
-            const displayAvg = isNaN(s.avgPrice) ? 0 : s.avgPrice;
-            cEl.textContent = `평단: ${Math.floor(displayAvg).toLocaleString()}원 | 잔고: ${displayOwned}주`;
-        });
-
-        let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
-        let totalPurchase = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * (Number(cur.avgPrice) || 0)), 0);
-        let totalEstateValue = estates.reduce((acc, cur) => acc + (cur.owned * cur.cost), 0);
-        let asset = (Number(stockCash) || 0) + totalStockValue + totalEstateValue;
-
-        document.getElementById('stock-asset').textContent = isNaN(asset) ? "2,000,000" : asset.toLocaleString();
-        document.getElementById('stock-cash').textContent = isNaN(stockCash) ? "2,000,000" : stockCash.toLocaleString();
-
-        let profit = totalStockValue - totalPurchase;
-        let rate = totalPurchase > 0 ? (profit / totalPurchase) * 100 : 0;
-        const pEl = document.getElementById('stock-profit');
-        pEl.textContent = `${profit >= 0 ? '+' : ''}${isNaN(profit) ? 0 : profit.toLocaleString()} 원 (${isNaN(rate) ? '0.00' : rate.toFixed(2)}%)`;
-        pEl.className = profit >= 0 ? 'red-text' : 'blue-text';
-    }
-
-    function initStockBoardFrame() {
-        const board = document.getElementById('market-board');
-        board.innerHTML = "";
-        stocks.forEach((s, i) => {
-            board.innerHTML += `
-                <div class="stock-row-wrapper" id="stock-wrapper-${i}">
-                    <div class="stock-item" onclick="selectStockItem(${i})">
-                        <div style="text-align:left"><span class="name"><b>${s.name}</b></span><br><small class="cap" id="cap-${i}">평단: 0원 | 잔고: 0주</small></div>
-                        <div class="stock-price" id="price-${i}">${s.price.toLocaleString()}원</div>
-                    </div>
-                    <div class="stock-detail-chart-container" id="detail-${i}">
-                        <div class="timeframe-selector">
-                            <button class="tf-btn active" id="tf-5m-${i}" onclick="changeTimeframe(event, ${i}, '5m')">5분</button>
-                            <button class="tf-btn" id="tf-1d-${i}" onclick="changeTimeframe(event, ${i}, '1d')">1일</button>
-                        </div>
-                        <canvas id="canvas-${i}" class="detail-canvas" width="460" height="90"></canvas>
-                    </div>
-                </div>`;
-        });
-        renderStockInfoText();
-    }
-
-    window.selectStockItem = (i) => {
-        const container = document.getElementById(`detail-${i}`);
-        const isOpen = container.classList.contains('open');
-        document.querySelectorAll('.stock-detail-chart-container').forEach(el => el.classList.remove('open'));
-        document.querySelectorAll('.stock-row-wrapper').forEach(el => el.classList.remove('selected'));
-
-        if(!isOpen) {
-            container.classList.add('open');
-            document.getElementById(`stock-wrapper-${i}`).classList.add('selected');
-            selectedStockIndex = i;
-            document.getElementById('order-panel').style.visibility = "visible";
-            document.getElementById('selected-stock-name').textContent = `📌 ${stocks[i].name} 주문`;
-        } else {
-            document.getElementById('order-panel').style.visibility = "hidden";
-            selectedStockIndex = null;
-        }
-    }
-
-    window.changeTimeframe = function(event, index, mode) {
-        event.stopPropagation();
-        stocks[index].chartMode = mode;
-        document.getElementById(`tf-5m-${index}`).classList.remove('active');
-        document.getElementById(`tf-1d-${index}`).classList.remove('active');
-        if(mode === '5m') document.getElementById(`tf-5m-${index}`).classList.add('active');
-        else document.getElementById(`tf-1d-${index}`).classList.add('active');
-    }
-
-    function drawDetailChart(i) {
-        const canvas = document.getElementById(`canvas-${i}`);
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let h = stocks[i].chartMode === '5m' ? [...stocks[i].detailHistory5m] : [...stocks[i].detailHistory1d];
-        if(h.length === 0) return;
-        h[h.length - 1] = stocks[i].displayPrice;
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        if(h.length < 2) return;
-
-        const maxPrice = Math.max(...h);
-        const minPrice = Math.min(...h);
-        const priceRange = (maxPrice - minPrice) === 0 ? 1 : (maxPrice - minPrice);
-        ctx.beginPath();
-        const isTrendUp = stocks[i].price >= stocks[i].oldPrice;
-        ctx.strokeStyle = isTrendUp ? '#f56565' : '#4299e1';
-        ctx.lineWidth = 1.8;
-        const chartWidth = canvas.width - 65;
-        const step = chartWidth / 19;
-        let lastY = 0;
-        h.forEach((p, idx) => {
-            const x = idx * step;
-            const y = canvas.height - ((p - minPrice) / priceRange) * (canvas.height - 14) - 7;
-            idx === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-            if(idx === h.length - 1) lastY = y;
-        });
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.strokeStyle = isTrendUp ? 'rgba(245, 101, 101, 0.4)' : 'rgba(66, 153, 229, 0.4)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([2, 2]);
-        ctx.moveTo((h.length - 1) * step, lastY);
-        ctx.lineTo(chartWidth, lastY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = isTrendUp ? '#fed7d7' : '#ebf8ff';
-        ctx.fillRect(chartWidth + 3, lastY - 7, 58, 14);
-        ctx.font = '10px sans-serif';
-        ctx.fillStyle = isTrendUp ? '#c53030' : '#2b6cb0';
-        ctx.textAlign = 'left';
-        ctx.fillText(Math.floor(stocks[i].displayPrice).toLocaleString(), chartWidth + 6, lastY + 3);
-    }
-
-    function calculateAIHints() {
-        const hintZone = document.getElementById('ai-hint-content');
-        let html = "";
-        stocks.forEach(s => {
-            let h = s.detailHistory5m;
-            if(h.length < 3) return;
-            let currentTrend = s.price - s.oldPrice;
-            let olderTrend = s.oldPrice - h[h.length - 3];
-            let badgeClass = "badge-hold"; let hintText = "보유(관망)";
-            if (currentTrend > 0 && olderTrend > 0) { badgeClass = "badge-buy"; hintText = "강력매수"; }
-            else if (currentTrend < 0 && olderTrend < 0) { badgeClass = "badge-sell"; hintText = "단기매도"; }
-            else if (currentTrend > 0 && olderTrend <= 0) { badgeClass = "badge-buy"; hintText = "눌림목 진입"; }
-            html += `<div class="ai-hint-row"><span>${s.name}</span><span class="ai-badge ${badgeClass}">${hintText}</span></div>`;
-        });
-        hintZone.innerHTML = html;
-    }
-
-    window.triggerCombinedMaxCalculate = function() {
-        if(selectedStockIndex === null) return;
-        const s = stocks[selectedStockIndex];
-        const qtyInput = document.getElementById('global-quantity');
-        const cleanOwned = Number(s.owned) || 0;
-        if (cleanOwned > 0) qtyInput.value = cleanOwned;
-        else qtyInput.value = Math.max(0, Math.floor(stockCash / s.price));
-    }
-
-    const msgZone = document.getElementById('chat-messages-zone');
-    const msgInput = document.getElementById('chat-user-msg');
-    const sendBtn = document.getElementById('chat-send-btn');
-    const chatQuery = query(collection(db, "stock_chats"), orderBy("timestamp", "asc"), limit(30));
-    onSnapshot(chatQuery, (snapshot) => {
-        msgZone.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const chat = doc.data();
-            const div = document.createElement('div');
-            div.className = 'chat-line';
-            const isMe = isUserLoggedIn && chat.userId === myLoggedId;
-            div.innerHTML = `<span class="${isMe?'author me':'author'}">[${chat.userId}]</span> <span>${chat.message}</span>`;
-            msgZone.appendChild(div);
-        });
-        msgZone.scrollTop = msgZone.scrollHeight;
-    });
-
-    async function sendUserChatMessage() {
-        const txt = msgInput.value.trim(); if(!txt) return;
-        const sender = isUserLoggedIn ? myLoggedId : "개미";
-        try { await addDoc(collection(db, "stock_chats"), { userId: sender, message: txt, timestamp: new Date() }); msgInput.value = ""; } catch(e){}
-    }
-    sendBtn.addEventListener('click', sendUserChatMessage);
-    msgInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') sendUserChatMessage(); });
-
-    async function showUserPortfolio(userId) {
-        const q = query(collection(db, "stock_rankings"), where("userId", "==", userId));
-        const snap = await getDocs(q);
-        if(!snap.empty) {
-            const data = snap.docs[0].data();
-            const peerCard = document.getElementById('peer-card');
-            const peerName = document.getElementById('peer-name');
-            const peerList = document.getElementById('peer-stock-list');
-            peerName.textContent = userId; peerCard.style.display = "block";
-            let html = "";
-            if(data.ownedStocks) data.ownedStocks.forEach((count, idx) => { if(count > 0 && stocks[idx]) html += `<div>📈 ${stocks[idx].name}: ${count}주</div>`; });
-            if(data.ownedEstates) data.ownedEstates.forEach((count, idx) => { if(count > 0 && estates[idx]) html += `<div>🏢 ${estates[idx].name}: ${count}채</div>`; });
-            peerList.innerHTML = html || "자산이 비어있습니다.";
-        }
-    }
-    window.closePeerCard = () => { document.getElementById('peer-card').style.display = "none"; }
-
-    async function loadRanking() {
-        const q = query(collection(db, "stock_rankings"), orderBy("score", "desc"), limit(12));
-        const snap = await getDocs(q);
-        const list = document.getElementById('ranking-list');
-        list.innerHTML = "";
-        let rank = 1;
-        snap.forEach(d => {
-            const data = d.data();
-            const cleanScore = Number(data.score); if (isNaN(cleanScore)) return;
-            const li = document.createElement('li');
-            li.className = isUserLoggedIn && data.userId === myLoggedId ? 'ranking-item my-rank' : 'ranking-item';
-            li.innerHTML = `<span>${rank}위. ${data.userId}</span> <b>${Math.floor(cleanScore).toLocaleString()}원</b>`;
-            li.onclick = () => showUserPortfolio(data.userId);
-            list.appendChild(li); rank++;
-        });
-    }
-
-    async function fetchLiveActiveUsers() {
-        const liveUserZone = document.getElementById('live-users-list-zone'); if(!isUserLoggedIn) return;
-        try {
-            const allUsers = await getDocs(collection(db, "stock_rankings"));
-            let liveHtml = ""; let now = new Date().getTime();
-            allUsers.forEach(doc => {
-                let u = doc.data();
-                if(u.lastActive && (now - u.lastActive.toDate().getTime() < 20000)) liveHtml += `<span class="live-user-dot">👤 ${u.userId}</span>`;
-            });
-            liveUserZone.innerHTML = liveHtml || "단독 투자전";
-        } catch(e) {}
-    }
-
-    window.tradeStock = async (type) => {
-        if(selectedStockIndex === null) return;
-        const s = stocks[selectedStockIndex];
-        const qty = parseInt(document.getElementById('global-quantity').value);
-        if(isNaN(qty) || qty <= 0) return;
-
-        if(type === 'buy') {
-            if(stockCash < s.price * qty) return alert("예수금이 부족합니다.");
-            stockCash -= s.price * qty;
-            s.avgPrice = (((s.owned || 0) * (s.avgPrice || 0)) + (s.price * qty)) / ((s.owned || 0) + qty);
-            s.owned = (s.owned || 0) + qty;
-        } else {
-            if((s.owned || 0) < qty) return alert("주식이 부족합니다.");
-            stockCash += s.price * qty;
-            s.owned = (s.owned || 0) - qty;
-            if(s.owned === 0) s.avgPrice = 0;
-        }
-        renderStockInfoText();
-        if(isUserLoggedIn) await syncAssetToBackend();
-    }
-
-    window.handleLogout = function() {
-        isUserLoggedIn = false; myLoggedId = ""; currentDocId = null; stockCash = 2000000;
-        stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; });
-        estates.forEach(e => e.owned = 0);
-        document.getElementById('login-form-area').style.display = "flex";
-        document.getElementById('logged-in-status-area').style.display = "none";
-        switchMarketView('stock');
-    }
-
-    document.getElementById('login-btn').onclick = async () => {
-        const id = document.getElementById('user-id-input').value.trim();
-        const pw = document.getElementById('user-pw-input').value.trim();
-        if(!id || !pw) return;
-        const q = query(collection(db, "stock_rankings"), where("userId", "==", id));
-        const snap = await getDocs(q);
-        if(!snap.empty) {
-            const user = snap.docs[0];
-            if(user.data().userPw !== pw) { alert("비밀번호 불일치"); return; }
-            currentDocId = user.id; stockCash = Number(user.data().cash) || 2000000;
-            if(user.data().ownedStocks) user.data().ownedStocks.forEach((cnt, idx) => { if(stocks[idx]) stocks[idx].owned = Number(cnt) || 0; });
-            if(user.data().avgPrices) user.data().avgPrices.forEach((prc, idx) => { if(stocks[idx]) stocks[idx].avgPrice = Number(prc) || 0; });
-            if(user.data().ownedEstates) user.data().ownedEstates.forEach((cnt, idx) => { if(estates[idx]) estates[idx].owned = Number(cnt) || 0; });
-        } else {
-            const res = await addDoc(collection(db, "stock_rankings"), { userId: id, userPw: pw, score: 2000000, cash: 2000000, ownedStocks: stocks.map(() => 0), avgPrices: stocks.map(() => 0), ownedEstates: estates.map(() => 0), lastActive: new Date() });
-            currentDocId = res.id; stockCash = 2000000; stocks.forEach(s => { s.owned = 0; s.avgPrice = 0; }); estates.forEach(e => e.owned = 0);
-        }
-        isUserLoggedIn = true; myLoggedId = id;
-        document.getElementById('login-form-area').style.display = "none";
-        document.getElementById('logged-in-status-area').style.display = "flex";
-        document.getElementById('current-user-display').textContent = id;
-        renderStockInfoText(); switchMarketView('stock');
-    };
-
-    async function syncAssetToBackend() {
-        if(!currentDocId) return;
-        let totalStockValue = stocks.reduce((acc, cur) => acc + ((Number(cur.owned) || 0) * cur.price), 0);
-        let totalEstateValue = estates.reduce((acc, cur) => acc + (cur.owned * cur.cost), 0);
-        const total = (Number(stockCash) || 0) + totalStockValue + totalEstateValue;
-        await updateDoc(doc(db, "stock_rankings", currentDocId), {
-            score: isNaN(total) ? 2000000 : total,
-            cash: isNaN(stockCash) ? 2000000 : stockCash,
-            ownedStocks: stocks.map(s=> s.owned),
-            avgPrices: stocks.map(s=> s.avgPrice),
-            ownedEstates: estates.map(e=> e.owned),
-            lastActive: new Date()
-        });
-    }
-
-    initStockBoardFrame();
-    renderEstateMarket();
-    loadRanking();
-</script>
-</body>
-</html>
+        function updateUI() {
+            document.getElementById('gold-display').innerText = gold;
+            document.getElementById('stage-display').innerText = currentStage;
+            
+            // 인벤토리 갱신
+            const invDiv = document.getElementById('inventory');
+            invDiv.innerHTML = '';
+            myInventory.forEach(item => {
+                const span = document.createElement('span');
+                span.className = `inv-item ${item.grade}`;
+                span.innerText = `${item.emoji} ${item.name}(전투력:${item.power})`;
