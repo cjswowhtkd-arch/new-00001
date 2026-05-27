@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퍼즐 가챠 디펜스 (30 Stages)</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #ffffff;
+        }
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { margin-bottom: 10px; color: #ffcc00; }
+        .currency-panel {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #444;
+        }
+        .game-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 2px solid #444;
+        }
+        /* 1. 퍼즐 섹션 */
+        #puzzle-section { width: 340px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            background: #111;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .tile {
+            width: 55px;
+            height: 55px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+        .tile:active { transform: scale(0.9); }
+        .tile.selected { border: 3px solid white; box-sizing: border-box; }
+
+        /* 2. 가챠 섹션 */
+        #gacha-section { width: 300px; text-align: center; }
+        .btn {
+            background: #ff5722;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .btn:hover { background: #f44336; }
+        .gacha-result {
+            min-height: 100px;
+            background: #111;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .inventory {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #111;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .inv-item {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* 등급별 색상 정의 */
+        .COMMON { background: #888; color: #fff; }
+        .RARE { background: #2196F3; color: #fff; }
+        .EPIC { background: #9C27B0; color: #fff; }
+        .LEGENDARY { background: #FF9800; color: #fff; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* 3. 디펜스 섹션 */
+        #defense-section { width: 450px; }
+        .defense-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .battle-field {
+            height: 180px;
+            background: #15202b;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .line {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            height: 2px;
+            background: dashed #444;
+        }
+        .unit {
+            position: absolute;
+            bottom: 20px;
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+        .my-unit { left: 20px; }
+        .enemy-unit { right: 20px; }
+        .hp-bar {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: red;
+        }
+        .hp-inner { height: 100%; background: lime; width: 100%; }
+        .defense-status {
+            margin-top: 10px;
+            background: #111;
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 60px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔮 퍼즐 가챠 디펜스 RPG</h1>
+    <div class="currency-panel">💰 소지 골드: <span id="gold-display">100</span>G</div>
+
+    <div class="game-container">
+        
+        <div id="puzzle-section" class="section">
+            <h3>🧩 골드 광산 퍼즐</h3>
+            <p style="font-size:0.85rem; color:#aaa;">같은 아이콘을 연속으로 3개 맞추면 골드 획득! (클릭하여 서로 교환)</p>
+            <div id="puzzle-grid" class="grid"></div>
+        </div>
+
+        <div id="gacha-section" class="section">
+            <h3>✨ 캐릭터 갓챠</h3>
+            <button class="btn" onclick="drawGacha()">1회 뽑기 (30 Gold)</button>
+            <div id="gacha-result" class="gacha-result">무엇이 나올까?</div>
+            <h4>내 캐릭터 부대</h4>
+            <div id="inventory" class="inventory"></div>
+        </div>
+
+        <div id="defense-section" class="section">
+            <div class="defense-header">
+                <h3>⚔️ 디펜스 모드 (<span id="stage-display">1</span> / 30 탄)</h3>
+                <button class="btn" id="start-battle-btn" onclick="startBattle()" style="width:auto; margin:0; padding:5px 15px;">전투 시작</button>
+            </div>
+            <div class="battle-field" id="battle-field">
+                <div class="line"></div>
+                </div>
+            <div id="defense-status" class="defense-status">전투 준비 완료. 부대원 중 가장 강한 캐릭터가 자동으로 출전합니다!</div>
+        </div>
+
+    </div>
+
+    <script>
+        // === 게임 데이터 및 상태 ===
+        let gold = 100;
+        let currentStage = 1;
+        let myInventory = [];
+        let selectedTile = null;
+
+        // 가챠 캐릭터 테이블 (등급별 확률 및 디펜스 스펙)
+        const GACHA_POOL = [
+            { name: "슬라임", grade: "COMMON", emoji: "💧", power: 10, hp: 50 },
+            { name: "고블린", grade: "COMMON", emoji: "👺", power: 12, hp: 45 },
+            { name: "아처", grade: "RARE", emoji: "🏹", power: 25, hp: 70 },
+            { name: "나이트", grade: "RARE", emoji: "⚔️", power: 20, hp: 100 },
+            { name: "마법사", grade: "EPIC", emoji: "🧙", power: 45, hp: 120 },
+            { name: "드래곤", grade: "LEGENDARY", emoji: "🐉", power: 100, hp: 300 }
+        ];
+
+        // 퍼즐 아이콘 리스트
+        const PUZZLE_ICONS = ["💎", "🪙", "👑", "🔥", "🍀"];
+        const GRID_SIZE = 5;
+        let puzzleGrid = [];
+
+        // === 초기화 실행 ===
+        window.onload = function() {
+            initPuzzle();
+            updateUI();
+        };
+
+        function updateUI() {
+            document.getElementById('gold-display').innerText = gold;
+            document.getElementById('stage-display').innerText = currentStage;
+            
+            // 인벤토리 갱신
+            const invDiv = document.getElementById('inventory');
+            invDiv.innerHTML = '';
+            myInventory.forEach(item => {
+                const span = document.createElement('span');
+                span.className = `inv-item ${item.grade}`;
+                span.innerText = `${item.emoji} ${item.name}(전투력:${item.power})`;
