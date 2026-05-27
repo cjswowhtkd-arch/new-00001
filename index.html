@@ -242,3 +242,227 @@
                 const span = document.createElement('span');
                 span.className = `inv-item ${item.grade}`;
                 span.innerText = `${item.emoji} ${item.name}(전투력:${item.power})`;
+                invDiv.appendChild(span);
+            });
+        }
+
+        // === 1. 퍼즐 시스템 구현 ===
+        function initPuzzle() {
+            const gridEl = document.getElementById('puzzle-grid');
+            gridEl.innerHTML = '';
+            puzzleGrid = [];
+
+            for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+                let randomIcon = PUZZLE_ICONS[Math.floor(Math.random() * PUZZLE_ICONS.length)];
+                puzzleGrid.push(randomIcon);
+
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.innerText = randomIcon;
+                tile.dataset.index = i;
+                tile.onclick = handleTileClick;
+                gridEl.appendChild(tile);
+            }
+        }
+
+        function handleTileClick(e) {
+            const clickedIndex = parseInt(e.target.dataset.index);
+
+            if (selectedTile === null) {
+                selectedTile = clickedIndex;
+                e.target.classList.add('selected');
+            } else {
+                // 이웃한 타일인지 검사 (상하좌우)
+                const diff = Math.abs(selectedTile - clickedIndex);
+                const isNeighbor = (diff === 1 && Math.floor(selectedTile/GRID_SIZE) === Math.floor(clickedIndex/GRID_SIZE)) || diff === GRID_SIZE;
+
+                if (isNeighbor) {
+                    // 스왑(교환)
+                    let temp = puzzleGrid[selectedTile];
+                    puzzleGrid[selectedTile] = puzzleGrid[clickedIndex];
+                    puzzleGrid[clickedIndex] = temp;
+
+                    // 매치 체크
+                    checkMatches();
+                }
+
+                // 선택 해제
+                document.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
+                selectedTile = null;
+                renderPuzzle();
+            }
+        }
+
+        function renderPuzzle() {
+            const tiles = document.querySelectorAll('.tile');
+            puzzleGrid.forEach((icon, idx) => {
+                tiles[idx].innerText = icon;
+            });
+        }
+
+        function checkMatches() {
+            let matched = false;
+            // 가로 매치 체크
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE - 2; c++) {
+                    let idx1 = r * GRID_SIZE + c;
+                    let idx2 = idx1 + 1;
+                    let idx3 = idx1 + 2;
+                    if (puzzleGrid[idx1] && puzzleGrid[idx1] === puzzleGrid[idx2] && puzzleGrid[idx1] === puzzleGrid[idx3]) {
+                        givePuzzleReward();
+                        puzzleGrid[idx1] = puzzleGrid[idx2] = puzzleGrid[idx3] = ""; 
+                        matched = true;
+                    }
+                }
+            }
+            // 세로 매치 체크
+            for (let c = 0; c < GRID_SIZE; c++) {
+                for (let r = 0; r < GRID_SIZE - 2; r++) {
+                    let idx1 = r * GRID_SIZE + c;
+                    let idx2 = idx1 + GRID_SIZE;
+                    let idx3 = idx1 + (GRID_SIZE * 2);
+                    if (puzzleGrid[idx1] && puzzleGrid[idx1] === puzzleGrid[idx2] && puzzleGrid[idx1] === puzzleGrid[idx3]) {
+                        givePuzzleReward();
+                        puzzleGrid[idx1] = puzzleGrid[idx2] = puzzleGrid[idx3] = "";
+                        matched = true;
+                    }
+                }
+            }
+
+            // 빈칸 채우기
+            if (matched) {
+                setTimeout(() => {
+                    for (let i = 0; i < puzzleGrid.length; i++) {
+                        if (puzzleGrid[i] === "") {
+                            puzzleGrid[i] = PUZZLE_ICONS[Math.floor(Math.random() * PUZZLE_ICONS.length)];
+                        }
+                    }
+                    renderPuzzle();
+                    updateUI();
+                }, 300);
+            }
+        }
+
+        function givePuzzleReward() {
+            gold += 15; // 매치당 보상 골드
+        }
+
+
+        // === 2. 가챠 시스템 구현 ===
+        function drawGacha() {
+            if (gold < 30) {
+                alert("골드가 부족합니다! 퍼즐을 맞춰 골드를 벌어보세요.");
+                return;
+            }
+
+            gold -= 30;
+            const rand = Math.random() * 100;
+            let picked;
+
+            // 확률 분배: Legendary(3%), Epic(12%), Rare(35%), Common(50%)
+            if (rand < 3) picked = GACHA_POOL.find(p => p.grade === "LEGENDARY");
+            else if (rand < 15) picked = GACHA_POOL.find(p => p.grade === "EPIC");
+            else if (rand < 50) picked = GACHA_POOL.find(p => p.grade === "RARE" && Math.random() > 0.5 || p.name === "아처");
+            else picked = GACHA_POOL[Math.floor(Math.random() * 2)]; // Common 중 랜덤
+
+            // 깊은 복사로 인벤토리에 추가 (스펙 변동 대비)
+            const newChar = { ...picked, currentHp: picked.hp };
+            myInventory.push(newChar);
+
+            // 결과 연출
+            const resultDiv = document.getElementById('gacha-result');
+            resultDiv.className = `gacha-result ${newChar.grade}`;
+            resultDiv.innerText = `${newChar.emoji} [${newChar.grade}] ${newChar.name} 획득!`;
+
+            updateUI();
+        }
+
+
+        // === 3. 디펜스 레이드 시스템 (30개 스테이지) ===
+        function startBattle() {
+            if (myInventory.length === 0) {
+                alert("전투에 보낼 캐릭터가 없습니다! 가챠를 돌려주세요.");
+                return;
+            }
+            if (currentStage > 30) {
+                alert("🎉 축하합니다! 모든 스테이지(30탄)를 클리어하셨습니다! 🎉");
+                return;
+            }
+
+            document.getElementById('start-battle-btn').disabled = true;
+
+            // 내 인벤토리에서 가장 강한 녀석 자동 출전
+            myInventory.sort((a, b) => b.power - a.power);
+            let myHero = { ...myInventory[0] }; 
+
+            // 스테이지에 비례하여 강해지는 적(몬스터) 생성
+            let enemy = {
+                name: `스테이지 ${currentStage} 보스`,
+                emoji: "👾",
+                hp: 40 + (currentStage * 25),
+                maxHp: 40 + (currentStage * 25),
+                power: 8 + (currentStage * 4)
+            };
+
+            const field = document.getElementById('battle-field');
+            field.innerHTML = '<div class="line"></div>';
+
+            // 캐릭터 화면 배치
+            const heroEl = document.createElement('div');
+            heroEl.className = 'unit my-unit';
+            heroEl.innerHTML = `${myHero.emoji}<div class="hp-bar"><div class="hp-inner" id="hero-hp"></div></div>`;
+            
+            const enemyEl = document.createElement('div');
+            enemyEl.className = 'unit enemy-unit';
+            enemyEl.innerHTML = `${enemy.emoji}<div class="hp-bar"><div class="hp-inner" id="enemy-hp"></div></div>`;
+
+            field.appendChild(heroEl);
+            field.appendChild(enemyEl);
+
+            const statusEl = document.getElementById('defense-status');
+            statusEl.innerText = `⚔️ ${myHero.name} VS ${enemy.name} 전투가 시작되었습니다!`;
+
+            // 턴제 전투 루프 시뮬레이션
+            let battleInterval = setInterval(() => {
+                // 1. 내 영웅의 공격
+                enemy.hp -= myHero.power;
+                let enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
+                document.getElementById('enemy-hp').style.width = enemyHpPercent + '%';
+                statusEl.innerText = `💥 [아군] ${myHero.name}의 공격! ${enemy.name}에게 ${myHero.power} 데미지!`;
+
+                if (enemy.hp <= 0) {
+                    clearInterval(battleInterval);
+                    statusEl.innerText = `🎉 승리! 스테이지 ${currentStage}층을 수호했습니다! 클리어 보상 100G 획득!`;
+                    gold += 100;
+                    currentStage++;
+                    endBattle();
+                    return;
+                }
+
+                // 2. 적의 반격 (딜레이 연출을 위해 조금 뒤 처리 가능하나 단순화)
+                setTimeout(() => {
+                    if(enemy.hp > 0) {
+                        myHero.currentHp -= enemy.power;
+                        let heroHpPercent = Math.max(0, (myHero.currentHp / myHero.hp) * 100);
+                        let hpBar = document.getElementById('hero-hp');
+                        if(hpBar) hpBar.style.width = heroHpPercent + '%';
+                        statusEl.innerText = `💀 [적군] ${enemy.name}의 반격! ${myHero.name}가 ${enemy.power} 데미지를 입었습니다.`;
+
+                        if (myHero.currentHp <= 0) {
+                            clearInterval(battleInterval);
+                            statusEl.innerText = `😭 패배... 캐릭터의 힘이 부족합니다. 퍼즐을 풀고 더 강력한 가챠 영웅을 뽑으세요!`;
+                            endBattle();
+                        }
+                    }
+                }, 200);
+
+            }, 600);
+        }
+
+        function endBattle() {
+            document.getElementById('start-battle-btn').disabled = false;
+            updateUI();
+        }
+    </script>
+</body>
+</html>
