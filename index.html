@@ -3,465 +3,505 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>퍼즐 가챠 디펜스 (30 Stages)</title>
+    <title>초중독성 퍼즐 가챠 디펜스 온라인</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
-        :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --text-color: #ffffff;
-        }
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        h1 { margin-bottom: 10px; color: #ffcc00; }
-        .currency-panel {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            background: var(--card-bg);
-            padding: 10px 20px;
-            border-radius: 10px;
-            border: 1px solid #444;
-        }
-        .game-container {
-            display: flex;
-            gap: 20px;
-            max-width: 1200px;
-            width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .section {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            box-sizing: border-box;
-            border: 2px solid #444;
-        }
-        /* 1. 퍼즐 섹션 */
-        #puzzle-section { width: 340px; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
-            background: #111;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        .tile {
-            width: 55px;
-            height: 55px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            user-select: none;
-            transition: transform 0.1s;
-        }
-        .tile:active { transform: scale(0.9); }
-        .tile.selected { border: 3px solid white; box-sizing: border-box; }
+        :root { --bg: #0f111a; --card: #1e2235; --accent: #ff007f; --text: #ffffff; }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .game-layout { display: flex; gap: 15px; max-width: 1300px; width: 100%; justify-content: center; flex-wrap: wrap; }
+        .box { background: var(--card); border-radius: 12px; padding: 15px; border: 2px solid #2d334d; box-sizing: border-box; }
+        
+        /* 헤더 & 로그인 */
+        header { width: 100%; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin-bottom: 15px; background: #161925; padding: 10px 20px; border-radius: 8px; box-sizing: border-box;}
+        .auth-btn { background: #4a5568; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .auth-btn:hover { background: #718096; }
 
-        /* 2. 가챠 섹션 */
-        #gacha-section { width: 300px; text-align: center; }
-        .btn {
-            background: #ff5722;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .btn:hover { background: #f44336; }
-        .gacha-result {
-            min-height: 100px;
-            background: #111;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .inventory {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            max-height: 150px;
-            overflow-y: auto;
-            background: #111;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        .inv-item {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
+        /* 1. 슬라이딩 그림 퍼즐 */
+        #puz-box { width: 340px; text-align: center; }
+        .puz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 300px; height: 300px; margin: 10px auto; background: #000; border: 2px solid #ffcc00; position: relative;}
+        .puz-piece { background-image: url('https://picsum.photos/300/300?random=99'); background-size: 300px 300px; cursor: pointer; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: rgba(255,255,255,0.4); text-shadow: 1px 1px 2px #000; font-size: 1.2rem;}
+        .puz-empty { background: #000; cursor: default; }
 
-        /* 등급별 색상 정의 */
-        .COMMON { background: #888; color: #fff; }
-        .RARE { background: #2196F3; color: #fff; }
-        .EPIC { background: #9C27B0; color: #fff; }
-        .LEGENDARY { background: #FF9800; color: #fff; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        /* 2. 일러스트 가챠 */
+        #gacha-box { width: 320px; text-align: center; }
+        .gacha-screen { width: 100%; height: 260px; background: #000; border-radius: 8px; margin: 10px 0; overflow: hidden; position: relative; border: 1px solid #3d4666; display: flex; justify-content: center; align-items: center;}
+        .char-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .gacha-effect { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, #000 80%); pointer-events: none;}
+        .btn-main { background: linear-gradient(45deg, #ff0055, #ff007f); color: white; border: none; padding: 12px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        .btn-main:disabled { background: #444; cursor: not-allowed; }
+        
+        /* 등급별 이펙트 */
+        .grade-tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;}
+        .LEGENDARY-fx { box-shadow: inset 0 0 30px #ff9800; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { box-shadow: inset 0 0 20px #ff9800; } to { box-shadow: inset 0 0 40px #ff0000; } }
 
-        /* 3. 디펜스 섹션 */
-        #defense-section { width: 450px; }
-        .defense-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .battle-field {
-            height: 180px;
-            background: #15202b;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #333;
-        }
-        .line {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            height: 2px;
-            background: dashed #444;
-        }
-        .unit {
-            position: absolute;
-            bottom: 20px;
-            font-size: 2rem;
-            transition: all 0.3s ease;
-        }
-        .my-unit { left: 20px; }
-        .enemy-unit { right: 20px; }
-        .hp-bar {
-            position: absolute;
-            top: -15px;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: red;
-        }
-        .hp-inner { height: 100%; background: lime; width: 100%; }
-        .defense-status {
-            margin-top: 10px;
-            background: #111;
-            padding: 10px;
-            border-radius: 8px;
-            min-height: 60px;
-            font-size: 0.9rem;
-        }
+        /* 3. 디펜스 라인 (배치 & 자동전투) */
+        #def-box { width: 600px; }
+        .def-field { height: 280px; background: linear-gradient(to bottom, #1a233a, #0d1321); border-radius: 8px; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 10px;}
+        .bench { display: flex; gap: 8px; background: #111; padding: 10px; border-radius: 8px; min-height: 70px; overflow-x: auto; align-items: center;}
+        .bench-item { width: 50px; height: 50px; border-radius: 6px; cursor: grab; background-size: cover; position: relative; border: 2px solid #555;}
+        .battle-unit { position: absolute; width: 50px; height: 50px; background-size: cover; border-radius: 50%; border: 2px solid #fff; transition: left 0.1s linear, top 0.1s linear; }
+        .skill-cast { animation: castFlash 0.4s ease-out; border-color: #ff007f !important; transform: scale(1.3); }
+        @keyframes castFlash { 0% { filter: brightness(1); } 50% { filter: brightness(3); } 100% { filter: brightness(1); } }
+        
+        /* HP 바 */
+        .hp-container { position: absolute; top: -10px; left: 0; width: 100%; height: 5px; background: red; border-radius: 2px;}
+        .hp-fill { height: 100%; background: #00ffcc; width: 100%; }
+        .enemy-unit .hp-fill { background: #ff3366; }
+
+        /* 4. 실시간 채팅 */
+        #chat-box { width: 100%; max-width: 1300px; margin-top: 15px; }
+        .chat-logs { height: 140px; overflow-y: auto; background: #0b0d13; border-radius: 6px; padding: 10px; font-size: 0.9rem; border: 1px solid #222; }
+        .chat-input-row { display: flex; gap: 10px; margin-top: 8px; }
+        .chat-txt { flex: 1; background: #161925; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h1>🔮 퍼즐 가챠 디펜스 RPG</h1>
-    <div class="currency-panel">💰 소지 골드: <span id="gold-display">100</span>G</div>
+    <header>
+        <div>👑 <span id="user-name">게스트 플레이어</span> | 💰 골드: <span id="gold-display">0</span>G</div>
+        <div>
+            <button class="auth-btn" id="login-btn" onclick="toggleAuth()">임시 익명 로그인 & 저장</button>
+        </div>
+    </header>
 
-    <div class="game-container">
-        
-        <div id="puzzle-section" class="section">
-            <h3>🧩 골드 광산 퍼즐</h3>
-            <p style="font-size:0.85rem; color:#aaa;">같은 아이콘을 연속으로 3개 맞추면 골드 획득! (클릭하여 서로 교환)</p>
-            <div id="puzzle-grid" class="grid"></div>
+    <div class="game-layout">
+        <div id="puz-box" class="box">
+            <h3>🧩 일러스트 조각 맞추기</h3>
+            <p style="font-size:0.8rem; color:#aaa;">빈칸 주위 조각을 눌러 순서대로(1~8) 정렬하세요!</p>
+            <div class="puz-grid" id="puzzle-board"></div>
+            <button class="auth-btn" style="width:100%; background:#2b6cb0;" onclick="shufflePuzzle()">그림 섞기 (리셋)</button>
         </div>
 
-        <div id="gacha-section" class="section">
-            <h3>✨ 캐릭터 갓챠</h3>
-            <button class="btn" onclick="drawGacha()">1회 뽑기 (30 Gold)</button>
-            <div id="gacha-result" class="gacha-result">무엇이 나올까?</div>
-            <h4>내 캐릭터 부대</h4>
-            <div id="inventory" class="inventory"></div>
-        </div>
-
-        <div id="defense-section" class="section">
-            <div class="defense-header">
-                <h3>⚔️ 디펜스 모드 (<span id="stage-display">1</span> / 30 탄)</h3>
-                <button class="btn" id="start-battle-btn" onclick="startBattle()" style="width:auto; margin:0; padding:5px 15px;">전투 시작</button>
+        <div id="gacha-box" class="box">
+            <h3>✨ 최고급 영웅 소환</h3>
+            <div class="gacha-screen" id="gacha-scr">
+                <div class="gacha-effect"></div>
+                <div id="gacha-msg" style="z-index:2; font-weight:bold;">퍼즐을 풀어 가챠를 돌리세요!</div>
+                <div class="grade-tag COMMON" id="gacha-grade" style="display:none;">COMMON</div>
+                <img src="" id="gacha-img" class="char-img">
             </div>
-            <div class="battle-field" id="battle-field">
-                <div class="line"></div>
-                </div>
-            <div id="defense-status" class="defense-status">전투 준비 완료. 부대원 중 가장 강한 캐릭터가 자동으로 출전합니다!</div>
+            <button class="btn-main" id="gacha-btn" onclick="drawGacha()">1회 뽑기 (30 Gold)</button>
         </div>
 
+        <div id="def-box" class="box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>⚔️ 자동 실시간 디펜스 (Stage <span id="stage-display">1</span>/30)</h3>
+                <button class="auth-btn" style="background:#c53030;" onclick="spawnDefenseWave()">웨이브 시작</button>
+            </div>
+            <div class="def-field" id="def-field">
+                </div>
+            <p style="font-size:0.8rem; color:#aaa; margin:5px 0;">대기소의 영웅을 터치하면 전장에 즉시 배치(참전)됩니다!</p>
+            <div class="bench" id="hero-bench">
+                </div>
+        </div>
+    </div>
+
+    <div id="chat-box" class="box">
+        <h4>💬 월드 실시간 커뮤니티 채팅</h4>
+        <div class="chat-logs" id="chat-logs"></div>
+        <div class="chat-input-row">
+            <input type="text" class="chat-txt" id="chat-input" placeholder="메시지를 입력하고 엔터를 누르세요..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+        </div>
     </div>
 
     <script>
-        // === 게임 데이터 및 상태 ===
-        let gold = 100;
-        let currentStage = 1;
-        let myInventory = [];
-        let selectedTile = null;
+        // ==========================================
+        // 🛠️ [중요] FIREBASE 환경 설정 치트키 부착 구역
+        // ==========================================
+        // Firebase 콘솔을 만들어서 아래 정보를 채워 넣으면 실시간 채팅과 저장이 실제로 작동해!
+        // 채워넣지 않아도 로컬/게스트 모드로 완전 정상 작동하도록 설계 완료.
+       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
+  authDomain: "chosanghee00001.firebaseapp.com",
+  databaseURL: "https://chosanghee00001-default-rtdb.firebaseio.com",
+  projectId: "chosanghee00001",
+  storageBucket: "chosanghee00001.firebasestorage.app",
+  messagingSenderId: "705786109560",
+  appId: "1:705786109560:web:01b69c754e13df96e8978d",
+  measurementId: "G-E566V33J74"
+};
+        
+        let db = null;
+        let auth = null;
+        let userId = null;
+        
+        // Firebase 초기화 방어 코드
+        if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            auth = firebase.auth();
+        }
 
-        // 가챠 캐릭터 테이블 (등급별 확률 및 디펜스 스펙)
-        const GACHA_POOL = [
-            { name: "슬라임", grade: "COMMON", emoji: "💧", power: 10, hp: 50 },
-            { name: "고블린", grade: "COMMON", emoji: "👺", power: 12, hp: 45 },
-            { name: "아처", grade: "RARE", emoji: "🏹", power: 25, hp: 70 },
-            { name: "나이트", grade: "RARE", emoji: "⚔️", power: 20, hp: 100 },
-            { name: "마법사", grade: "EPIC", emoji: "🧙", power: 45, hp: 120 },
-            { name: "드래곤", grade: "LEGENDARY", emoji: "🐉", power: 100, hp: 300 }
+        // === 게임 핵심 데이터 전역 상태 ===
+        let gold = 30; // 시작 시 가챠 1회권 무료 지급
+        let currentStage = 1;
+        let myArmy = []; // 유저가 뽑은 캐릭터들 데이터
+        let puzzleState = [1, 2, 3, 4, 5, 6, 7, 8, 0]; // 0이 빈칸 (슬라이딩 퍼즐)
+        let activeUnits = []; // 현재 필드에서 실시간 싸우는 개체들
+        let gameLoopInterval = null;
+
+        // 초호화 일러스트 데이터베이스 (LoremFlickr/Picsum 소스 기반으로 이쁜 서브컬처/메카 비주얼 연출)
+        const GACHA_DB = [
+            { name: "에밀리아", grade: "COMMON", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", power: 12, hp: 100, type:"normal" },
+            { name: "카일 엑스", grade: "RARE", img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300", power: 25, hp: 160, type:"normal" },
+            { name: "나인테일", grade: "EPIC", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", power: 55, hp: 280, type:"skill", skillName: "파이어 볼스터" },
+            { name: "신화 레이디", grade: "LEGENDARY", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", power: 140, hp: 650, type:"skill", skillName: "메테오 스트라이크" }
         ];
 
-        // 퍼즐 아이콘 리스트
-        const PUZZLE_ICONS = ["💎", "🪙", "👑", "🔥", "🍀"];
-        const GRID_SIZE = 5;
-        let puzzleGrid = [];
-
-        // === 초기화 실행 ===
         window.onload = function() {
-            initPuzzle();
-            updateUI();
+            initSliderPuzzle();
+            renderBench();
+            updateGlobalUI();
+            startEngine(); // 실시간 전투 계산 엔진 가동
+            
+            if(db) {
+                listenChat();
+                listenAuth();
+            } else {
+                setupLocalChat();
+            }
         };
 
-        function updateUI() {
+        function updateGlobalUI() {
             document.getElementById('gold-display').innerText = gold;
             document.getElementById('stage-display').innerText = currentStage;
-            
-            // 인벤토리 갱신
-            const invDiv = document.getElementById('inventory');
-            invDiv.innerHTML = '';
-            myInventory.forEach(item => {
-                const span = document.createElement('span');
-                span.className = `inv-item ${item.grade}`;
-                span.innerText = `${item.emoji} ${item.name}(전투력:${item.power})`;
-                invDiv.appendChild(span);
-            });
         }
 
-        // === 1. 퍼즐 시스템 구현 ===
-        function initPuzzle() {
-            const gridEl = document.getElementById('puzzle-grid');
-            gridEl.innerHTML = '';
-            puzzleGrid = [];
-
-            for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-                let randomIcon = PUZZLE_ICONS[Math.floor(Math.random() * PUZZLE_ICONS.length)];
-                puzzleGrid.push(randomIcon);
-
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.innerText = randomIcon;
-                tile.dataset.index = i;
-                tile.onclick = handleTileClick;
-                gridEl.appendChild(tile);
-            }
+        // ==========================================
+        // 1️⃣ 슬라이딩 조각퍼즐 시스템 (완전 개조)
+        // ==========================================
+        function initSliderPuzzle() {
+            shufflePuzzle();
         }
 
-        function handleTileClick(e) {
-            const clickedIndex = parseInt(e.target.dataset.index);
-
-            if (selectedTile === null) {
-                selectedTile = clickedIndex;
-                e.target.classList.add('selected');
-            } else {
-                // 이웃한 타일인지 검사 (상하좌우)
-                const diff = Math.abs(selectedTile - clickedIndex);
-                const isNeighbor = (diff === 1 && Math.floor(selectedTile/GRID_SIZE) === Math.floor(clickedIndex/GRID_SIZE)) || diff === GRID_SIZE;
-
-                if (isNeighbor) {
-                    // 스왑(교환)
-                    let temp = puzzleGrid[selectedTile];
-                    puzzleGrid[selectedTile] = puzzleGrid[clickedIndex];
-                    puzzleGrid[clickedIndex] = temp;
-
-                    // 매치 체크
-                    checkMatches();
-                }
-
-                // 선택 해제
-                document.querySelectorAll('.tile').forEach(t => t.classList.remove('selected'));
-                selectedTile = null;
-                renderPuzzle();
-            }
+        function shufflePuzzle() {
+            // 퍼즐 무작위 섞기 규칙
+            puzzleState.sort(() => Math.random() - 0.5);
+            renderPuzzle();
         }
 
         function renderPuzzle() {
-            const tiles = document.querySelectorAll('.tile');
-            puzzleGrid.forEach((icon, idx) => {
-                tiles[idx].innerText = icon;
+            const board = document.getElementById('puzzle-board');
+            board.innerHTML = '';
+            puzzleState.forEach((val, idx) => {
+                const piece = document.createElement('div');
+                if(val === 0) {
+                    piece.className = "puz-piece puz-empty";
+                } else {
+                    piece.className = "puz-piece";
+                    piece.innerText = val;
+                    // 조각별 이미지 좌표 계산 (그림 분할 이펙트)
+                    let r = Math.floor((val-1) / 3);
+                    let c = (val-1) % 3;
+                    piece.style.backgroundPosition = `-${c*100}px -${r*100}px`;
+                    piece.onclick = () => movePuzzlePiece(idx);
+                }
+                board.appendChild(piece);
             });
         }
 
-        function checkMatches() {
-            let matched = false;
-            // 가로 매치 체크
-            for (let r = 0; r < GRID_SIZE; r++) {
-                for (let c = 0; c < GRID_SIZE - 2; c++) {
-                    let idx1 = r * GRID_SIZE + c;
-                    let idx2 = idx1 + 1;
-                    let idx3 = idx1 + 2;
-                    if (puzzleGrid[idx1] && puzzleGrid[idx1] === puzzleGrid[idx2] && puzzleGrid[idx1] === puzzleGrid[idx3]) {
-                        givePuzzleReward();
-                        puzzleGrid[idx1] = puzzleGrid[idx2] = puzzleGrid[idx3] = ""; 
-                        matched = true;
-                    }
-                }
-            }
-            // 세로 매치 체크
-            for (let c = 0; c < GRID_SIZE; c++) {
-                for (let r = 0; r < GRID_SIZE - 2; r++) {
-                    let idx1 = r * GRID_SIZE + c;
-                    let idx2 = idx1 + GRID_SIZE;
-                    let idx3 = idx1 + (GRID_SIZE * 2);
-                    if (puzzleGrid[idx1] && puzzleGrid[idx1] === puzzleGrid[idx2] && puzzleGrid[idx1] === puzzleGrid[idx3]) {
-                        givePuzzleReward();
-                        puzzleGrid[idx1] = puzzleGrid[idx2] = puzzleGrid[idx3] = "";
-                        matched = true;
-                    }
-                }
-            }
-
-            // 빈칸 채우기
-            if (matched) {
-                setTimeout(() => {
-                    for (let i = 0; i < puzzleGrid.length; i++) {
-                        if (puzzleGrid[i] === "") {
-                            puzzleGrid[i] = PUZZLE_ICONS[Math.floor(Math.random() * PUZZLE_ICONS.length)];
-                        }
-                    }
-                    renderPuzzle();
-                    updateUI();
-                }, 300);
-            }
-        }
-
-        function givePuzzleReward() {
-            gold += 15; // 매치당 보상 골드
-        }
-
-
-        // === 2. 가챠 시스템 구현 ===
-        function drawGacha() {
-            if (gold < 30) {
-                alert("골드가 부족합니다! 퍼즐을 맞춰 골드를 벌어보세요.");
-                return;
-            }
-
-            gold -= 30;
-            const rand = Math.random() * 100;
-            let picked;
-
-            // 확률 분배: Legendary(3%), Epic(12%), Rare(35%), Common(50%)
-            if (rand < 3) picked = GACHA_POOL.find(p => p.grade === "LEGENDARY");
-            else if (rand < 15) picked = GACHA_POOL.find(p => p.grade === "EPIC");
-            else if (rand < 50) picked = GACHA_POOL.find(p => p.grade === "RARE" && Math.random() > 0.5 || p.name === "아처");
-            else picked = GACHA_POOL[Math.floor(Math.random() * 2)]; // Common 중 랜덤
-
-            // 깊은 복사로 인벤토리에 추가 (스펙 변동 대비)
-            const newChar = { ...picked, currentHp: picked.hp };
-            myInventory.push(newChar);
-
-            // 결과 연출
-            const resultDiv = document.getElementById('gacha-result');
-            resultDiv.className = `gacha-result ${newChar.grade}`;
-            resultDiv.innerText = `${newChar.emoji} [${newChar.grade}] ${newChar.name} 획득!`;
-
-            updateUI();
-        }
-
-
-        // === 3. 디펜스 레이드 시스템 (30개 스테이지) ===
-        function startBattle() {
-            if (myInventory.length === 0) {
-                alert("전투에 보낼 캐릭터가 없습니다! 가챠를 돌려주세요.");
-                return;
-            }
-            if (currentStage > 30) {
-                alert("🎉 축하합니다! 모든 스테이지(30탄)를 클리어하셨습니다! 🎉");
-                return;
-            }
-
-            document.getElementById('start-battle-btn').disabled = true;
-
-            // 내 인벤토리에서 가장 강한 녀석 자동 출전
-            myInventory.sort((a, b) => b.power - a.power);
-            let myHero = { ...myInventory[0] }; 
-
-            // 스테이지에 비례하여 강해지는 적(몬스터) 생성
-            let enemy = {
-                name: `스테이지 ${currentStage} 보스`,
-                emoji: "👾",
-                hp: 40 + (currentStage * 25),
-                maxHp: 40 + (currentStage * 25),
-                power: 8 + (currentStage * 4)
-            };
-
-            const field = document.getElementById('battle-field');
-            field.innerHTML = '<div class="line"></div>';
-
-            // 캐릭터 화면 배치
-            const heroEl = document.createElement('div');
-            heroEl.className = 'unit my-unit';
-            heroEl.innerHTML = `${myHero.emoji}<div class="hp-bar"><div class="hp-inner" id="hero-hp"></div></div>`;
+        function movePuzzlePiece(idx) {
+            const emptyIdx = puzzleState.indexOf(0);
+            const validMoves = [idx-1, idx+1, idx-3, idx+3];
             
-            const enemyEl = document.createElement('div');
-            enemyEl.className = 'unit enemy-unit';
-            enemyEl.innerHTML = `${enemy.emoji}<div class="hp-bar"><div class="hp-inner" id="enemy-hp"></div></div>`;
+            // 행 격차 예외처리 (양 끝단 줄바꿈 버그 필터링)
+            if(Math.floor(idx/3) !== Math.floor(emptyIdx/3) && Math.abs(idx - emptyIdx) === 1) return;
 
-            field.appendChild(heroEl);
-            field.appendChild(enemyEl);
-
-            const statusEl = document.getElementById('defense-status');
-            statusEl.innerText = `⚔️ ${myHero.name} VS ${enemy.name} 전투가 시작되었습니다!`;
-
-            // 턴제 전투 루프 시뮬레이션
-            let battleInterval = setInterval(() => {
-                // 1. 내 영웅의 공격
-                enemy.hp -= myHero.power;
-                let enemyHpPercent = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
-                document.getElementById('enemy-hp').style.width = enemyHpPercent + '%';
-                statusEl.innerText = `💥 [아군] ${myHero.name}의 공격! ${enemy.name}에게 ${myHero.power} 데미지!`;
-
-                if (enemy.hp <= 0) {
-                    clearInterval(battleInterval);
-                    statusEl.innerText = `🎉 승리! 스테이지 ${currentStage}층을 수호했습니다! 클리어 보상 100G 획득!`;
-                    gold += 100;
-                    currentStage++;
-                    endBattle();
-                    return;
-                }
-
-                // 2. 적의 반격 (딜레이 연출을 위해 조금 뒤 처리 가능하나 단순화)
-                setTimeout(() => {
-                    if(enemy.hp > 0) {
-                        myHero.currentHp -= enemy.power;
-                        let heroHpPercent = Math.max(0, (myHero.currentHp / myHero.hp) * 100);
-                        let hpBar = document.getElementById('hero-hp');
-                        if(hpBar) hpBar.style.width = heroHpPercent + '%';
-                        statusEl.innerText = `💀 [적군] ${enemy.name}의 반격! ${myHero.name}가 ${enemy.power} 데미지를 입었습니다.`;
-
-                        if (myHero.currentHp <= 0) {
-                            clearInterval(battleInterval);
-                            statusEl.innerText = `😭 패배... 캐릭터의 힘이 부족합니다. 퍼즐을 풀고 더 강력한 가챠 영웅을 뽑으세요!`;
-                            endBattle();
-                        }
-                    }
-                }, 200);
-
-            }, 600);
+            if(validMoves.includes(emptyIdx)) {
+                puzzleState[emptyIdx] = puzzleState[idx];
+                puzzleState[idx] = 0;
+                renderPuzzle();
+                checkPuzzleClear();
+            }
         }
 
-        function endBattle() {
-            document.getElementById('start-battle-btn').disabled = false;
-            updateUI();
+        function checkPuzzleClear() {
+            const winPattern = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+            if(JSON.stringify(puzzleState) === JSON.stringify(winPattern)) {
+                gold += 30; // 가챠 1회권 즉시 획득 보상 고정
+                updateGlobalUI();
+                alert("🧩 퍼즐 클리어! 30골드를 획득하여 영웅 소환(1회)이 가능해졌습니다!");
+                shufflePuzzle();
+            }
+        }
+
+        // ==========================================
+        // 2️⃣ 일러스트 갓챠 시스템 + 등급별 스킬 구조
+        // ==========================================
+        function drawGacha() {
+            if(gold < 30) { alert("골드가 모자랍니다! 퍼즐을 풀어서 수급하세요."); return; }
+            gold -= 30;
+            updateGlobalUI();
+
+            const seed = Math.random() * 100;
+            let hero = null;
+
+            if(seed < 5) hero = GACHA_DB[3]; // LEGENDARY (5%)
+            else if(seed < 20) hero = GACHA_DB[2]; // EPIC (15%)
+            else if(seed < 55) hero = GACHA_DB[1]; // RARE (35%)
+            else hero = GACHA_DB[0]; // COMMON
+
+            // 개별 인스턴스 ID 부여
+            const newUnit = { ...hero, id: "unit_" + Date.now(), curHp: hero.hp };
+            myArmy.push(newUnit);
+
+            // 가챠 비주얼 연출
+            const imgEl = document.getElementById('gacha-img');
+            const gradeEl = document.getElementById('gacha-grade');
+            const msgEl = document.getElementById('gacha-msg');
+            const scr = document.getElementById('gacha-scr');
+
+            scr.className = `gacha-screen ${newUnit.grade}-fx`;
+            imgEl.src = newUnit.img;
+            imgEl.style.display = "block";
+            gradeEl.className = `grade-tag ${newUnit.grade}`;
+            gradeEl.innerText = newUnit.grade;
+            gradeEl.style.display = "block";
+            msgEl.innerText = `🎉 소환 성공: [${newUnit.name}]`;
+
+            renderBench();
+            saveUserData(); // 파이어베이스 동기화 트리거
+        }
+
+        function renderBench() {
+            const bench = document.getElementById('hero-bench');
+            bench.innerHTML = '';
+            myArmy.forEach(char => {
+                const item = document.createElement('div');
+                item.className = `bench-item ${char.grade}`;
+                item.style.backgroundImage = `url('${char.img}')`;
+                item.title = `${char.name} (전투력: ${char.power})`;
+                item.onclick = () => deployToField(char);
+                bench.appendChild(item);
+            });
+        }
+
+        // ==========================================
+        // 3️⃣ 실시간 배치 및 자동 전투 디펜스 시스템
+        // ==========================================
+        function deployToField(char) {
+            // 전장에 인스턴스로 배치
+            const fieldUnit = {
+                ...char,
+                side: 'hero',
+                x: 40,
+                y: 50 + (Math.random() * 160),
+                lastAttack: Date.now()
+            };
+            activeUnits.push(fieldUnit);
+            renderFieldDOM(fieldUnit);
+        }
+
+        function spawnDefenseWave() {
+            // 스테이지 몬스터 대량 웨이브 스폰
+            for(let i=0; i < 3 + currentStage; i++) {
+                setTimeout(() => {
+                    const monster = {
+                        id: "enemy_" + Date.now() + "_" + i,
+                        name: `오크 몹 ${currentStage}`,
+                        grade: "COMMON",
+                        img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=100",
+                        hp: 50 + (currentStage * 30),
+                        curHp: 50 + (currentStage * 30),
+                        power: 5 + (currentStage * 3),
+                        side: 'enemy',
+                        x: 520,
+                        y: 40 + (Math.random() * 180),
+                        lastAttack: Date.now()
+                    };
+                    activeUnits.push(monster);
+                    renderFieldDOM(monster);
+                }, i * 400);
+            }
+        }
+
+        function renderFieldDOM(unit) {
+            const field = document.getElementById('def-field');
+            const el = document.createElement('div');
+            el.className = `battle-unit ${unit.side}-unit`;
+            el.id = unit.id;
+            el.style.backgroundImage = `url('${unit.img}')`;
+            el.style.left = unit.x + "px";
+            el.style.top = unit.y + "px";
+            
+            el.innerHTML = `<div class="hp-container"><div class="hp-fill" id="hp-box-${unit.id}"></div></div>`;
+            field.appendChild(el);
+        }
+
+        // 실시간 물리 및 전투 인공지능 엔진 루프
+        function startEngine() {
+            gameLoopInterval = setInterval(() => {
+                let enemies = activeUnits.filter(u => u.side === 'enemy');
+                let heroes = activeUnits.filter(u => u.side === 'hero');
+
+                // 몬스터가 전부 죽고 웨이브 진행 중이었다면 스테이지 업
+                if(enemies.length === 0 && heroes.length > 0 && activeUnits.some(u => u.side === 'enemy')) {
+                    currentStage++;
+                    gold += 50;
+                    updateGlobalUI();
+                }
+
+                activeUnits.forEach(unit => {
+                    const dom = document.getElementById(unit.id);
+                    if(!dom) return;
+
+                    // 1. 이동 AI
+                    if(unit.side === 'hero') {
+                        let target = findClosest(unit, enemies);
+                        if(target) {
+                            moveToward(unit, target);
+                            attackTarget(unit, target, dom);
+                        } else if(unit.x < 450) { unit.x += 1; } // 타겟 없으면 전진
+                    } else {
+                        let target = findClosest(unit, heroes);
+                        if(target) {
+                            moveToward(unit, target);
+                            attackTarget(unit, target, dom);
+                        } else { unit.x -= 1.5; } // 성문 돌격
+                    }
+
+                    // 전장 밖 침투 기지 방어 실패 조건
+                    if(unit.side === 'enemy' && unit.x <= 10) {
+                        unit.curHp = 0; // 자폭
+                        gold = Math.max(0, gold - 20);
+                        updateGlobalUI();
+                    }
+
+                    // DOM 좌표 갱신
+                    dom.style.left = unit.x + "px";
+                    dom.style.top = unit.y + "px";
+                });
+
+                // 사망자 정리 패키지
+                activeUnits = activeUnits.filter(unit => {
+                    if(unit.curHp <= 0) {
+                        const dom = document.getElementById(unit.id);
+                        if(dom) dom.remove();
+                        return false;
+                    }
+                    return true;
+                });
+
+            }, 50);
+        }
+
+        function findClosest(me, targets) {
+            let closest = null; let minDist = 9999;
+            targets.forEach(t => {
+                let dist = Math.hypot(t.x - me.x, t.y - me.y);
+                if(dist < minDist) { minDist = dist; closest = t; }
+            });
+            return closest;
+        }
+
+        function moveToward(me, target) {
+            let dist = Math.hypot(target.x - me.x, target.y - me.y);
+            if(dist > 35) { // 사거리 밖이면 접근
+                me.x += ((target.x - me.x) / dist) * 2;
+                me.y += ((target.y - me.y) / dist) * 2;
+            }
+        }
+
+        function attackTarget(me, target, dom) {
+            let dist = Math.hypot(target.x - me.x, target.y - me.y);
+            if(dist <= 40 && Date.now() - me.lastAttack > 1000) {
+                me.lastAttack = Date.now();
+                
+                // 🔥 높은 등급 특수 화려한 스킬 발동 설계
+                if((me.grade === "EPIC" || me.grade === "LEGENDARY") && Math.random() > 0.4) {
+                    dom.classList.add('skill-cast');
+                    target.curHp -= (me.power * 2.5); // 크리티컬 광역 스킬 데미지
+                    setTimeout(() => dom.classList.remove('skill-cast'), 400);
+                } else {
+                    target.curHp -= me.power; // 일반 타격
+                }
+
+                // 실시간 체력바 갱신 연동
+                const hpBar = document.getElementById(`hp-box-${target.id}`);
+                if(hpBar) hpBar.style.width = Math.max(0, (target.curHp / target.hp)*100) + "%";
+            }
+        }
+
+        // ==========================================
+        // 4️⃣ 파이어베이스 실시간 멀티 커뮤니티 데이터 연동
+        // ==========================================
+        function listenChat() {
+            db.ref('chats').limitToLast(10).on('child_added', (snapshot) => {
+                const data = snapshot.val();
+                appendChatLog(data.name, data.msg);
+            });
+        }
+
+        function setupLocalChat() {
+            appendChatLog("시스템", "현재 게스트(오프라인) 모드입니다. Firebase 정보를 입력하면 실시간 채팅망이 개방됩니다.");
+        }
+
+        function appendChatLog(name, msg) {
+            const logs = document.getElementById('chat-logs');
+            logs.innerHTML += `<div><strong>[${name}]:</strong> ${msg}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const name = document.getElementById('user-name').innerText;
+            if(!input.value.trim()) return;
+
+            if(db) {
+                db.ref('chats').push({ name: name, msg: input.value });
+            } else {
+                appendChatLog("나(로컬)", input.value);
+            }
+            input.value = '';
+        }
+
+        // 임시 회원가입 및 클라우드 클라이언트 자동저장구조
+        function toggleAuth() {
+            if(!auth) {
+                // 파이어베이스 미연동 상태일 때 로컬 스토리지에 임시 세이브 대체 작동
+                localStorage.setItem('local_gold', gold);
+                localStorage.setItem('local_army', JSON.stringify(myArmy));
+                localStorage.setItem('local_stage', currentStage);
+                alert("💾 [로컬 저장 완료] 브라우저 쿠키에 데이터가 저장되었습니다!");
+                return;
+            }
+            
+            auth.signInAnonymously().catch(err => alert("로그인 오류: " + err.message));
+        }
+
+        function listenAuth() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    userId = user.uid;
+                    document.getElementById('user-name').innerText = "유저_" + user.uid.substring(0,5);
+                    // 데이터 로드
+                    db.ref('users/' + userId).once('value', (snap) => {
+                        const data = snap.val();
+                        if(data) {
+                            gold = data.gold || 0;
+                            currentStage = data.stage || 1;
+                            myArmy = data.myArmy || [];
+                            updateGlobalUI();
+                            renderBench();
+                        }
+                    });
+                }
+            });
+        }
+
+        function saveUserData() {
+            if(db && userId) {
+                db.ref('users/' + userId).set({
+                    gold: gold,
+                    stage: currentStage,
+                    myArmy: myArmy
+                });
+            }
         }
     </script>
 </body>
