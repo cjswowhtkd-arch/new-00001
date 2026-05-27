@@ -3,505 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>초중독성 퍼즐 가챠 디펜스 온라인</title>
+    <title>⚡ 파워 가챠 디펜스 온라인 ⚡</title>
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        :root { --bg: #0f111a; --card: #1e2235; --accent: #ff007f; --text: #ffffff; }
-        body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .game-layout { display: flex; gap: 15px; max-width: 1300px; width: 100%; justify-content: center; flex-wrap: wrap; }
-        .box { background: var(--card); border-radius: 12px; padding: 15px; border: 2px solid #2d334d; box-sizing: border-box; }
+        :root { 
+            --bg: #0b0d16; 
+            --card: #161a2e; 
+            --accent: #ff007f; 
+            --text: #ffffff;
+            --common: #8e92a8;
+            --rare: #00bcff;
+            --epic: #b100ff;
+            --legendary: #ffaa00;
+        }
+        body { font-family: 'Malgun Gothic', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; user-select: none; }
         
-        /* 헤더 & 로그인 */
-        header { width: 100%; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin-bottom: 15px; background: #161925; padding: 10px 20px; border-radius: 8px; box-sizing: border-box;}
-        .auth-btn { background: #4a5568; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold;}
-        .auth-btn:hover { background: #718096; }
-
-        /* 1. 슬라이딩 그림 퍼즐 */
-        #puz-box { width: 340px; text-align: center; }
-        .puz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; width: 300px; height: 300px; margin: 10px auto; background: #000; border: 2px solid #ffcc00; position: relative;}
-        .puz-piece { background-image: url('https://picsum.photos/300/300?random=99'); background-size: 300px 300px; cursor: pointer; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: rgba(255,255,255,0.4); text-shadow: 1px 1px 2px #000; font-size: 1.2rem;}
-        .puz-empty { background: #000; cursor: default; }
-
-        /* 2. 일러스트 가챠 */
-        #gacha-box { width: 320px; text-align: center; }
-        .gacha-screen { width: 100%; height: 260px; background: #000; border-radius: 8px; margin: 10px 0; overflow: hidden; position: relative; border: 1px solid #3d4666; display: flex; justify-content: center; align-items: center;}
-        .char-img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .gacha-effect { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, transparent 30%, #000 80%); pointer-events: none;}
-        .btn-main { background: linear-gradient(45deg, #ff0055, #ff007f); color: white; border: none; padding: 12px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-shadow: 1px 1px 2px #000; }
-        .btn-main:disabled { background: #444; cursor: not-allowed; }
+        /* 로그인 모달 */
+        #auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 6, 15, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; cubic-bezier(0.4, 0, 0.2, 1); }
+        .auth-box { background: var(--card); padding: 30px; border-radius: 20px; width: 340px; text-align: center; border: 2px solid var(--accent); box-shadow: 0 0 25px rgba(255, 0, 127, 0.3); }
+        .auth-input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #3b4266; box-sizing: border-box; background: #0b0d16; color: white; }
         
-        /* 등급별 이펙트 */
-        .grade-tag { position: absolute; top: 10px; left: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;}
-        .LEGENDARY-fx { box-shadow: inset 0 0 30px #ff9800; animation: pulse 1s infinite alternate; }
-        @keyframes pulse { from { box-shadow: inset 0 0 20px #ff9800; } to { box-shadow: inset 0 0 40px #ff0000; } }
+        /* 상단 헤더 폰트 및 바 */
+        header { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; padding: 15px 25px; background: #111424; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #252b47; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .logo-text { font-weight: bold; background: linear-gradient(45deg, #ff007f, #ffaa00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.3rem; }
 
-        /* 3. 디펜스 라인 (배치 & 자동전투) */
-        #def-box { width: 600px; }
-        .def-field { height: 280px; background: linear-gradient(to bottom, #1a233a, #0d1321); border-radius: 8px; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 10px;}
-        .bench { display: flex; gap: 8px; background: #111; padding: 10px; border-radius: 8px; min-height: 70px; overflow-x: auto; align-items: center;}
-        .bench-item { width: 50px; height: 50px; border-radius: 6px; cursor: grab; background-size: cover; position: relative; border: 2px solid #555;}
-        .battle-unit { position: absolute; width: 50px; height: 50px; background-size: cover; border-radius: 50%; border: 2px solid #fff; transition: left 0.1s linear, top 0.1s linear; }
-        .skill-cast { animation: castFlash 0.4s ease-out; border-color: #ff007f !important; transform: scale(1.3); }
-        @keyframes castFlash { 0% { filter: brightness(1); } 50% { filter: brightness(3); } 100% { filter: brightness(1); } }
+        .main-container { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .box { background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid #232946; flex: 1; min-width: 340px; box-sizing: border-box; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+        /* 타이밍 클릭커 업그레이드 */
+        .clicker-area { height: 140px; background: #070912; border-radius: 12px; position: relative; margin: 15px 0; overflow: hidden; border: 1px solid #1f243d; }
+        .gauge-bar { position: absolute; bottom: 25px; left: 5%; width: 90%; height: 16px; background: #1f243d; border-radius: 10px; overflow: hidden; }
+        .target-zone { position: absolute; left: 65%; width: 15%; height: 100%; background: linear-gradient(90deg, #ff007f, #ff55a3); box-shadow: 0 0 15px #ff007f; }
+        .pointer { position: absolute; left: 0; width: 6px; height: 140%; background: #ffffff; top: -20%; box-shadow: 0 0 8px #fff; }
         
-        /* HP 바 */
-        .hp-container { position: absolute; top: -10px; left: 0; width: 100%; height: 5px; background: red; border-radius: 2px;}
-        .hp-fill { height: 100%; background: #00ffcc; width: 100%; }
-        .enemy-unit .hp-fill { background: #ff3366; }
+        /* 버튼 공통 */
+        .btn { background: linear-gradient(135deg, #ff007f, #7f00ff); color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.6); transition: all 0.2s; }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,0,127,0.4); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { background: #2a2d3d !important; color: #5a5e75; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* 4. 실시간 채팅 */
-        #chat-box { width: 100%; max-width: 1300px; margin-top: 15px; }
-        .chat-logs { height: 140px; overflow-y: auto; background: #0b0d13; border-radius: 6px; padding: 10px; font-size: 0.9rem; border: 1px solid #222; }
-        .chat-input-row { display: flex; gap: 10px; margin-top: 8px; }
-        .chat-txt { flex: 1; background: #161925; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; }
+        /* 가챠 화면 대개조 */
+        .gacha-scr { height: 220px; background: #000; margin: 10px 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid #232946; }
+        .char-img { height: 100%; width: 100%; object-fit: cover; display: none; animation: cardOpen 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cardOpen { from { transform: scale(0.5) rotateY(90deg); filter: brightness(3); } to { transform: scale(1) rotateY(0); filter: brightness(1); } }
+        
+        /* 등급 광채 이펙트 */
+        .COMMON-glow { border-color: var(--common); box-shadow: inset 0 0 20px rgba(142,146,168,0.3); }
+        .RARE-glow { border-color: var(--rare); box-shadow: inset 0 0 30px rgba(0,188,255,0.4); }
+        .EPIC-glow { border-color: var(--epic); box-shadow: inset 0 0 40px rgba(177,0,255,0.5); }
+        .LEGENDARY-glow { border-color: var(--legendary); box-shadow: inset 0 0 50px rgba(255,170,0,0.6); animation: goldFlicker 1s infinite alternate; }
+        @keyframes goldFlicker { from { box-shadow: inset 0 0 30px rgba(255,170,0,0.5); } to { box-shadow: inset 0 0 60px rgba(255,68,0,0.8); } }
+
+        /* 디펜스 전장 */
+        .def-field { height: 260px; background: linear-gradient(180deg, #090b14 0%, #121626 100%); border-radius: 12px; position: relative; overflow: hidden; border: 1px solid #232946; }
+        .bench { display: flex; gap: 8px; background: #070912; padding: 12px; border-radius: 12px; margin-top: 8px; min-height: 55px; overflow-x: auto; border: 1px solid #1f243d; }
+        .bench-item { width: 50px; height: 50px; border-radius: 8px; cursor: pointer; background-size: cover; background-position: center; border: 2px solid #333; flex-shrink: 0; transition: transform 0.15s; }
+        .bench-item:hover { transform: scale(1.1) translateY(-3px); }
+        
+        /* 전장 유닛 스타일 */
+        .battle-unit { position: absolute; width: 44px; height: 44px; background-size: cover; background-position: center; border-radius: 50%; border: 2px solid white; transition: left 0.1s linear, top 0.1s linear; }
+        .hp-bar { position: absolute; top: -10px; left: -3px; width: 50px; height: 5px; background: #441111; border-radius: 3px; overflow: hidden; }
+        .hp-inner { height: 100%; background: #00ffcc; width: 100%; transition: width 0.1s; }
+        
+        /* 데미지 텍스트 팝업 이펙트 */
+        .dmg-text { position: absolute; color: #ff3333; font-weight: bold; font-size: 0.95rem; font-family: 'Impact'; animation: floatDmg 0.6s ease-out forwards; z-index: 10; text-shadow: 1px 1px 2px #000; pointer-events: none;}
+        @keyframes floatDmg { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-30px) scale(1.2); opacity: 0; } }
+
+        /* 채팅룸 */
+        .chat-area { width: 100%; max-width: 1200px; margin-top: 15px; }
+        #chat-logs { height: 120px; overflow-y: auto; background: #070912; padding: 12px; font-size: 0.9rem; border-radius: 10px; border: 1px solid #1f243d; }
+        .chat-line { margin-bottom: 6px; line-content:分开; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div>👑 <span id="user-name">게스트 플레이어</span> | 💰 골드: <span id="gold-display">0</span>G</div>
-        <div>
-            <button class="auth-btn" id="login-btn" onclick="toggleAuth()">임시 익명 로그인 & 저장</button>
-        </div>
-    </header>
-
-    <div class="game-layout">
-        <div id="puz-box" class="box">
-            <h3>🧩 일러스트 조각 맞추기</h3>
-            <p style="font-size:0.8rem; color:#aaa;">빈칸 주위 조각을 눌러 순서대로(1~8) 정렬하세요!</p>
-            <div class="puz-grid" id="puzzle-board"></div>
-            <button class="auth-btn" style="width:100%; background:#2b6cb0;" onclick="shufflePuzzle()">그림 섞기 (리셋)</button>
-        </div>
-
-        <div id="gacha-box" class="box">
-            <h3>✨ 최고급 영웅 소환</h3>
-            <div class="gacha-screen" id="gacha-scr">
-                <div class="gacha-effect"></div>
-                <div id="gacha-msg" style="z-index:2; font-weight:bold;">퍼즐을 풀어 가챠를 돌리세요!</div>
-                <div class="grade-tag COMMON" id="gacha-grade" style="display:none;">COMMON</div>
-                <img src="" id="gacha-img" class="char-img">
-            </div>
-            <button class="btn-main" id="gacha-btn" onclick="drawGacha()">1회 뽑기 (30 Gold)</button>
-        </div>
-
-        <div id="def-box" class="box">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3>⚔️ 자동 실시간 디펜스 (Stage <span id="stage-display">1</span>/30)</h3>
-                <button class="auth-btn" style="background:#c53030;" onclick="spawnDefenseWave()">웨이브 시작</button>
-            </div>
-            <div class="def-field" id="def-field">
-                </div>
-            <p style="font-size:0.8rem; color:#aaa; margin:5px 0;">대기소의 영웅을 터치하면 전장에 즉시 배치(참전)됩니다!</p>
-            <div class="bench" id="hero-bench">
-                </div>
+    <!-- 1. 계정 인가 로그인 모달 -->
+    <div id="auth-modal">
+        <div class="auth-box">
+            <h2 style="margin-top:0; color:#ff007f;">💎 ONLINE LOGIN 💎</h2>
+            <p style="color:#8e92a8; font-size:0.85rem; margin-top:-10px;">나만의 영웅 부대 데이터를 안전하게 저장하세요</p>
+            <input type="email" id="email" class="auth-input" placeholder="이메일 아이디 (ex: test@test.com)">
+            <input type="password" id="password" class="auth-input" placeholder="비밀번호 (6자리 이상)">
+            <button class="btn" onclick="handleAuth('login')">로그인하기</button>
+            <button class="btn" style="background: #252b47; margin-top:10px;" onclick="handleAuth('signup')">실시간 신규 회원가입</button>
+            <p id="auth-error" style="color: #ff3366; font-size: 0.85rem; margin-top: 12px; font-weight:bold;"></p>
         </div>
     </div>
 
-    <div id="chat-box" class="box">
-        <h4>💬 월드 실시간 커뮤니티 채팅</h4>
-        <div class="chat-logs" id="chat-logs"></div>
-        <div class="chat-input-row">
-            <input type="text" class="chat-txt" id="chat-input" placeholder="메시지를 입력하고 엔터를 누르세요..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+    <header>
+        <div class="logo-text">🔮 전설의 가챠 디펜스 대작전</div>
+        <div>👤 <span id="display-name" style="color:#00bcff; font-weight:bold;">유저</span> | 💰 <span id="gold-display" style="color:#ffaa00; font-weight:bold;">0</span> Gold</div>
+        <button onclick="logout()" style="background:none; color:#5a5e75; border:none; cursor:pointer; font-weight:bold;">[로그아웃]</button>
+    </header>
+
+    <div class="main-container">
+        <!-- 자원 수급: 타이밍 클릭커 -->
+        <div class="box">
+            <h3>⛏️ 에테르 에너지 광산</h3>
+            <p style="font-size:0.85rem; color:#8e92a8;">무빙 라이트가 <span style="color:#ff007f; font-weight:bold;">핑크색 크리티컬 존</span>에 적중할 때 클릭!</p>
+            <div class="clicker-area">
+                <div style="text-align:center; padding-top:15px; font-size:3.5rem; filter: drop-shadow(0 0 10px rgba(0,188,255,0.5));" id="miner-emoji">🔮</div>
+                <div class="gauge-bar">
+                    <div class="target-zone"></div>
+                    <div class="pointer" id="pointer"></div>
+                </div>
+            </div>
+            <button class="btn" onclick="hitMining()">⛏️ 크리티컬 채굴!!</button>
         </div>
+
+        <!-- 고급 연출형 가챠 -->
+        <div class="box">
+            <h3>✨ 최고존엄 차원 소환 (30G)</h3>
+            <div class="gacha-scr" id="gacha-scr">
+                <div id="gacha-loading" style="display:none; color:var(--legendary); font-weight:bold;">시공간 폭발 중...</div>
+                <span id="gacha-msg" style="font-weight:bold; font-size:1.1rem; text-shadow: 2px 2px 4px #000; z-index:5;">대기 중...</span>
+                <img src="" id="gacha-img" class="char-img">
+            </div>
+            <button class="btn" id="gacha-btn" onclick="drawGacha()">🧬 1회 차원 소환</button>
+        </div>
+
+        <!-- 실시간 디펜스 전장 -->
+        <div class="box" style="min-width: 460px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <h3>⚔️ 전장 수호 (Stage <span id="stage-display" style="color:red;">1</span>)</h3>
+                <button class="btn" style="width:auto; padding:8px 20px; background:linear-gradient(135deg, #ff3333, #ff7700);" onclick="spawnWave()">몬스터 습격 시작</button>
+            </div>
+            <div class="def-field" id="def-field"></div>
+            <div class="bench" id="hero-bench"></div>
+        </div>
+    </div>
+
+    <!-- 월드 채팅방 -->
+    <div class="box chat-area">
+        <h4 style="margin-top:0; color:#00bcff;">💬 서버 연동 통합 광장 대화방</h4>
+        <div id="chat-logs"></div>
+        <input type="text" id="chat-input" style="width:100%; background:#070912; color:white; border:1px solid #232946; padding:12px; margin-top:8px; border-radius:8px; box-sizing: border-box;" placeholder="메시지를 입력하고 Enter를 치세요..." onkeydown="if(event.key==='Enter') sendChat()">
     </div>
 
     <script>
-        // ==========================================
-        // 🛠️ [중요] FIREBASE 환경 설정 치트키 부착 구역
-        // ==========================================
-        // Firebase 콘솔을 만들어서 아래 정보를 채워 넣으면 실시간 채팅과 저장이 실제로 작동해!
-        // 채워넣지 않아도 로컬/게스트 모드로 완전 정상 작동하도록 설계 완료.
-       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
-  authDomain: "chosanghee00001.firebaseapp.com",
-  databaseURL: "https://chosanghee00001-default-rtdb.firebaseio.com",
-  projectId: "chosanghee00001",
-  storageBucket: "chosanghee00001.firebasestorage.app",
-  messagingSenderId: "705786109560",
-  appId: "1:705786109560:web:01b69c754e13df96e8978d",
-  measurementId: "G-E566V33J74"
-};
+        // === 💥 사용자 요청 파이어베이스 설정값 완벽 주입 완료 💥 ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
+            authDomain: "chosanghee00001.firebaseapp.com",
+            databaseURL: "https://chosanghee00001-default-rtdb.firebaseio.com",
+            projectId: "chosanghee00001",
+            storageBucket: "chosanghee00001.firebasestorage.app",
+            messagingSenderId: "705786109560",
+            appId: "1:705786109560:web:01b69c754e13df96e8978d",
+            measurementId: "G-E566V33J74"
+        };
         
-        let db = null;
-        let auth = null;
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // 내부 스태이터스
+        let gold = 30; // 가챠 1판 무료 제공
+        let stage = 1;
+        let myArmy = [];
+        let activeUnits = [];
         let userId = null;
-        
-        // Firebase 초기화 방어 코드
-        if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            auth = firebase.auth();
-        }
 
-        // === 게임 핵심 데이터 전역 상태 ===
-        let gold = 30; // 시작 시 가챠 1회권 무료 지급
-        let currentStage = 1;
-        let myArmy = []; // 유저가 뽑은 캐릭터들 데이터
-        let puzzleState = [1, 2, 3, 4, 5, 6, 7, 8, 0]; // 0이 빈칸 (슬라이딩 퍼즐)
-        let activeUnits = []; // 현재 필드에서 실시간 싸우는 개체들
-        let gameLoopInterval = null;
+        // 채굴 라이트 추적용 변수
+        let pointerPos = 0;
+        let pointerDir = 1;
 
-        // 초호화 일러스트 데이터베이스 (LoremFlickr/Picsum 소스 기반으로 이쁜 서브컬처/메카 비주얼 연출)
-        const GACHA_DB = [
-            { name: "에밀리아", grade: "COMMON", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300", power: 12, hp: 100, type:"normal" },
-            { name: "카일 엑스", grade: "RARE", img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300", power: 25, hp: 160, type:"normal" },
-            { name: "나인테일", grade: "EPIC", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300", power: 55, hp: 280, type:"skill", skillName: "파이어 볼스터" },
-            { name: "신화 레이디", grade: "LEGENDARY", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=300", power: 140, hp: 650, type:"skill", skillName: "메테오 스트라이크" }
+        // 초호화 일러스트 수집형 캐릭터 데이터셋
+        const HEROES = [
+            { name: "메카 발키리", grade: "COMMON", img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=250", pwr: 16, hp: 120, col: "#8e92a8" },
+            { name: "네온 아처", grade: "RARE", img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=250", pwr: 32, hp: 150, col: "#00bcff" },
+            { name: "사이코 위치", grade: "EPIC", img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=250", pwr: 75, hp: 220, col: "#b100ff" },
+            { name: "드래곤 엠페러", grade: "LEGENDARY", img: "https://images.unsplash.com/photo-1563089145-599997674d42?w=250", pwr: 190, hp: 700, col: "#ffaa00" }
         ];
 
-        window.onload = function() {
-            initSliderPuzzle();
-            renderBench();
-            updateGlobalUI();
-            startEngine(); // 실시간 전투 계산 엔진 가동
-            
-            if(db) {
-                listenChat();
-                listenAuth();
+        // === 1. 아이디/패스워드 로그인 코어 통제 ===
+        function handleAuth(type) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('auth-error');
+            errorEl.innerText = "";
+
+            if(!email || !password) { errorEl.innerText = "이메일과 비밀번호를 채워주세요."; return; }
+
+            if(type === 'login') {
+                auth.signInWithEmailAndPassword(email, password).catch(e => errorEl.innerText = "로그인 실패: " + e.message);
             } else {
-                setupLocalChat();
-            }
-        };
-
-        function updateGlobalUI() {
-            document.getElementById('gold-display').innerText = gold;
-            document.getElementById('stage-display').innerText = currentStage;
-        }
-
-        // ==========================================
-        // 1️⃣ 슬라이딩 조각퍼즐 시스템 (완전 개조)
-        // ==========================================
-        function initSliderPuzzle() {
-            shufflePuzzle();
-        }
-
-        function shufflePuzzle() {
-            // 퍼즐 무작위 섞기 규칙
-            puzzleState.sort(() => Math.random() - 0.5);
-            renderPuzzle();
-        }
-
-        function renderPuzzle() {
-            const board = document.getElementById('puzzle-board');
-            board.innerHTML = '';
-            puzzleState.forEach((val, idx) => {
-                const piece = document.createElement('div');
-                if(val === 0) {
-                    piece.className = "puz-piece puz-empty";
-                } else {
-                    piece.className = "puz-piece";
-                    piece.innerText = val;
-                    // 조각별 이미지 좌표 계산 (그림 분할 이펙트)
-                    let r = Math.floor((val-1) / 3);
-                    let c = (val-1) % 3;
-                    piece.style.backgroundPosition = `-${c*100}px -${r*100}px`;
-                    piece.onclick = () => movePuzzlePiece(idx);
-                }
-                board.appendChild(piece);
-            });
-        }
-
-        function movePuzzlePiece(idx) {
-            const emptyIdx = puzzleState.indexOf(0);
-            const validMoves = [idx-1, idx+1, idx-3, idx+3];
-            
-            // 행 격차 예외처리 (양 끝단 줄바꿈 버그 필터링)
-            if(Math.floor(idx/3) !== Math.floor(emptyIdx/3) && Math.abs(idx - emptyIdx) === 1) return;
-
-            if(validMoves.includes(emptyIdx)) {
-                puzzleState[emptyIdx] = puzzleState[idx];
-                puzzleState[idx] = 0;
-                renderPuzzle();
-                checkPuzzleClear();
+                auth.createUserWithEmailAndPassword(email, password).catch(e => errorEl.innerText = "가입 실패: " + e.message);
             }
         }
 
-        function checkPuzzleClear() {
-            const winPattern = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-            if(JSON.stringify(puzzleState) === JSON.stringify(winPattern)) {
-                gold += 30; // 가챠 1회권 즉시 획득 보상 고정
-                updateGlobalUI();
-                alert("🧩 퍼즐 클리어! 30골드를 획득하여 영웅 소환(1회)이 가능해졌습니다!");
-                shufflePuzzle();
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                userId = user.uid;
+                document.getElementById('auth-modal').style.display = 'none';
+                document.getElementById('display-name').innerText = user.email.split('@')[0];
+                loadData();
+                listenChat();
+            } else {
+                document.getElementById('auth-modal').style.display = 'flex';
             }
+        });
+
+        function logout() { auth.signOut().then(() => location.reload()); }
+
+        // === 2. 라이트 타이밍 무빙 클릭커 ===
+        setInterval(() => {
+            pointerPos += (2.5 * pointerDir); // 속도감 상승
+            if(pointerPos >= 100 || pointerPos <= 0) pointerDir *= -1;
+            document.getElementById('pointer').style.left = pointerPos + "%";
+        }, 25);
+
+        function hitMining() {
+            // 크리티컬 핑크존 영역 판정 계산
+            if(pointerPos >= 65 && pointerPos <= 80) {
+                gold += 15;
+                showDamagePopup(220, 40, "+15G Jackpot!", "#ffaa00");
+                document.getElementById('miner-emoji').innerText = "💥";
+                setTimeout(() => document.getElementById('miner-emoji').innerText = "🔮", 150);
+            } else {
+                gold += 2;
+                showDamagePopup(220, 40, "+2G", "#8e92a8");
+                document.getElementById('miner-emoji').innerText = "💨";
+                setTimeout(() => document.getElementById('miner-emoji').innerText = "🔮", 150);
+            }
+            saveData();
+            updateUI();
         }
 
-        // ==========================================
-        // 2️⃣ 일러스트 갓챠 시스템 + 등급별 스킬 구조
-        // ==========================================
+        // === 3. 고화질 하이앤드 갓챠 시뮬레이션 ===
         function drawGacha() {
-            if(gold < 30) { alert("골드가 모자랍니다! 퍼즐을 풀어서 수급하세요."); return; }
+            if(gold < 30) return alert("소지 골드가 모자랍니다! 에테르 광산에서 채굴해오세요.");
             gold -= 30;
-            updateGlobalUI();
+            updateUI();
 
-            const seed = Math.random() * 100;
-            let hero = null;
+            document.getElementById('gacha-btn').disabled = true;
+            document.getElementById('gacha-img').style.display = 'none';
+            document.getElementById('gacha-msg').innerText = "";
+            document.getElementById('gacha-loading').style.display = 'block';
 
-            if(seed < 5) hero = GACHA_DB[3]; // LEGENDARY (5%)
-            else if(seed < 20) hero = GACHA_DB[2]; // EPIC (15%)
-            else if(seed < 55) hero = GACHA_DB[1]; // RARE (35%)
-            else hero = GACHA_DB[0]; // COMMON
+            setTimeout(() => {
+                document.getElementById('gacha-loading').style.display = 'none';
+                const rand = Math.random() * 100;
+                
+                // 전설 확률 6% / 에픽 18% / 레어 36% / 커먼 나머지
+                let hero = rand < 6 ? HEROES[3] : rand < 24 ? HEROES[2] : rand < 60 ? HEROES[1] : HEROES[0];
+                const newUnit = { ...hero, id: 'u_' + Date.now(), curHp: hero.hp };
+                myArmy.push(newUnit);
+                
+                const scr = document.getElementById('gacha-scr');
+                scr.className = `gacha-scr ${hero.grade}-glow`;
 
-            // 개별 인스턴스 ID 부여
-            const newUnit = { ...hero, id: "unit_" + Date.now(), curHp: hero.hp };
-            myArmy.push(newUnit);
-
-            // 가챠 비주얼 연출
-            const imgEl = document.getElementById('gacha-img');
-            const gradeEl = document.getElementById('gacha-grade');
-            const msgEl = document.getElementById('gacha-msg');
-            const scr = document.getElementById('gacha-scr');
-
-            scr.className = `gacha-screen ${newUnit.grade}-fx`;
-            imgEl.src = newUnit.img;
-            imgEl.style.display = "block";
-            gradeEl.className = `grade-tag ${newUnit.grade}`;
-            gradeEl.innerText = newUnit.grade;
-            gradeEl.style.display = "block";
-            msgEl.innerText = `🎉 소환 성공: [${newUnit.name}]`;
-
-            renderBench();
-            saveUserData(); // 파이어베이스 동기화 트리거
+                const imgEl = document.getElementById('gacha-img');
+                imgEl.src = hero.img;
+                imgEl.style.display = 'block';
+                
+                document.getElementById('gacha-msg').innerText = `[${hero.grade}] ${hero.name}`;
+                document.getElementById('gacha-btn').disabled = false;
+                
+                renderBench();
+                saveData();
+            }, 600); // 쾌감 유발 진동 딜레이 효과
         }
 
         function renderBench() {
             const bench = document.getElementById('hero-bench');
             bench.innerHTML = '';
-            myArmy.forEach(char => {
-                const item = document.createElement('div');
-                item.className = `bench-item ${char.grade}`;
-                item.style.backgroundImage = `url('${char.img}')`;
-                item.title = `${char.name} (전투력: ${char.power})`;
-                item.onclick = () => deployToField(char);
-                bench.appendChild(item);
+            myArmy.forEach(h => {
+                const div = document.createElement('div');
+                div.className = 'bench-item';
+                div.style.borderColor = h.col;
+                div.style.backgroundImage = `url(${h.img})`;
+                div.onclick = () => deploy(h);
+                bench.appendChild(div);
             });
         }
 
-        // ==========================================
-        // 3️⃣ 실시간 배치 및 자동 전투 디펜스 시스템
-        // ==========================================
-        function deployToField(char) {
-            // 전장에 인스턴스로 배치
-            const fieldUnit = {
-                ...char,
-                side: 'hero',
-                x: 40,
-                y: 50 + (Math.random() * 160),
-                lastAttack: Date.now()
-            };
-            activeUnits.push(fieldUnit);
-            renderFieldDOM(fieldUnit);
+        // === 4. 실시간 라인 자동전투 디펜스 시스템 ===
+        function deploy(h) {
+            const unit = { ...h, x: 20, y: Math.random()*180+30, side: 'hero', lastAtk: 0 };
+            activeUnits.push(unit);
+            
+            const el = document.createElement('div');
+            el.className = 'battle-unit';
+            el.id = unit.id;
+            el.style.borderColor = unit.col;
+            el.style.backgroundImage = `url(${unit.img})`;
+            el.innerHTML = `<div class="hp-bar"><div class="hp-inner" id="hp-${unit.id}"></div></div>`;
+            document.getElementById('def-field').appendChild(el);
         }
 
-        function spawnDefenseWave() {
-            // 스테이지 몬스터 대량 웨이브 스폰
-            for(let i=0; i < 3 + currentStage; i++) {
+        function spawnWave() {
+            for(let i=0; i < 2 + stage; i++) {
                 setTimeout(() => {
-                    const monster = {
-                        id: "enemy_" + Date.now() + "_" + i,
-                        name: `오크 몹 ${currentStage}`,
-                        grade: "COMMON",
-                        img: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=100",
-                        hp: 50 + (currentStage * 30),
-                        curHp: 50 + (currentStage * 30),
-                        power: 5 + (currentStage * 3),
-                        side: 'enemy',
-                        x: 520,
-                        y: 40 + (Math.random() * 180),
-                        lastAttack: Date.now()
+                    const monster = { 
+                        id: 'm_' + Date.now() + '_' + i, 
+                        pwr: 6 + stage * 3, 
+                        hp: 45 + stage * 25, 
+                        curHp: 45 + stage * 25, 
+                        x: 420, 
+                        y: Math.random()*180+30, 
+                        side: 'enemy', 
+                        lastAtk: 0, 
+                        img: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=150' 
                     };
                     activeUnits.push(monster);
-                    renderFieldDOM(monster);
-                }, i * 400);
+                    
+                    const el = document.createElement('div');
+                    el.className = 'battle-unit';
+                    el.id = monster.id;
+                    el.style.borderColor = '#ff3333';
+                    el.style.filter = 'hue-rotate(300deg) brightness(1.2)'; // 적군 몬스터 분위기 강제 필터
+                    el.style.backgroundImage = `url(${monster.img})`;
+                    el.innerHTML = `<div class="hp-bar"><div class="hp-inner" id="hp-${monster.id}"></div></div>`;
+                    document.getElementById('def-field').appendChild(el);
+                }, i * 600);
             }
         }
 
-        function renderFieldDOM(unit) {
-            const field = document.getElementById('def-field');
-            const el = document.createElement('div');
-            el.className = `battle-unit ${unit.side}-unit`;
-            el.id = unit.id;
-            el.style.backgroundImage = `url('${unit.img}')`;
-            el.style.left = unit.x + "px";
-            el.style.top = unit.y + "px";
-            
-            el.innerHTML = `<div class="hp-container"><div class="hp-fill" id="hp-box-${unit.id}"></div></div>`;
-            field.appendChild(el);
-        }
-
-        // 실시간 물리 및 전투 인공지능 엔진 루프
-        function startEngine() {
-            gameLoopInterval = setInterval(() => {
-                let enemies = activeUnits.filter(u => u.side === 'enemy');
-                let heroes = activeUnits.filter(u => u.side === 'hero');
-
-                // 몬스터가 전부 죽고 웨이브 진행 중이었다면 스테이지 업
-                if(enemies.length === 0 && heroes.length > 0 && activeUnits.some(u => u.side === 'enemy')) {
-                    currentStage++;
-                    gold += 50;
-                    updateGlobalUI();
-                }
-
-                activeUnits.forEach(unit => {
-                    const dom = document.getElementById(unit.id);
-                    if(!dom) return;
-
-                    // 1. 이동 AI
-                    if(unit.side === 'hero') {
-                        let target = findClosest(unit, enemies);
-                        if(target) {
-                            moveToward(unit, target);
-                            attackTarget(unit, target, dom);
-                        } else if(unit.x < 450) { unit.x += 1; } // 타겟 없으면 전진
-                    } else {
-                        let target = findClosest(unit, heroes);
-                        if(target) {
-                            moveToward(unit, target);
-                            attackTarget(unit, target, dom);
-                        } else { unit.x -= 1.5; } // 성문 돌격
-                    }
-
-                    // 전장 밖 침투 기지 방어 실패 조건
-                    if(unit.side === 'enemy' && unit.x <= 10) {
-                        unit.curHp = 0; // 자폭
-                        gold = Math.max(0, gold - 20);
-                        updateGlobalUI();
-                    }
-
-                    // DOM 좌표 갱신
-                    dom.style.left = unit.x + "px";
-                    dom.style.top = unit.y + "px";
-                });
-
-                // 사망자 정리 패키지
-                activeUnits = activeUnits.filter(unit => {
-                    if(unit.curHp <= 0) {
-                        const dom = document.getElementById(unit.id);
-                        if(dom) dom.remove();
-                        return false;
-                    }
-                    return true;
-                });
-
-            }, 50);
-        }
-
-        function findClosest(me, targets) {
-            let closest = null; let minDist = 9999;
-            targets.forEach(t => {
-                let dist = Math.hypot(t.x - me.x, t.y - me.y);
-                if(dist < minDist) { minDist = dist; closest = t; }
-            });
-            return closest;
-        }
-
-        function moveToward(me, target) {
-            let dist = Math.hypot(target.x - me.x, target.y - me.y);
-            if(dist > 35) { // 사거리 밖이면 접근
-                me.x += ((target.x - me.x) / dist) * 2;
-                me.y += ((target.y - me.y) / dist) * 2;
-            }
-        }
-
-        function attackTarget(me, target, dom) {
-            let dist = Math.hypot(target.x - me.x, target.y - me.y);
-            if(dist <= 40 && Date.now() - me.lastAttack > 1000) {
-                me.lastAttack = Date.now();
+        // 100ms 단위 실시간 타격/이동 인공지능 루프 연산
+        setInterval(() => {
+            activeUnits.forEach(u => {
+                const el = document.getElementById(u.id);
+                if(!el) return;
                 
-                // 🔥 높은 등급 특수 화려한 스킬 발동 설계
-                if((me.grade === "EPIC" || me.grade === "LEGENDARY") && Math.random() > 0.4) {
-                    dom.classList.add('skill-cast');
-                    target.curHp -= (me.power * 2.5); // 크리티컬 광역 스킬 데미지
-                    setTimeout(() => dom.classList.remove('skill-cast'), 400);
-                } else {
-                    target.curHp -= me.power; // 일반 타격
-                }
+                const targets = activeUnits.filter(t => t.side !== u.side);
+                if(targets.length > 0) {
+                    let closest = targets[0];
+                    let minDist = 9999;
+                    
+                    targets.forEach(t => {
+                        let d = Math.hypot(t.x - u.x, t.y - u.y);
+                        if(d < minDist) { minDist = d; closest = t; }
+                    });
 
-                // 실시간 체력바 갱신 연동
-                const hpBar = document.getElementById(`hp-box-${target.id}`);
-                if(hpBar) hpBar.style.width = Math.max(0, (target.curHp / target.hp)*100) + "%";
+                    if(minDist > 35) {
+                        // 타겟을 향해 각도 조절하여 접근
+                        u.x += (u.side === 'hero' ? 2.5 : -1.8);
+                        if(u.y < closest.y) u.y += 0.5; else u.y -= 0.5;
+                    } else if(Date.now() - u.lastAtk > 900) {
+                        // 쾅! 전투 타격 발생 및 플로팅 스크린 대미지 연출
+                        u.lastAtk = Date.now();
+                        let dmg = u.pwr;
+                        let isCrit = false;
+                        
+                        // 고등급 보너스 특수기 치명타 터질 기믹 유발
+                        if((u.grade === "EPIC" || u.grade === "LEGENDARY") && Math.random() > 0.5) {
+                            dmg = Math.floor(dmg * 2.2);
+                            isCrit = true;
+                        }
+
+                        closest.curHp -= dmg;
+                        showDamagePopup(closest.x, closest.y, dmg + (isCrit ? " CRIT!🔥" : ""), isCrit ? varProp('--legendary') : u.col);
+                        
+                        const hpIn = document.getElementById(`hp-${closest.id}`);
+                        if(hpIn) hpIn.style.width = Math.max(0, (closest.curHp / closest.hp * 100)) + "%";
+                    }
+                } else {
+                    u.x += (u.side === 'hero' ? 1 : -1.2);
+                }
+                el.style.left = u.x + "px";
+                el.style.top = u.y + "px";
+            });
+
+            // 클리어 및 격파 시체 처리 프로세스
+            activeUnits = activeUnits.filter(u => {
+                if(u.curHp <= 0 || u.x < -10 || u.x > 460) {
+                    if(u.side === 'enemy' && u.curHp <= 0) { 
+                        gold += 6; 
+                        updateUI(); 
+                    }
+                    document.getElementById(u.id)?.remove();
+                    return false;
+                }
+                return true;
+            });
+            
+            // 모든 적 부대를 섬멸하면 스테이지 증가식 레벨디자인 트리거
+            if(activeUnits.length > 0 && !activeUnits.some(u => u.side === 'enemy')) {
+                stage++;
+                gold += 40;
+                showDamagePopup(220, 100, "STAGE CLEAR! +40G", "#00bcff");
+                updateUI();
+                saveData();
             }
+        }, 100);
+
+        function showDamagePopup(x, y, text, color) {
+            const field = document.getElementById('def-field');
+            const pop = document.createElement('div');
+            pop.className = 'dmg-text';
+            pop.style.left = x + 'px';
+            pop.style.top = (y - 15) + 'px';
+            pop.style.color = color;
+            pop.innerText = text;
+            field.appendChild(pop);
+            setTimeout(() => pop.remove(), 600);
         }
 
-        // ==========================================
-        // 4️⃣ 파이어베이스 실시간 멀티 커뮤니티 데이터 연동
-        // ==========================================
-        function listenChat() {
-            db.ref('chats').limitToLast(10).on('child_added', (snapshot) => {
-                const data = snapshot.val();
-                appendChatLog(data.name, data.msg);
+        function varProp(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+        // === 5. 파이어베이스 데이터 입출력 실시간 연동부 ===
+        function saveData() { if(userId) db.ref('users/'+userId).set({ gold, stage, myArmy }); }
+        function loadData() {
+            db.ref('users/'+userId).once('value', s => {
+                const d = s.val();
+                if(d) { gold = d.gold||0; stage = d.stage||1; myArmy = d.myArmy||[]; updateUI(); renderBench(); }
             });
         }
-
-        function setupLocalChat() {
-            appendChatLog("시스템", "현재 게스트(오프라인) 모드입니다. Firebase 정보를 입력하면 실시간 채팅망이 개방됩니다.");
+        function updateUI() { 
+            document.getElementById('gold-display').innerText = gold;
+            document.getElementById('stage-display').innerText = stage;
         }
 
-        function appendChatLog(name, msg) {
-            const logs = document.getElementById('chat-logs');
-            logs.innerHTML += `<div><strong>[${name}]:</strong> ${msg}</div>`;
-            logs.scrollTop = logs.scrollHeight;
-        }
-
-        function sendChatMessage() {
+        function sendChat() {
             const input = document.getElementById('chat-input');
-            const name = document.getElementById('user-name').innerText;
             if(!input.value.trim()) return;
-
-            if(db) {
-                db.ref('chats').push({ name: name, msg: input.value });
-            } else {
-                appendChatLog("나(로컬)", input.value);
-            }
+            db.ref('world_chat').push({ name: document.getElementById('display-name').innerText, msg: input.value });
             input.value = '';
         }
-
-        // 임시 회원가입 및 클라우드 클라이언트 자동저장구조
-        function toggleAuth() {
-            if(!auth) {
-                // 파이어베이스 미연동 상태일 때 로컬 스토리지에 임시 세이브 대체 작동
-                localStorage.setItem('local_gold', gold);
-                localStorage.setItem('local_army', JSON.stringify(myArmy));
-                localStorage.setItem('local_stage', currentStage);
-                alert("💾 [로컬 저장 완료] 브라우저 쿠키에 데이터가 저장되었습니다!");
-                return;
-            }
-            
-            auth.signInAnonymously().catch(err => alert("로그인 오류: " + err.message));
-        }
-
-        function listenAuth() {
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    userId = user.uid;
-                    document.getElementById('user-name').innerText = "유저_" + user.uid.substring(0,5);
-                    // 데이터 로드
-                    db.ref('users/' + userId).once('value', (snap) => {
-                        const data = snap.val();
-                        if(data) {
-                            gold = data.gold || 0;
-                            currentStage = data.stage || 1;
-                            myArmy = data.myArmy || [];
-                            updateGlobalUI();
-                            renderBench();
-                        }
-                    });
-                }
+        function listenChat() {
+            db.ref('world_chat').limitToLast(20).on('child_added', s => {
+                const d = s.val();
+                const log = document.getElementById('chat-logs');
+                log.innerHTML += `<div class="chat-line"><span style="color:#00bcff; font-weight:bold;">[${d.name}]</span>: ${d.msg}</div>`;
+                log.scrollTop = log.scrollHeight;
             });
-        }
-
-        function saveUserData() {
-            if(db && userId) {
-                db.ref('users/' + userId).set({
-                    gold: gold,
-                    stage: currentStage,
-                    myArmy: myArmy
-                });
-            }
         }
     </script>
 </body>
