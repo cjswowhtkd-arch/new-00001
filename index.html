@@ -3,834 +3,939 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚡ 전설의 가챠 디펜스</title>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<title>⚡ 레전드 가챠 디펜스</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700&display=swap');
 :root{
-  --bg:#07080f;--card:#0e1020;--card2:#131628;
-  --acc:#e8005a;--acc2:#7700ee;--gold:#f5a800;
-  --c:#8e92a8;--r:#00ccff;--e:#cc00ff;--l:#ffaa00;
+  --bg:#060810;--panel:#0b0d1a;--panel2:#0f1220;
+  --border:#1c2035;--border2:#252945;
+  --acc:#e8005a;--acc2:#7700ee;
+  --gold:#f5a800;--gold2:#ff8c00;
+  --cyan:#00d4ff;--purple:#cc00ff;
   --green:#00e87a;--red:#ff3355;
+  --white:#e8eaf0;--muted:#5a5e7a;--dim:#3a3e5a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:#fff;min-height:100vh;overflow-x:hidden}
-h1,h2,h3,.logo{font-family:'Black Han Sans',sans-serif}
-
-/* 파티클 캔버스 전체 오버레이 */
-#particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
-
-/* 로그인 */
-#auth-modal{position:fixed;inset:0;background:rgba(5,6,15,.97);display:flex;justify-content:center;align-items:center;z-index:1000}
-.auth-box{background:var(--card);padding:32px;border-radius:20px;width:360px;text-align:center;border:1px solid rgba(232,0,90,.4);box-shadow:0 0 40px rgba(232,0,90,.2)}
-.auth-input{width:100%;padding:12px 14px;margin:8px 0;border-radius:10px;border:1px solid #2a2d45;background:#07080f;color:#fff;font-size:.95rem;outline:none;transition:border .2s}
-.auth-input:focus{border-color:var(--acc)}
-
-/* 헤더 */
-header{background:#0a0c18;border-bottom:1px solid #1a1e35;padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:100}
-.logo{font-size:1.2rem;background:linear-gradient(90deg,var(--acc),var(--l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1}
-.stat-pill{background:#131628;border:1px solid #252945;padding:6px 14px;border-radius:20px;font-size:.85rem;font-weight:700}
-.stat-pill span{color:var(--gold)}
-.pity-bar{height:6px;background:#1a1e35;border-radius:3px;overflow:hidden;width:80px}
-.pity-inner{height:100%;background:linear-gradient(90deg,var(--acc),var(--l));border-radius:3px;transition:width .3s}
-
-/* 메인 그리드 */
-.main{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:16px;padding:16px;max-width:1300px;margin:0 auto}
-@media(max-width:900px){.main{grid-template-columns:1fr}}
-.panel{background:var(--card);border:1px solid #1a1e35;border-radius:16px;padding:18px;position:relative;overflow:hidden}
-.panel-title{font-family:'Black Han Sans',sans-serif;font-size:1rem;color:#c0c4e0;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-
-/* 버튼 공통 */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:.95rem;transition:all .18s;width:100%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;position:relative;overflow:hidden}
-.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.08);opacity:0;transition:opacity .15s}
-.btn:hover::after{opacity:1}
-.btn:active{transform:scale(.97)}
-.btn:disabled{background:#1e2135!important;color:#444;cursor:not-allowed;transform:none}
-.btn-sm{padding:7px 14px;font-size:.82rem;width:auto}
-.btn-gold{background:linear-gradient(135deg,#e09000,var(--gold))}
-.btn-green{background:linear-gradient(135deg,#008844,var(--green))}
-.btn-red{background:linear-gradient(135deg,#880022,var(--red))}
-
-/* ─── 채굴 패널 ─── */
-.mine-track{height:24px;background:#080a14;border-radius:12px;position:relative;overflow:hidden;margin:14px 0;border:1px solid #1a1e35}
-.mine-zone{position:absolute;top:0;height:100%;border-radius:8px;background:rgba(232,0,90,.7);transition:left .1s,width .1s}
-.mine-ptr{position:absolute;top:-2px;width:8px;height:28px;background:#fff;border-radius:4px;box-shadow:0 0 10px #fff;transition:left .025s linear}
-.combo-display{font-family:'Black Han Sans',sans-serif;font-size:2.5rem;text-align:center;color:var(--gold);line-height:1;min-height:50px;transition:transform .1s}
-.combo-display.hit{transform:scale(1.3)}
-.upgrade-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.upg-card{background:#080a14;border:1px solid #1a1e35;border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color .2s}
-.upg-card:hover{border-color:var(--gold)}
-.upg-name{font-size:.8rem;color:#8e92a8}
-.upg-val{font-size:.95rem;font-weight:700;color:var(--gold)}
-.upg-cost{font-size:.78rem;color:#5a5e7a;margin-top:2px}
-
-/* ─── 가챠 패널 ─── */
-.gacha-screen{height:240px;background:#000;border-radius:12px;border:2px solid #1a1e35;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:10px 0;transition:border-color .3s,box-shadow .3s}
-.gacha-screen.LEGENDARY{border-color:var(--l);box-shadow:0 0 40px rgba(245,168,0,.5),inset 0 0 40px rgba(245,168,0,.15);animation:flickerGold 1s infinite alternate}
-.gacha-screen.EPIC{border-color:var(--e);box-shadow:0 0 30px rgba(204,0,255,.4),inset 0 0 30px rgba(204,0,255,.1)}
-.gacha-screen.RARE{border-color:var(--r);box-shadow:0 0 20px rgba(0,204,255,.3),inset 0 0 20px rgba(0,204,255,.1)}
-.gacha-screen.COMMON{border-color:var(--c)}
-@keyframes flickerGold{from{box-shadow:0 0 30px rgba(245,168,0,.4),inset 0 0 30px rgba(245,168,0,.1)}to{box-shadow:0 0 60px rgba(255,80,0,.7),inset 0 0 50px rgba(255,80,0,.2)}}
-.gacha-img{width:100%;height:100%;object-fit:cover;display:none;animation:cardFlip .5s cubic-bezier(.175,.885,.32,1.275)}
-@keyframes cardFlip{from{transform:scale(.3) rotateY(90deg);filter:brightness(4)}to{transform:scale(1) rotateY(0);filter:brightness(1)}}
-.grade-badge{position:absolute;top:10px;right:10px;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;z-index:5}
-.pity-info{font-size:.78rem;color:#5a5e7a;text-align:center;margin:6px 0}
-.pity-info b{color:var(--l)}
-.multi-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-
-/* 합성 */
-.synthesis-area{background:#080a14;border:1px dashed #252945;border-radius:12px;padding:14px;margin-top:10px}
-.synth-slots{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.synth-slot{width:52px;height:52px;border-radius:8px;border:2px dashed #252945;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#3a3e5a;background:#07080f;cursor:pointer;transition:all .2s;background-size:cover;background-position:center}
-.synth-slot.filled{border-style:solid;border-color:var(--acc)}
-.synth-arrow{color:#3a3e5a;font-size:1.2rem;line-height:52px}
-
-/* ─── 디펜스 패널 ─── */
-.def-field{height:280px;background:linear-gradient(180deg,#050714 0%,#0c0f20 60%,#0a1528 100%);border-radius:12px;position:relative;overflow:hidden;border:1px solid #1a1e35}
-.ground-line{position:absolute;bottom:0;width:100%;height:3px;background:rgba(0,204,255,.2)}
-.bench-row{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding:4px 0 8px}
-.hero-card{position:relative;width:56px;flex-shrink:0;cursor:pointer;transition:transform .15s}
-.hero-card:hover{transform:translateY(-4px)}
-.hero-thumb{width:56px;height:56px;border-radius:10px;border:2px solid #333;background-size:cover;background-position:center}
-.hero-name{font-size:.62rem;text-align:center;color:#8e92a8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px}
-.hero-lv{position:absolute;top:2px;left:2px;background:rgba(0,0,0,.8);font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:4px;color:var(--gold)}
-.hero-cnt{position:absolute;top:2px;right:2px;background:var(--acc);border-radius:10px;font-size:.65rem;font-weight:700;padding:1px 5px;color:#fff}
-
-/* 전장 유닛 */
-.unit{position:absolute;width:46px;height:46px;border-radius:50%;background-size:cover;background-position:center;border:2px solid #fff;transition:left .08s linear,top .08s linear}
-.unit-hp{position:absolute;top:-12px;left:-3px;width:52px;height:5px;background:#330000;border-radius:3px;overflow:hidden}
-.unit-hp-inner{height:100%;background:#00ffaa;border-radius:3px;transition:width .1s}
-.unit-skill-cd{position:absolute;bottom:-14px;left:0;width:100%;height:4px;background:#1a1e35;border-radius:2px;overflow:hidden}
-.unit-skill-cd-inner{height:100%;background:#9900ff;border-radius:2px}
-
-/* 스킬 패널 */
-.skill-bar{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-.skill-btn{background:#0e1020;border:1px solid #252945;border-radius:10px;padding:8px 12px;cursor:pointer;text-align:center;transition:all .2s;min-width:80px;position:relative;overflow:hidden}
-.skill-btn:hover{border-color:var(--acc2)}
-.skill-btn.ready{border-color:var(--e);box-shadow:0 0 8px rgba(204,0,255,.3)}
-.skill-btn .sk-name{font-size:.75rem;font-weight:700;color:#c0c4e0}
-.skill-btn .sk-cd{font-size:.7rem;color:#5a5e7a}
-.skill-cd-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--e);border-radius:0 0 10px 10px;transition:width .1s}
-
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden;user-select:none}
+h1,h2,.bold{font-family:'Black Han Sans',sans-serif}
+canvas#bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35}
+ 
+/* ── LAYOUT ── */
+.app{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:12px}
+ 
+/* ── HEADER ── */
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:rgba(11,13,26,.95);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;backdrop-filter:blur(8px)}
+.logo{font-family:'Black Han Sans',sans-serif;font-size:1.15rem;background:linear-gradient(90deg,var(--acc),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex:1;min-width:120px}
+.stat{background:var(--panel2);border:1px solid var(--border);padding:5px 12px;border-radius:20px;font-size:.82rem;font-weight:700;white-space:nowrap}
+.stat b{color:var(--gold)}
+.stat.stage-s b{color:var(--cyan)}
+.pity-wrap{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted)}
+.pity-track{width:70px;height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.pity-fill{height:100%;background:linear-gradient(90deg,var(--acc),var(--gold));border-radius:3px;transition:width .3s}
+.pity-fill.near{background:linear-gradient(90deg,var(--gold),#fff);animation:glow .6s infinite alternate}
+@keyframes glow{from{filter:brightness(1)}to{filter:brightness(1.8)}}
+ 
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:260px 260px 1fr;gap:12px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+ 
+/* ── PANEL ── */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.panel.mine-panel::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.panel.gacha-panel::before{background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.panel.def-panel::before{background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.ptitle{font-family:'Black Han Sans',sans-serif;font-size:.92rem;color:#8e92b8;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+ 
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .15s;width:100%;color:#fff;position:relative;overflow:hidden;font-family:'Noto Sans KR',sans-serif}
+.btn::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,.1);opacity:0;transition:opacity .15s}
+.btn:hover::before{opacity:1}.btn:active{transform:scale(.96)}
+.btn:disabled{background:#16192a!important;color:#3a3e5a;cursor:not-allowed;transform:none!important}
+.btn-acc{background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.btn-gold{background:linear-gradient(135deg,#c07800,var(--gold))}
+.btn-red{background:linear-gradient(135deg,#8a0020,var(--red))}
+.btn-cyan{background:linear-gradient(135deg,#006a90,var(--cyan))}
+.btn-sm{padding:6px 12px;font-size:.78rem;width:auto}
+.btn-xs{padding:4px 8px;font-size:.72rem;width:auto;border-radius:6px}
+ 
+/* ── 채굴 ── */
+.mine-track{position:relative;height:36px;background:#060810;border:2px solid var(--border);border-radius:10px;overflow:hidden;margin:10px 0;cursor:pointer}
+/* 크리존: 확실히 보임 */
+.crit-zone{position:absolute;top:0;height:100%;background:rgba(245,168,0,.22);border-left:3px solid var(--gold);border-right:3px solid var(--gold);transition:left .1s,width .1s;z-index:1;pointer-events:none}
+.crit-label{position:absolute;top:50%;transform:translateY(-50%);left:50%;transform:translate(-50%,-50%);font-size:.65rem;font-weight:700;color:var(--gold);font-family:'Black Han Sans',sans-serif;z-index:2;pointer-events:none;white-space:nowrap}
+/* 포인터 */
+.mine-ptr{position:absolute;top:0;width:5px;height:100%;z-index:3;pointer-events:none;transition:left .022s linear}
+.mine-ptr-bar{width:100%;height:100%;background:#fff;border-radius:2px;box-shadow:0 0 8px #fff,0 0 20px rgba(255,255,255,.5)}
+/* 클릭 히트 플래시 */
+.mine-flash{position:absolute;inset:0;background:var(--gold);opacity:0;z-index:4;border-radius:8px;pointer-events:none;transition:opacity .05s}
+ 
+.combo-big{font-family:'Black Han Sans',sans-serif;font-size:2.4rem;text-align:center;color:var(--gold);line-height:1.1;min-height:44px;transition:transform .08s}
+.combo-big.pop{transform:scale(1.4) rotate(-3deg)}
+.mine-info{display:flex;justify-content:space-around;font-size:.75rem;color:var(--muted);margin:6px 0 10px}
+.mine-info b{color:var(--white);font-size:.85rem}
+.upg-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.upg-card{background:#07090f;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.upg-card:hover:not(.maxed){border-color:var(--gold);background:#0d0f1c}
+.upg-card.maxed{opacity:.45;cursor:default}
+.upg-name{font-size:.72rem;color:var(--muted)}
+.upg-val{font-size:.88rem;font-weight:700;color:var(--gold);margin:2px 0}
+.upg-cost{font-size:.7rem;color:var(--dim)}
+ 
+/* ── 가챠 ── */
+.gacha-screen{height:200px;background:#000;border-radius:12px;border:2px solid var(--border);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:8px 0;transition:border-color .3s,box-shadow .3s}
+.gacha-screen.L{border-color:var(--gold);box-shadow:0 0 40px rgba(245,168,0,.6),inset 0 0 40px rgba(245,168,0,.15)}
+.gacha-screen.E{border-color:var(--purple);box-shadow:0 0 30px rgba(204,0,255,.5)}
+.gacha-screen.R{border-color:var(--cyan);box-shadow:0 0 20px rgba(0,212,255,.4)}
+.gacha-screen.C{border-color:#5a5e7a}
+.gacha-img{width:100%;height:100%;object-fit:cover;display:none}
+@keyframes flip{from{transform:perspective(400px) rotateY(90deg) scale(.5);filter:brightness(5)}to{transform:perspective(400px) rotateY(0) scale(1);filter:brightness(1)}}
+.gacha-img.shown{display:block;animation:flip .45s cubic-bezier(.175,.885,.32,1.275)}
+.grade-badge{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);padding:3px 14px;border-radius:20px;font-size:.78rem;font-weight:700;z-index:5;white-space:nowrap}
+.pity-info{font-size:.73rem;color:var(--muted);text-align:center;margin:4px 0 8px}
+.pity-info b{color:var(--gold)}
+.multi-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.synth-area{background:#07090f;border:1px dashed var(--border2);border-radius:10px;padding:10px;margin-top:10px}
+.synth-row{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.synth-slot{width:46px;height:46px;border-radius:8px;border:2px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--dim);background:#07080f;cursor:pointer;transition:all .2s;background-size:cover;background-position:center;flex-shrink:0}
+.synth-slot.on{border-style:solid;border-color:var(--acc)}
+.arrow{color:var(--dim);font-size:1.4rem}
+ 
+/* ── 디펜스 ── */
+.def-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.wave-info{font-size:.8rem;color:var(--muted)}
+.wave-info b{color:var(--red)}
+.life-bar{display:flex;gap:4px;align-items:center;font-size:.8rem}
+.life-heart{color:var(--red);font-size:.9rem}
+ 
+/* 전장 */
+.battlefield{height:260px;background:linear-gradient(180deg,#040610 0%,#090c1f 55%,#0b1025 100%);border-radius:12px;position:relative;overflow:hidden;border:1px solid var(--border)}
+.bf-ground{position:absolute;bottom:0;width:100%;height:28px;background:linear-gradient(180deg,transparent,rgba(0,212,255,.06));border-top:1px solid rgba(0,212,255,.12)}
+.bf-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px}
+.stage-banner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:2rem;background:rgba(0,0,0,.7);z-index:50;opacity:0;pointer-events:none;transition:opacity .4s}
+ 
+/* 유닛 공통 */
+.unit{position:absolute;width:44px;height:44px;border-radius:50%;border:2px solid;background-size:cover;background-position:center;transition:left .07s linear,top .07s linear;cursor:default}
+.unit-bars{position:absolute;top:-16px;left:-3px;width:50px;display:flex;flex-direction:column;gap:2px}
+.unit-bar-track{height:4px;border-radius:2px;overflow:hidden}
+.unit-bar-fill{height:100%;border-radius:2px;transition:width .08s}
+.hp-track{background:#1a0000}
+.hp-fill{background:var(--green)}
+.sp-track{background:#1a001a}
+.sp-fill{background:var(--purple)}
+ 
 /* 데미지 팝업 */
-.dmg{position:absolute;font-weight:700;font-family:'Black Han Sans',sans-serif;font-size:.95rem;animation:popDmg .7s ease-out forwards;pointer-events:none;z-index:20;text-shadow:1px 1px 3px #000}
-@keyframes popDmg{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-40px) scale(1.3);opacity:0}}
-
+.dmg-pop{position:absolute;font-family:'Black Han Sans',sans-serif;font-size:.88rem;animation:dmgAnim .75s ease-out forwards;pointer-events:none;z-index:30;text-shadow:1px 1px 4px #000}
+@keyframes dmgAnim{0%{transform:translateY(0) scale(1);opacity:1}50%{transform:translateY(-22px) scale(1.2);opacity:1}100%{transform:translateY(-44px) scale(.8);opacity:0}}
+ 
 /* 스킬 이펙트 */
-.skill-fx{position:absolute;border-radius:50%;pointer-events:none;z-index:15;animation:skillFX .4s ease-out forwards}
-@keyframes skillFX{0%{transform:scale(.1);opacity:1}100%{transform:scale(3);opacity:0}}
-
-/* 채팅 */
-.chat-panel{max-width:1300px;margin:0 16px 16px;background:var(--card);border:1px solid #1a1e35;border-radius:16px;padding:16px}
-#chat-log{height:110px;overflow-y:auto;background:#07080f;padding:10px;border-radius:8px;font-size:.85rem;border:1px solid #1a1e35}
-.chat-row{margin-bottom:4px}
-.chat-input{width:100%;background:#07080f;color:#fff;border:1px solid #1a1e35;padding:10px 14px;border-radius:8px;margin-top:8px;font-size:.9rem;outline:none}
-.chat-input:focus{border-color:var(--acc2)}
-
+.skill-fx{position:absolute;border-radius:50%;pointer-events:none;z-index:20;animation:sfx .45s ease-out forwards}
+@keyframes sfx{0%{transform:scale(.1);opacity:.9}100%{transform:scale(4);opacity:0}}
+ 
+/* 벤치 */
+.bench{display:flex;gap:6px;margin-top:8px;overflow-x:auto;padding-bottom:4px;min-height:72px;align-items:center}
+.hero-card{position:relative;flex-shrink:0;cursor:pointer;transition:transform .15s}
+.hero-card:hover{transform:translateY(-5px)}
+.hero-thumb{width:52px;height:52px;border-radius:10px;border:2px solid;background-size:cover;background-position:center;position:relative}
+.hero-lv{position:absolute;top:1px;left:1px;background:rgba(0,0,0,.85);font-size:.6rem;font-weight:700;padding:1px 4px;border-radius:4px;color:var(--gold)}
+.hero-cnt{position:absolute;top:1px;right:1px;background:var(--acc);border-radius:8px;font-size:.6rem;font-weight:700;padding:1px 4px;color:#fff}
+.hero-nm{font-size:.6rem;text-align:center;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px}
+.bench-empty{font-size:.75rem;color:var(--dim);padding:8px 0}
+ 
+/* 스킬 바 */
+.skill-bar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;min-height:38px}
+.sk-btn{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;transition:all .18s;min-width:76px;position:relative;overflow:hidden;text-align:center}
+.sk-btn.ready{border-color:var(--purple);background:#16003a;box-shadow:0 0 10px rgba(204,0,255,.3)}
+.sk-btn .sk-nm{font-size:.7rem;font-weight:700;color:var(--white)}
+.sk-btn .sk-cd{font-size:.65rem;color:var(--muted);margin-top:1px}
+.sk-cd-bar{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 8px 8px;transition:width .1s}
+ 
+/* 파티클 캔버스 (전장 위) */
+.fx-canvas{position:absolute;inset:0;pointer-events:none;z-index:10}
+ 
 /* 토스트 */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--acc);padding:12px 24px;border-radius:12px;font-weight:700;z-index:2000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
-#toast.show{opacity:1}
-
-/* 스테이지 클리어 오버레이 */
-.stage-clear{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Black Han Sans',sans-serif;font-size:2rem;color:var(--r);background:rgba(0,0,0,.6);z-index:50;opacity:0;pointer-events:none;transition:opacity .3s}
-
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--panel2);border:1px solid;padding:10px 22px;border-radius:12px;font-weight:700;z-index:9000;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;font-size:.88rem}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+ 
+/* 경고 오버레이 */
+.danger-overlay{position:fixed;inset:0;pointer-events:none;z-index:8000;opacity:0;transition:opacity .3s;border:6px solid var(--red);border-radius:0}
+.danger-overlay.show{opacity:1;animation:dangerPulse .4s infinite alternate}
+@keyframes dangerPulse{from{opacity:.5}to{opacity:1}}
+ 
+/* 체력 바 */
+.life-display{display:flex;align-items:center;gap:6px}
+.life-track{flex:1;height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.life-fill{height:100%;border-radius:4px;transition:width .3s;background:var(--green)}
+.life-fill.warn{background:var(--gold)}
+.life-fill.crit{background:var(--red);animation:hpPulse .4s infinite alternate}
+@keyframes hpPulse{from{filter:brightness(1)}to{filter:brightness(1.8)}}
+ 
 /* 스크롤바 */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:#0a0c18}
-::-webkit-scrollbar-thumb{background:#252945;border-radius:2px}
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+ 
+/* game over */
+#gameover{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#gameover.show{display:flex}
+#gameover h2{font-family:'Black Han Sans',sans-serif;font-size:3rem;color:var(--red);text-shadow:0 0 30px var(--red)}
+#gameover p{color:var(--muted);font-size:1rem}
 </style>
 </head>
 <body>
-<canvas id="particle-canvas"></canvas>
-
-<!-- 로그인 -->
-<div id="auth-modal">
-  <div class="auth-box">
-    <h2 style="color:var(--acc);margin-bottom:4px">⚡ 전설의 가챠 디펜스</h2>
-    <p style="color:#5a5e7a;font-size:.83rem;margin-bottom:16px">데이터를 저장하려면 로그인하세요</p>
-    <input type="email" id="em" class="auth-input" placeholder="이메일">
-    <input type="password" id="pw" class="auth-input" placeholder="비밀번호 (6자 이상)">
-    <button class="btn" onclick="doAuth('login')" style="margin-top:8px">로그인</button>
-    <button class="btn" onclick="doAuth('signup')" style="background:linear-gradient(135deg,#1a1e35,#252945);margin-top:8px">신규 가입</button>
-    <p id="auth-err" style="color:var(--red);font-size:.82rem;margin-top:10px;min-height:20px"></p>
-    <button onclick="guestPlay()" style="background:none;border:none;color:#3a3e5a;cursor:pointer;font-size:.82rem;margin-top:8px;text-decoration:underline">로그인 없이 플레이 (저장 안됨)</button>
-  </div>
+<canvas id="bg-canvas"></canvas>
+<div class="danger-overlay" id="danger-overlay"></div>
+<div id="gameover">
+  <h2>GAME OVER</h2>
+  <p id="go-info">스테이지 1 클리어</p>
+  <button class="btn btn-red" style="width:200px" onclick="location.reload()">🔄 다시 시작</button>
 </div>
-
+ 
+<div class="app">
+<!-- HEADER -->
 <header>
-  <div class="logo">🔮 전설의 가챠 디펜스</div>
-  <div class="stat-pill">💰 <span id="gold-hd">0</span></div>
-  <div class="stat-pill">⚔️ Stage <span id="stage-hd">1</span></div>
-  <div class="stat-pill" title="소환 천장 게이지">
-    <span style="font-size:.75rem;color:#5a5e7a">천장 </span>
-    <span id="pity-hd" style="color:var(--l)">0</span>/80
-    <div class="pity-bar" style="display:inline-block;vertical-align:middle;margin-left:4px"><div class="pity-inner" id="pity-bar-hd" style="width:0%"></div></div>
+  <div class="logo">🔮 레전드 가챠 디펜스</div>
+  <div class="stat">💰 <b id="h-gold">50</b>G</div>
+  <div class="stat stage-s">⚔️ Stage <b id="h-stage">1</b></div>
+  <div class="stat life-display" style="gap:8px;padding:5px 14px">
+    ❤️ <div class="life-track" style="width:80px"><div class="life-fill" id="h-life" style="width:100%"></div></div>
+    <b id="h-life-n">20</b>
   </div>
-  <div id="user-info" style="font-size:.82rem;color:#5a5e7a">👤 <span id="uname">게스트</span></div>
-  <button onclick="doLogout()" style="background:none;border:none;color:#3a3e5a;cursor:pointer;font-size:.82rem">[로그아웃]</button>
+  <div class="pity-wrap">
+    천장 <b id="h-pity" style="color:var(--gold)">0</b>/80
+    <div class="pity-track"><div class="pity-fill" id="h-pity-bar" style="width:0%"></div></div>
+  </div>
 </header>
-
-<div class="main">
-
-  <!-- ① 채굴 패널 -->
-  <div class="panel">
-    <div class="panel-title">⛏️ 에테르 채굴장</div>
-    <div style="text-align:center;font-size:.8rem;color:#5a5e7a;margin-bottom:6px">핑크존에서 클릭 → 콤보 보너스!</div>
-    <div class="mine-track" id="mine-track">
-      <div class="mine-zone" id="mine-zone"></div>
-      <div class="mine-ptr" id="mine-ptr"></div>
-    </div>
-    <div class="combo-display" id="combo-disp">콤보 0</div>
-    <div style="text-align:center;font-size:.8rem;color:#5a5e7a;margin-top:4px;margin-bottom:10px">
-      기본 <b style="color:#fff" id="base-yield">2</b>G · 크리 <b style="color:var(--gold)" id="crit-yield">12</b>G · 속도 <b style="color:var(--r)" id="mine-spd">2.5</b>
-    </div>
-    <button class="btn" onclick="doMine()">⛏️ 채굴!</button>
-
-    <div style="margin-top:14px;font-family:'Black Han Sans',sans-serif;font-size:.9rem;color:#8e92a8">📈 영구 업그레이드</div>
-    <div class="upgrade-grid" id="upg-grid"></div>
+ 
+<!-- GRID -->
+<div class="grid">
+ 
+<!-- ①채굴 -->
+<div class="panel mine-panel">
+  <div class="ptitle">⛏️ 에테르 채굴장</div>
+  <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:4px">
+    황금존(발광 구간)에서 클릭하면 크리티컬!
   </div>
-
-  <!-- ② 가챠 패널 -->
-  <div class="panel">
-    <div class="panel-title">✨ 차원 소환</div>
-    <div class="gacha-screen" id="gacha-scr">
-      <span id="gacha-msg" style="font-size:1.1rem;font-weight:700;color:#3a3e5a">대기 중...</span>
-      <img src="" id="gacha-img" class="gacha-img" alt="소환 결과">
-      <div class="grade-badge" id="grade-badge" style="display:none"></div>
+  <div class="mine-track" id="mine-track" onclick="doMine()">
+    <div class="crit-zone" id="crit-zone">
+      <span class="crit-label">⭐ CRIT ZONE ⭐</span>
     </div>
-    <div class="pity-info">천장까지 <b id="pity-left">80</b>회 남음 · 80회 시 전설 확정!</div>
-    <div class="multi-wrap">
-      <button class="btn" id="g1-btn" onclick="doGacha(1)">🧬 1회 소환<br><small style="font-weight:400;opacity:.7">30G</small></button>
-      <button class="btn btn-gold" id="g10-btn" onclick="doGacha(10)">💥 10연 소환<br><small style="font-weight:400;opacity:.7">270G (10% 할인)</small></button>
-    </div>
-
-    <!-- 합성/진화 -->
-    <div class="synthesis-area">
-      <div style="font-size:.85rem;font-weight:700;color:#8e92a8">⚗️ 합성 진화 <small style="font-weight:400;color:#3a3e5a">(같은 영웅 3장 → 등급 상승)</small></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <div class="synth-slots" id="synth-slots">
-          <div class="synth-slot" id="ss0" onclick="pickSynth(0)">1</div>
-          <div class="synth-slot" id="ss1" onclick="pickSynth(1)">2</div>
-          <div class="synth-slot" id="ss2" onclick="pickSynth(2)">3</div>
-        </div>
-        <div class="synth-arrow">→</div>
-        <div class="synth-slot" style="border-style:solid;border-color:var(--l);background:rgba(245,168,0,.08)" id="synth-result">?</div>
-        <button class="btn btn-gold btn-sm" onclick="doSynth()" style="margin-left:4px">진화!</button>
-      </div>
-    </div>
+    <div class="mine-ptr" id="mine-ptr"><div class="mine-ptr-bar"></div></div>
+    <div class="mine-flash" id="mine-flash"></div>
   </div>
-
-  <!-- ③ 디펜스 패널 -->
-  <div class="panel" style="min-width:300px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="panel-title" style="margin-bottom:0">⚔️ 전장 수호</div>
-      <button class="btn btn-red btn-sm" onclick="spawnWave()">👾 웨이브 시작</button>
-    </div>
-    <div class="def-field" id="def-field">
-      <div class="ground-line"></div>
-      <div class="stage-clear" id="stage-clear">STAGE CLEAR! 🎉</div>
-    </div>
-    <!-- 스킬 바 -->
-    <div class="skill-bar" id="skill-bar"></div>
-    <!-- 배치 벤치 -->
-    <div class="bench-row" id="bench-row"></div>
+  <div class="combo-big" id="combo-big">콤보 0</div>
+  <div class="mine-info">
+    <span>기본 <b id="m-base">2</b>G</span>
+    <span>크리 <b id="m-crit">12</b>G</span>
+    <span>속도 <b id="m-spd">2.5</b></span>
+    <span>콤보 <b id="m-combo">×1.0</b></span>
   </div>
-
+  <button class="btn btn-gold" id="mine-btn" onclick="doMine()">⛏️ 채굴!</button>
+  <div style="margin-top:12px;font-size:.8rem;font-family:'Black Han Sans',sans-serif;color:var(--muted)">📈 업그레이드</div>
+  <div class="upg-grid" id="upg-grid"></div>
 </div>
-
-<!-- 채팅 -->
-<div class="chat-panel">
-  <div style="font-size:.85rem;font-weight:700;color:#5a5e7a;margin-bottom:8px">💬 광장 채팅</div>
-  <div id="chat-log"></div>
-  <input class="chat-input" id="chat-in" placeholder="메시지 입력 후 Enter" onkeydown="if(event.key==='Enter')sendChat()">
+ 
+<!-- ②가챠 -->
+<div class="panel gacha-panel">
+  <div class="ptitle">✨ 차원 소환</div>
+  <div class="gacha-screen C" id="gacha-scr">
+    <span id="gacha-msg" style="font-size:1rem;color:var(--dim)">소환 대기 중...</span>
+    <img src="" id="gacha-img" class="gacha-img" alt="">
+    <div class="grade-badge" id="grade-badge" style="display:none"></div>
+  </div>
+  <div class="pity-info">천장까지 <b id="p-left">80</b>회 · 80회 시 전설 확정!</div>
+  <div class="multi-wrap">
+    <button class="btn btn-acc" id="g1" onclick="doGacha(1)">🧬 1회<br><small style="opacity:.7;font-weight:400">30G</small></button>
+    <button class="btn btn-gold" id="g10" onclick="doGacha(10)">💥 10연<br><small style="opacity:.7;font-weight:400">270G (10%↓)</small></button>
+  </div>
+  <div class="synth-area">
+    <div style="font-size:.78rem;font-weight:700;color:var(--muted)">⚗️ 합성 진화 <span style="font-weight:400;color:var(--dim);font-size:.7rem">(동일 영웅 3장)</span></div>
+    <div class="synth-row">
+      <div class="synth-slot" id="ss0" onclick="pickSynth(0)">1</div>
+      <div class="synth-slot" id="ss1" onclick="pickSynth(1)">2</div>
+      <div class="synth-slot" id="ss2" onclick="pickSynth(2)">3</div>
+      <div class="arrow">→</div>
+      <div class="synth-slot" style="border-style:solid;border-color:var(--gold)" id="synth-res">?</div>
+      <button class="btn btn-gold btn-xs" onclick="doSynth()">진화!</button>
+    </div>
+  </div>
 </div>
-
+ 
+<!-- ③전장 -->
+<div class="panel def-panel">
+  <div class="def-top">
+    <div class="ptitle" style="margin-bottom:0">⚔️ 전장 수호</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div class="wave-info">적: <b id="enemy-cnt">0</b></div>
+      <button class="btn btn-red btn-sm" onclick="startWave()" id="wave-btn">👾 웨이브!</button>
+    </div>
+  </div>
+  <div class="battlefield" id="bf">
+    <div class="bf-grid"></div>
+    <div class="bf-ground"></div>
+    <canvas class="fx-canvas" id="fx-canvas"></canvas>
+    <div class="stage-banner" id="stage-banner"></div>
+  </div>
+  <div class="skill-bar" id="skill-bar"><div style="font-size:.72rem;color:var(--dim)">영웅 배치 후 스킬 사용 가능</div></div>
+  <div class="bench" id="bench"><div class="bench-empty">소환한 영웅을 클릭해 전장에 배치!</div></div>
+</div>
+</div><!-- /grid -->
+</div><!-- /app -->
+ 
 <div id="toast"></div>
-
+ 
 <script>
-// ─── Firebase ───
-const firebaseConfig={
-  apiKey:"AIzaSyCcFkzVkZ2ui3WSIkFbxDa3m5OvebXSfk4",
-  authDomain:"chosanghee00001.firebaseapp.com",
-  databaseURL:"https://chosanghee00001-default-rtdb.firebaseio.com",
-  projectId:"chosanghee00001",
-  storageBucket:"chosanghee00001.firebasestorage.app",
-  messagingSenderId:"705786109560",
-  appId:"1:705786109560:web:01b69c754e13df96e8978d"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(),db=firebase.database();
-
-// ─── 상태 ───
-let gold=50,stage=1,pity=0;
-let myArmy=[]; // {heroIdx, id, count, lv}
-let activeUnits=[];
-let combo=0,comboTimer=null;
-let userId=null,isGuest=false;
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+const HEROES = [
+  {id:0,name:'철갑 발키리',grade:'C',img:'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300',pwr:14,hp:100,col:'#8e92a8',
+   sk:{name:'방어 태세',cd:8000,col:'#8e92a8',run:u=>{u.def=(u.def||0)+8;showDmg(u.x,u.y,'🛡+8',u.col)}}},
+  {id:1,name:'네온 아처',grade:'R',img:'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300',pwr:30,hp:130,col:'#00d4ff',
+   sk:{name:'연속 사격',cd:5500,col:'#00d4ff',run:u=>{for(let i=0;i<4;i++)setTimeout(()=>hitEnemy(u,1.0),i*120)}}},
+  {id:2,name:'사이버 나이트',grade:'R',img:'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=300',pwr:38,hp:180,col:'#00d4ff',
+   sk:{name:'돌격 베기',cd:5000,col:'#00d4ff',run:u=>{hitEnemy(u,2.8);spawnFX(u.x,u.y,'#00d4ff')}}},
+  {id:3,name:'사이코 위치',grade:'E',img:'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300',pwr:72,hp:200,col:'#cc00ff',
+   sk:{name:'마력 폭발',cd:6500,col:'#cc00ff',run:u=>{aoeHit(u,2.5);spawnFX(u.x,u.y,'#cc00ff')}}},
+  {id:4,name:'다크 위자드',grade:'E',img:'https://images.unsplash.com/photo-1610703846550-5c4af8e9ef1e?w=300',pwr:88,hp:190,col:'#cc00ff',
+   sk:{name:'저주의 손',cd:6000,col:'#44ff44',run:u=>{poisonAll(u)}}},
+  {id:5,name:'드래곤 황제',grade:'L',img:'https://images.unsplash.com/photo-1563089145-599997674d42?w=300',pwr:190,hp:650,col:'#f5a800',
+   sk:{name:'용염 폭풍',cd:9000,col:'#ff6600',run:u=>{aoeHit(u,4.0);spawnFX(u.x,u.y,'#f5a800',80);spawnFX(u.x-40,u.y,'#ff6600',50)}}},
+  {id:6,name:'사이버 퀸',grade:'L',img:'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=300',pwr:160,hp:500,col:'#f5a800',
+   sk:{name:'레이저 빔',cd:8000,col:'#f5a800',run:u=>{for(let i=0;i<6;i++)setTimeout(()=>hitEnemy(u,1.5),i*90)}}},
+];
+const GR = {C:{label:'COMMON',col:'#8e92a8',rank:0,evo:'R'},R:{label:'RARE',col:'#00d4ff',rank:1,evo:'E'},E:{label:'EPIC',col:'#cc00ff',rank:2,evo:'L'},L:{label:'LEGENDARY',col:'#f5a800',rank:3,evo:null}};
+const UPG = [
+  {k:'mSpd',name:'채굴 속도',base:2.5,inc:.6,cost:35,max:10},
+  {k:'mBase',name:'기본 보상',base:2,inc:1,cost:45,max:8},
+  {k:'mCrit',name:'크리 보상',base:12,inc:5,cost:55,max:8},
+  {k:'uAtk',name:'유닛 공격력',base:1.0,inc:.2,cost:90,max:8},
+  {k:'uHp',name:'유닛 체력',base:1.0,inc:.18,cost:80,max:8},
+];
+ 
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let gold=50, stage=1, pity=0, lives=20;
+let army=[]; // {heroId, uid, count, lv}
+let activeUnits=[], particles=[];
+let combo=0, comboT=null;
+let waveActive=false, waveNumber=0;
+let upgLv={mSpd:0,mBase:0,mCrit:0,uAtk:0,uHp:0};
 let synthPick=[null,null,null];
-let waveActive=false;
-
-// 업그레이드 레벨
-const upgDef=[
-  {name:'채굴 속도',key:'mSpd',base:2.5,inc:.5,cost:40,max:10,unit:''},
-  {name:'기본 보상',key:'mBase',base:2,inc:1,cost:50,max:8,unit:'G'},
-  {name:'크리 보상',key:'mCrit',base:12,inc:4,cost:60,max:8,unit:'G'},
-  {name:'유닛 공격력',key:'uAtk',base:1.0,inc:.15,cost:80,max:10,unit:'x'},
-];
-let upgLv={mSpd:0,mBase:0,mCrit:0,uAtk:0};
-function upgVal(k){const d=upgDef.find(x=>x.key===k);return d.base+d.inc*upgLv[k]}
-function upgCost(k){const d=upgDef.find(x=>x.key===k);return d.cost+d.cost*upgLv[k]}
-
-// ─── 영웅 데이터 ───
-const HEROES=[
-  {name:'메카 발키리',grade:'COMMON',img:'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=300',pwr:18,hp:130,col:'#8e92a8',
-   skill:{name:'실드',desc:'HP 30% 회복',cd:8000,fx:'#00ffaa',run:(u)=>healUnit(u,.3)}},
-  {name:'네온 아처',grade:'RARE',img:'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300',pwr:35,hp:160,col:'#00ccff',
-   skill:{name:'연사',desc:'3회 연속 타격',cd:6000,fx:'#00ccff',run:(u)=>multiShot(u,3)}},
-  {name:'사이코 위치',grade:'EPIC',img:'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300',pwr:80,hp:240,col:'#cc00ff',
-   skill:{name:'마력 폭발',desc:'범위 2배 데미지',cd:7000,fx:'#cc00ff',run:(u)=>aoeBlast(u,2)}},
-  {name:'드래곤 엠페러',grade:'LEGENDARY',img:'https://images.unsplash.com/photo-1563089145-599997674d42?w=300',pwr:200,hp:750,col:'#f5a800',
-   skill:{name:'용염 폭풍',desc:'전체 적 데미지',cd:10000,fx:'#ff6600',run:(u)=>dragonBlast(u)}},
-  {name:'사이버 나이트',grade:'RARE',img:'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=300',pwr:42,hp:200,col:'#00ccff',
-   skill:{name:'충전 돌격',desc:'돌진+2배 타격',cd:5500,fx:'#00ccff',run:(u)=>chargeAtk(u)}},
-  {name:'다크 위자드',grade:'EPIC',img:'https://images.unsplash.com/photo-1610703846550-5c4af8e9ef1e?w=300',pwr:95,hp:210,col:'#cc00ff',
-   skill:{name:'저주의 손',desc:'독 데미지',cd:6500,fx:'#44ff00',run:(u)=>poisonAtk(u)}},
-];
-const GRADES={COMMON:{col:'#8e92a8',prob:40,evo:'RARE'},RARE:{col:'#00ccff',prob:36,evo:'EPIC'},EPIC:{col:'#cc00ff',prob:18,evo:'LEGENDARY'},LEGENDARY:{col:'#f5a800',prob:6,evo:null}};
-
-// ─── 인증 ───
-function doAuth(t){
-  const em=document.getElementById('em').value,pw=document.getElementById('pw').value,err=document.getElementById('auth-err');
-  err.textContent='';
-  if(!em||!pw){err.textContent='이메일과 비밀번호를 입력하세요';return}
-  const fn=t==='login'?auth.signInWithEmailAndPassword.bind(auth):auth.createUserWithEmailAndPassword.bind(auth);
-  fn(em,pw).catch(e=>err.textContent=(t==='login'?'로그인':'가입')+' 실패: '+e.message);
+let gameOver=false;
+let skCD={}; // uid→lastTime
+ 
+function uVal(k){const u=UPG.find(x=>x.k===k);return u.base+u.inc*upgLv[k]}
+function uCost(k){const u=UPG.find(x=>x.k===k);return Math.round(u.cost*(1+0.9*upgLv[k]))}
+ 
+// ══════════════════════════════════════════
+//  BG CANVAS (starfield)
+// ══════════════════════════════════════════
+const bgC=document.getElementById('bg-canvas');
+const bgX=bgC.getContext('2d');
+bgC.width=window.innerWidth;bgC.height=window.innerHeight;
+const stars=Array.from({length:120},()=>({x:Math.random()*bgC.width,y:Math.random()*bgC.height,r:Math.random()*1.5,s:Math.random()*.3+.1}));
+function drawBg(){
+  bgX.clearRect(0,0,bgC.width,bgC.height);
+  stars.forEach(s=>{
+    s.y-=s.s;if(s.y<0)s.y=bgC.height;
+    bgX.fillStyle=`rgba(180,190,255,${.3+Math.random()*.3})`;
+    bgX.beginPath();bgX.arc(s.x,s.y,s.r,0,Math.PI*2);bgX.fill();
+  });
+  requestAnimationFrame(drawBg);
 }
-function guestPlay(){isGuest=true;document.getElementById('auth-modal').style.display='none';initGame()}
-function doLogout(){if(isGuest)location.reload();else auth.signOut().then(()=>location.reload())}
-auth.onAuthStateChanged(u=>{
-  if(u){userId=u.uid;document.getElementById('auth-modal').style.display='none';
-    document.getElementById('uname').textContent=u.email.split('@')[0];loadData();listenChat()}
-  else if(!isGuest) document.getElementById('auth-modal').style.display='flex';
-});
-
-// ─── 초기화 ───
-function initGame(){updateUI();buildUpgGrid();renderBench();buildSkillBar()}
-
-// ─── UI 업데이트 ───
-function updateUI(){
-  document.getElementById('gold-hd').textContent=gold;
-  document.getElementById('stage-hd').textContent=stage;
-  document.getElementById('pity-hd').textContent=pity;
-  document.getElementById('pity-bar-hd').style.width=(pity/80*100)+'%';
-  document.getElementById('pity-left').textContent=80-pity;
-  document.getElementById('base-yield').textContent=upgVal('mBase');
-  document.getElementById('crit-yield').textContent=upgVal('mCrit');
-  document.getElementById('mine-spd').textContent=upgVal('mSpd').toFixed(1);
-  buildUpgGrid();
-}
-
-// ─── 채굴 시스템 ───
-let ptr=0,ptrDir=1;
-setInterval(()=>{
-  const spd=upgVal('mSpd');
-  ptr+=spd*ptrDir;
-  if(ptr>=100||ptr<=0)ptrDir*=-1;
-  document.getElementById('mine-ptr').style.left=ptr+'%';
-  // 크리존 위치도 살짝 변동
-}, 25);
-
-// 크리존: 60~78
-function doMine(){
-  const inCrit=ptr>=60&&ptr<=78;
-  const base=Math.round(upgVal('mBase'));
-  const crit=Math.round(upgVal('mCrit'));
-  
-  if(inCrit){
-    combo=Math.min(combo+1,20);
-    const mult=1+combo*.15;
-    const earned=Math.round(crit*mult);
-    gold+=earned;
-    toast(`⚡ CRIT! +${earned}G (콤보x${combo})`,'#f5a800');
-    spawnParticles(100,document.getElementById('mine-track'),'#f5a800',15);
-    document.getElementById('miner-cnt')&&null;
-  } else {
-    combo=Math.max(0,combo-2);
-    gold+=base;
-    toast(`+${base}G`,'#8e92a8');
+drawBg();
+window.addEventListener('resize',()=>{bgC.width=window.innerWidth;bgC.height=window.innerHeight});
+ 
+// ══════════════════════════════════════════
+//  FX CANVAS (전장 파티클)
+// ══════════════════════════════════════════
+const fxC=document.getElementById('fx-canvas');
+const fxX=fxC.getContext('2d');
+function resizeFX(){fxC.width=fxC.offsetWidth;fxC.height=fxC.offsetHeight}
+resizeFX();window.addEventListener('resize',resizeFX);
+ 
+function addParticles(x,y,col,n,sz=4){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*4;
+    particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-1.5,life:1,col,sz:sz*(.5+Math.random())});
   }
-  document.getElementById('combo-disp').textContent=`콤보 ${combo}`;
-  const cd=document.getElementById('combo-disp');
-  cd.classList.add('hit');setTimeout(()=>cd.classList.remove('hit'),100);
-  if(comboTimer)clearTimeout(comboTimer);
-  comboTimer=setTimeout(()=>{combo=0;document.getElementById('combo-disp').textContent='콤보 0'},2500);
-  saveData();updateUI();
 }
-
-// ─── 업그레이드 그리드 ───
+function tickFX(){
+  fxX.clearRect(0,0,fxC.width,fxC.height);
+  particles=particles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.18;p.life-=.028;
+    fxX.globalAlpha=p.life;fxX.fillStyle=p.col;
+    fxX.beginPath();fxX.arc(p.x,p.y,p.sz*p.life,0,Math.PI*2);fxX.fill();
+    return p.life>0;
+  });
+  fxX.globalAlpha=1;
+  requestAnimationFrame(tickFX);
+}
+tickFX();
+ 
+// ══════════════════════════════════════════
+//  MINE SYSTEM
+// ══════════════════════════════════════════
+let ptr=0,ptrDir=1;
+// 크리존 (60~78 → 너비 18%)
+let critL=60,critW=18;
+ 
+function moveMine(){
+  const spd=uVal('mSpd');
+  ptr+=spd*ptrDir;
+  if(ptr>=100||ptr<=0){ptrDir*=-1;ptr=Math.max(0,Math.min(100,ptr))}
+  document.getElementById('mine-ptr').style.left=ptr+'%';
+  // 크리존 천천히 움직임
+  critL+=.08*ptrDir;
+  if(critL<20)critL=20;if(critL>65)critL=65;
+  const cz=document.getElementById('crit-zone');
+  cz.style.left=critL+'%';cz.style.width=critW+'%';
+}
+setInterval(moveMine,22);
+ 
+function doMine(){
+  if(gameOver)return;
+  const inCrit=ptr>=critL&&ptr<=critL+critW;
+  const flash=document.getElementById('mine-flash');
+  flash.style.opacity=inCrit?.5:.2;
+  flash.style.background=inCrit?'rgba(245,168,0,.4)':'rgba(255,255,255,.15)';
+  setTimeout(()=>flash.style.opacity=0,80);
+ 
+  if(inCrit){
+    combo=Math.min(combo+1,25);
+    const mult=1+combo*.12;
+    const earned=Math.round(uVal('mCrit')*mult);
+    gold+=earned;
+    toast(`⚡ CRIT! +${earned}G  콤보×${combo}!`,'#f5a800');
+    const bf=document.getElementById('mine-track');
+    addParticlesDom(bf,'#f5a800',20);
+  } else {
+    combo=Math.max(0,combo-1);
+    const earned=Math.round(uVal('mBase'));
+    gold+=earned;
+    if(combo===0) toast(`+${earned}G`,'#8e92a8');
+    else toast(`+${earned}G (콤보 끊김 -1)`,'#5a5e7a');
+  }
+  const cb=document.getElementById('combo-big');
+  cb.textContent='콤보 '+combo;
+  cb.classList.add('pop');setTimeout(()=>cb.classList.remove('pop'),100);
+  if(comboT)clearTimeout(comboT);
+  comboT=setTimeout(()=>{combo=0;document.getElementById('combo-big').textContent='콤보 0'},2800);
+  document.getElementById('m-combo').textContent='×'+(1+combo*.12).toFixed(2);
+  updateUI();
+}
+ 
+function addParticlesDom(el,col,n){
+  const r=el.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  // 상대 좌표 → fxC 좌표계 (fxC는 bf 내부 캔버스)
+  const fr=fxC.getBoundingClientRect();
+  addParticles(cx-fr.left,cy-fr.top,col,n,5);
+}
+ 
+// ══════════════════════════════════════════
+//  UPGRADES
+// ══════════════════════════════════════════
 function buildUpgGrid(){
-  const g=document.getElementById('upg-grid');
-  g.innerHTML='';
-  upgDef.forEach(d=>{
-    const lv=upgLv[d.key];
-    const cost=upgCost(d.key);
-    const maxed=lv>=d.max;
-    const div=document.createElement('div');
-    div.className='upg-card';
-    div.innerHTML=`<div class="upg-name">${d.name}</div>
-      <div class="upg-val">Lv ${lv} → ${upgVal(d.key).toFixed(d.unit==='x'?2:0)}${d.unit}</div>
+  const g=document.getElementById('upg-grid');g.innerHTML='';
+  UPG.forEach(u=>{
+    const lv=upgLv[u.k],maxed=lv>=u.max,cost=uCost(u.k);
+    const d=document.createElement('div');
+    d.className='upg-card'+(maxed?' maxed':'');
+    d.innerHTML=`<div class="upg-name">${u.name}</div>
+      <div class="upg-val">Lv${lv} → ${uVal(u.k).toFixed(u.k==='uAtk'||u.k==='uHp'?2:1)}</div>
       <div class="upg-cost">${maxed?'MAX':cost+'G'}</div>`;
-    if(!maxed) div.onclick=()=>doUpgrade(d.key);
-    if(maxed) div.style.opacity='.5';
-    g.appendChild(div);
+    if(!maxed)d.onclick=()=>{
+      if(gold<cost){toast('골드 부족!','#ff3355');return}
+      gold-=cost;upgLv[u.k]++;
+      toast(`✅ ${u.name} Lv${upgLv[u.k]}`,'#00d4ff');
+      updateUI();buildUpgGrid();
+    };
+    g.appendChild(d);
   });
 }
-function doUpgrade(k){
-  const cost=upgCost(k);
-  if(gold<cost){toast('골드 부족!','#ff3355');return}
-  gold-=cost;upgLv[k]++;
-  toast(`업그레이드! ${upgDef.find(x=>x.key===k).name} Lv${upgLv[k]}`,'#00ccff');
-  saveData();updateUI();
-}
-
-// ─── 가챠 ───
-let gachaRunning=false;
+ 
+// ══════════════════════════════════════════
+//  GACHA
+// ══════════════════════════════════════════
+let pulling=false;
 function doGacha(n){
-  if(gachaRunning)return;
+  if(pulling)return;
   const cost=n===1?30:270;
-  if(gold<cost){toast('골드 부족! 채굴하세요.','#ff3355');return}
-  gold-=cost;gachaRunning=true;
-  document.getElementById('g1-btn').disabled=true;
-  document.getElementById('g10-btn').disabled=true;
+  if(gold<cost){toast('골드 부족!','#ff3355');return}
+  gold-=cost;pulling=true;
+  document.getElementById('g1').disabled=true;
+  document.getElementById('g10').disabled=true;
   document.getElementById('gacha-msg').textContent='소환 중...';
   document.getElementById('gacha-img').style.display='none';
   document.getElementById('grade-badge').style.display='none';
-  document.getElementById('gacha-scr').className='gacha-scr';
-
+  document.getElementById('gacha-scr').className='gacha-screen C';
+  updateUI();
+ 
   const results=[];
   for(let i=0;i<n;i++){
     pity++;
-    let hero;
-    if(pity>=80){hero=HEROES[3];pity=0} // 천장 전설 확정
+    let h;
+    if(pity>=80){h=HEROES[5];pity=0}
     else{
       const r=Math.random()*100;
-      hero=r<6?HEROES[3]:r<24?HEROES[2]:r<60?HEROES[1]:HEROES[0];
+      h=r<6?HEROES[5+Math.floor(Math.random()*2)]:r<24?HEROES[3+Math.floor(Math.random()*2)]:r<60?HEROES[1+Math.floor(Math.random()*2)]:HEROES[0];
     }
-    results.push(hero);
+    results.push(h);
   }
-  // 10연이면 마지막에 가장 고등급 보여줌
-  const best=results.reduce((a,b)=>gradeRank(b.grade)>gradeRank(a.grade)?b:a,results[0]);
-
+  const best=results.reduce((a,b)=>GR[b.grade].rank>GR[a.grade].rank?b:a,results[0]);
+ 
   setTimeout(()=>{
-    showGachaResult(best);
-    results.forEach(h=>addToArmy(h));
-    gachaRunning=false;
-    document.getElementById('g1-btn').disabled=false;
-    document.getElementById('g10-btn').disabled=false;
-    saveData();updateUI();renderBench();buildSkillBar();
-  },500);
+    showResult(best);
+    results.forEach(addToArmy);
+    pulling=false;
+    document.getElementById('g1').disabled=false;
+    document.getElementById('g10').disabled=false;
+    updateUI();renderBench();buildSkillBar();
+  },420);
 }
-function gradeRank(g){return{COMMON:0,RARE:1,EPIC:2,LEGENDARY:3}[g]}
-function showGachaResult(hero){
+ 
+function showResult(h){
   const scr=document.getElementById('gacha-scr');
-  scr.className='gacha-scr '+hero.grade;
+  scr.className='gacha-screen '+h.grade;
   const img=document.getElementById('gacha-img');
-  img.src=hero.img;img.style.display='block';
+  img.src=h.img;img.className='gacha-img shown';
   document.getElementById('gacha-msg').textContent='';
-  const badge=document.getElementById('grade-badge');
-  badge.textContent=`[${hero.grade}] ${hero.name}`;
-  badge.style.display='block';
-  badge.style.background=GRADES[hero.grade].col;
-  badge.style.color=hero.grade==='COMMON'?'#fff':'#000';
-  if(hero.grade==='LEGENDARY'){
-    spawnParticles(300,scr,'#f5a800',30);
-    spawnParticles(200,scr,'#ff6600',20);
-  } else if(hero.grade==='EPIC'){
-    spawnParticles(150,scr,'#cc00ff',20);
-  }
+  const b=document.getElementById('grade-badge');
+  b.textContent=`[${GR[h.grade].label}] ${h.name}`;
+  b.style.display='block';
+  b.style.background=h.grade==='C'?'rgba(100,100,130,.8)':'rgba(0,0,0,.7)';
+  b.style.color=GR[h.grade].col;
+  b.style.border=`1px solid ${GR[h.grade].col}`;
+  if(h.grade==='L'){addParticlesDom(scr,'#f5a800',120);setTimeout(()=>addParticlesDom(scr,'#ff6600',80),200)}
+  else if(h.grade==='E'){addParticlesDom(scr,'#cc00ff',60)}
+  else if(h.grade==='R'){addParticlesDom(scr,'#00d4ff',30)}
 }
-function addToArmy(hero){
-  const hi=HEROES.indexOf(hero);
-  const ex=myArmy.find(x=>x.heroIdx===hi);
+ 
+function addToArmy(h){
+  const ex=army.find(x=>x.heroId===h.id);
   if(ex){ex.count=(ex.count||1)+1}
-  else{myArmy.push({heroIdx:hi,id:'u_'+Date.now()+'_'+Math.random(),count:1,lv:1})}
+  else army.push({heroId:h.id,uid:'u'+Date.now()+Math.random().toString(36).slice(2),count:1,lv:1});
 }
-
-// ─── 합성 ───
-let synthPickFn=null;
+ 
+// ══════════════════════════════════════════
+//  SYNTHESIS
+// ══════════════════════════════════════════
 function pickSynth(slot){
-  // 가진 영웅 선택 모달 대신 간단히 myArmy 순서대로 채우기
-  const available=myArmy.filter(x=>(x.count||1)>=1);
-  if(!available.length){toast('영웅이 없습니다','#ff3355');return}
-  // 현재 slot에 순서대로 배정 (클릭 시마다 다음 영웅)
+  const av=army.filter(x=>(x.count||1)>=1);
+  if(!av.length){toast('영웅 없음','#ff3355');return}
   const cur=synthPick[slot];
-  const idx=cur===null?0:(available.findIndex(x=>x.id===cur)+1)%available.length;
-  synthPick[slot]=available[idx].id;
-  updateSynthSlots();
+  const ci=cur===null?0:(av.findIndex(x=>x.uid===cur)+1)%av.length;
+  synthPick[slot]=av[ci].uid;
+  updateSynthUI();
 }
-function updateSynthSlots(){
+function updateSynthUI(){
   for(let i=0;i<3;i++){
     const sl=document.getElementById('ss'+i);
     const uid=synthPick[i];
-    if(uid){
-      const entry=myArmy.find(x=>x.id===uid);
-      if(entry){
-        const h=HEROES[entry.heroIdx];
-        sl.style.backgroundImage=`url(${h.img})`;
-        sl.style.borderColor=h.col;
-        sl.classList.add('filled');
-        sl.textContent='';
-      }
-    } else {
-      sl.style.backgroundImage='none';sl.style.borderColor='#252945';sl.classList.remove('filled');sl.textContent=i+1;
-    }
+    if(uid){const e=army.find(x=>x.uid===uid);if(e){const h=HEROES[e.heroId];sl.style.backgroundImage=`url(${h.img})`;sl.style.borderColor=h.col;sl.classList.add('on');sl.textContent='';}
+    }else{sl.style.backgroundImage='none';sl.style.borderColor='var(--border2)';sl.classList.remove('on');sl.textContent=i+1}
   }
-  // 미리보기
-  const res=document.getElementById('synth-result');
+  const res=document.getElementById('synth-res');
   const ids=synthPick.filter(x=>x!==null);
   if(ids.length===3){
-    const entries=ids.map(id=>myArmy.find(x=>x.id===id));
-    const sameHero=entries.every(e=>e&&e.heroIdx===entries[0].heroIdx);
-    if(sameHero){
-      const h=HEROES[entries[0].heroIdx];
-      const ev=GRADES[h.grade].evo;
-      if(ev){
-        const nh=HEROES.find(x=>x.grade===ev)||h;
-        res.style.backgroundImage=`url(${nh.img})`;
-        res.style.borderColor=GRADES[ev].col;
-        res.textContent='';
-      } else {res.textContent='MAX';res.style.backgroundImage='none'}
-    } else {res.textContent='?';res.style.backgroundImage='none'}
-  } else {res.textContent='?';res.style.backgroundImage='none'}
+    const es=ids.map(id=>army.find(x=>x.uid===id));
+    if(es.every(Boolean)&&es.every(e=>e.heroId===es[0].heroId)){
+      const h=HEROES[es[0].heroId];const evo=GR[h.grade].evo;
+      if(evo){const nh=HEROES.find(x=>x.grade===evo)||h;res.style.backgroundImage=`url(${nh.img})`;res.style.borderColor=GR[evo].col;res.textContent='';}
+      else{res.textContent='MAX';res.style.backgroundImage='none'}
+    }else{res.textContent='?';res.style.backgroundImage='none'}
+  }else{res.textContent='?';res.style.backgroundImage='none'}
 }
 function doSynth(){
   const ids=synthPick.filter(x=>x!==null);
-  if(ids.length<3){toast('슬롯을 모두 채우세요','#ff3355');return}
-  const entries=ids.map(id=>myArmy.find(x=>x.id===id));
-  if(!entries.every(Boolean)){toast('영웅 정보 오류','#ff3355');return}
-  if(!entries.every(e=>e.heroIdx===entries[0].heroIdx)){toast('같은 영웅 3장이 필요합니다!','#ff3355');return}
-  const h=HEROES[entries[0].heroIdx];
-  const ev=GRADES[h.grade].evo;
-  if(!ev){toast('이미 최고 등급입니다!','#f5a800');return}
-  // 3장 차감
-  entries.forEach(e=>{e.count=(e.count||1)-1});
-  myArmy=myArmy.filter(x=>(x.count||1)>0);
-  // 진화 영웅 추가
-  const evoHero=HEROES.find(x=>x.grade===ev&&x.heroIdx===undefined)||HEROES.find(x=>x.grade===ev);
-  if(evoHero) addToArmy(evoHero);
-  synthPick=[null,null,null];
-  updateSynthSlots();
-  toast(`🔥 진화 성공! → [${ev}]`,'#f5a800');
-  spawnParticles(200,document.getElementById('gacha-scr'),'#f5a800',25);
-  saveData();updateUI();renderBench();buildSkillBar();
+  if(ids.length<3){toast('슬롯 3개 모두 채우세요','#ff3355');return}
+  const es=ids.map(id=>army.find(x=>x.uid===id));
+  if(!es.every(Boolean)||!es.every(e=>e.heroId===es[0].heroId)){toast('같은 영웅 3장 필요','#ff3355');return}
+  const h=HEROES[es[0].heroId];const evo=GR[h.grade].evo;
+  if(!evo){toast('이미 최고 등급!','#f5a800');return}
+  es.forEach(e=>{e.count=(e.count||1)-1});
+  army=army.filter(x=>(x.count||1)>0);
+  const nh=HEROES.find(x=>x.grade===evo);
+  if(nh)addToArmy(nh);
+  synthPick=[null,null,null];updateSynthUI();
+  toast(`🔥 진화 성공! [${GR[evo].label}] ${nh?nh.name:''}`, GR[evo].col);
+  const scr=document.getElementById('gacha-scr');
+  addParticlesDom(scr,GR[evo].col,100);
+  updateUI();renderBench();buildSkillBar();
 }
-
-// ─── 벤치 렌더 ───
+ 
+// ══════════════════════════════════════════
+//  BENCH / DEPLOY
+// ══════════════════════════════════════════
 function renderBench(){
-  const bench=document.getElementById('bench-row');
-  bench.innerHTML='';
-  myArmy.forEach(entry=>{
-    const h=HEROES[entry.heroIdx];
-    const d=document.createElement('div');
-    d.className='hero-card';
-    d.innerHTML=`<div class="hero-thumb" style="background-image:url(${h.img});border-color:${h.col}"></div>
+  const b=document.getElementById('bench');b.innerHTML='';
+  if(!army.length){b.innerHTML='<div class="bench-empty">소환한 영웅을 클릭해 전장에 배치!</div>';return}
+  army.forEach(entry=>{
+    const h=HEROES[entry.heroId];
+    const d=document.createElement('div');d.className='hero-card';
+    d.innerHTML=`<div class="hero-thumb" style="background-image:url(${h.img});border-color:${h.col}">
       <div class="hero-lv">Lv${entry.lv}</div>
       ${(entry.count||1)>1?`<div class="hero-cnt">${entry.count}</div>`:''}
-      <div class="hero-name">${h.name}</div>`;
-    d.onclick=()=>deployUnit(entry);
-    bench.appendChild(d);
+    </div><div class="hero-nm">${h.name}</div>`;
+    d.onclick=()=>deployHero(entry);
+    b.appendChild(d);
   });
 }
-
-// ─── 스킬 바 ───
-const skillCooldowns={}; // unitId → {lastUsed, cd}
-function buildSkillBar(){
-  const bar=document.getElementById('skill-bar');
-  bar.innerHTML='<div style="font-size:.78rem;color:#3a3e5a;width:100%">배치된 영웅의 스킬이 여기에 표시됩니다</div>';
-}
-function refreshSkillBar(){
-  const bar=document.getElementById('skill-bar');
-  bar.innerHTML='';
-  const heroes=activeUnits.filter(u=>u.side==='hero');
-  if(!heroes.length){bar.innerHTML='<div style="font-size:.78rem;color:#3a3e5a;width:100%">배치된 영웅의 스킬이 여기에 표시됩니다</div>';return}
-  heroes.forEach(u=>{
-    const h=HEROES[u.heroIdx];
-    if(!h||!h.skill)return;
-    const now=Date.now();
-    const last=skillCooldowns[u.id]||0;
-    const elapsed=now-last;
-    const cd=h.skill.cd;
-    const ready=elapsed>=cd;
-    const pct=Math.min(100,elapsed/cd*100);
-    const btn=document.createElement('div');
-    btn.className='skill-btn'+(ready?' ready':'');
-    btn.id='sk_'+u.id;
-    btn.innerHTML=`<div class="sk-name">${u.name||h.name}</div>
-      <div class="sk-name" style="color:${h.col};font-size:.7rem">${h.skill.name}</div>
-      <div class="sk-cd">${ready?'준비 완료!':Math.ceil((cd-elapsed)/1000)+'초'}</div>
-      <div class="skill-cd-bar" style="width:${pct}%;background:${h.col}"></div>`;
-    if(ready) btn.onclick=()=>useSkill(u);
-    bar.appendChild(btn);
-  });
-}
-
-// ─── 스킬 구현 ───
-function useSkill(u){
-  const h=HEROES[u.heroIdx];
-  if(!h||!h.skill)return;
-  const now=Date.now();
-  if(now-(skillCooldowns[u.id]||0)<h.skill.cd){toast('쿨다운 중!','#5a5e7a');return}
-  skillCooldowns[u.id]=now;
-  h.skill.run(u);
-  showSkillFX(u.x,u.y,h.skill.fx);
-  toast(`💥 ${h.name} - ${h.skill.name}!`,h.col);
-}
-function showSkillFX(x,y,col){
-  const f=document.getElementById('def-field');
-  const fx=document.createElement('div');
-  fx.className='skill-fx';
-  fx.style.cssText=`left:${x}px;top:${y}px;width:40px;height:40px;background:${col};margin-left:-20px;margin-top:-20px`;
-  f.appendChild(fx);
-  setTimeout(()=>fx.remove(),400);
-}
-function healUnit(u,pct){u.curHp=Math.min(u.hp,u.curHp+u.hp*pct);showDmg(u.x,u.y,'+'+(Math.round(u.hp*pct))+' HP','#00ffaa')}
-function multiShot(u,n){
-  const targets=activeUnits.filter(t=>t.side!=='hero');
-  if(!targets.length)return;
-  for(let i=0;i<n;i++){
-    setTimeout(()=>{
-      if(!targets.length)return;
-      const t=targets[0];
-      const dmg=Math.round(u.pwr*1.2*upgVal('uAtk'));
-      t.curHp-=dmg;showDmg(t.x,t.y,dmg,'#00ccff');
-    },i*150);
-  }
-}
-function aoeBlast(u,mult){
-  const targets=activeUnits.filter(t=>t.side!=='hero');
-  targets.forEach(t=>{
-    const dmg=Math.round(u.pwr*mult*upgVal('uAtk'));
-    t.curHp-=dmg;showDmg(t.x,t.y,dmg+'💥','#cc00ff');
-  });
-}
-function dragonBlast(u){
-  const targets=activeUnits.filter(t=>t.side!=='hero');
-  targets.forEach(t=>{
-    const dmg=Math.round(u.pwr*3*upgVal('uAtk'));
-    t.curHp-=dmg;showDmg(t.x,t.y,dmg+'🔥','#f5a800');
-    spawnParticles(30,document.getElementById('def-field'),'#f5a800',8);
-  });
-}
-function chargeAtk(u){
-  const targets=activeUnits.filter(t=>t.side!=='hero');
-  if(!targets.length)return;
-  const t=targets[0];
-  u.x=t.x-40;
-  const dmg=Math.round(u.pwr*2.5*upgVal('uAtk'));
-  t.curHp-=dmg;showDmg(t.x,t.y,dmg+'⚡','#00ccff');
-}
-function poisonAtk(u){
-  const targets=activeUnits.filter(t=>t.side!=='hero');
-  if(!targets.length)return;
-  const t=targets[0];
-  t.poisoned=true;
-  showDmg(t.x,t.y,'☠️ 독!','#44ff00');
-}
-
-// ─── 배치 & 전투 ───
-function deployUnit(entry){
-  const h=HEROES[entry.heroIdx];
-  const unit={
-    id:'d_'+Date.now(),heroIdx:entry.heroIdx,
-    name:h.name,pwr:h.pwr,hp:h.hp,curHp:h.hp,
-    x:30+Math.random()*60,y:50+Math.random()*160,
-    side:'hero',lastAtk:0,col:h.col,img:h.img,poisoned:false,
-    grade:h.grade
+function deployHero(entry){
+  if(gameOver)return;
+  const h=HEROES[entry.heroId];
+  const bf=document.getElementById('bf');
+  const uid='d'+Date.now()+Math.random().toString(36).slice(2);
+  const u={
+    id:uid,heroId:h.id,name:h.name,
+    pwr:h.pwr,hp:Math.round(h.hp*uVal('uHp')),
+    curHp:Math.round(h.hp*uVal('uHp')),
+    def:0,
+    x:30+Math.random()*70,y:40+Math.random()*160,
+    side:'hero',lastAtk:0,col:h.col,img:h.img,
+    grade:h.grade,poisoned:false
   };
-  activeUnits.push(unit);
+  activeUnits.push(u);
   const el=document.createElement('div');
-  el.className='unit';el.id=unit.id;
-  el.style.cssText=`left:${unit.x}px;top:${unit.y}px;border-color:${unit.col};background-image:url(${unit.img})`;
-  el.innerHTML=`<div class="unit-hp"><div class="unit-hp-inner" id="hp_${unit.id}"></div></div>
-    <div class="unit-skill-cd"><div class="unit-skill-cd-inner" id="scd_${unit.id}" style="width:0%"></div></div>`;
-  document.getElementById('def-field').appendChild(el);
-  refreshSkillBar();
+  el.className='unit';el.id=uid;
+  el.style.cssText=`left:${u.x}px;top:${u.y}px;border-color:${u.col};background-image:url(${u.img})`;
+  el.innerHTML=`<div class="unit-bars">
+    <div class="unit-bar-track hp-track"><div class="unit-bar-fill hp-fill" id="hp_${uid}" style="width:100%"></div></div>
+    <div class="unit-bar-track sp-track"><div class="unit-bar-fill sp-fill" id="sp_${uid}" style="width:0%"></div></div>
+  </div>`;
+  bf.appendChild(el);
+  buildSkillBar();
+  toast(`⚔️ ${h.name} 배치!`,h.col);
+  addParticles(u.x+22,u.y+22,h.col,15,3);
 }
-
-let waveTimer=null;
-function spawnWave(){
-  if(waveActive){toast('이미 웨이브 진행 중!','#5a5e7a');return}
-  waveActive=true;
-  const count=2+stage;
+ 
+// ══════════════════════════════════════════
+//  WAVES — 난이도 대폭 상향
+// ══════════════════════════════════════════
+const ENEMY_IMGS=[
+  'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=150',
+  'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=150',
+  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150',
+];
+function startWave(){
+  if(waveActive){toast('이미 진행 중!','#5a5e7a');return}
+  if(gameOver)return;
+  waveActive=true;waveNumber++;
+  document.getElementById('wave-btn').disabled=true;
+ 
+  // 웨이브 스케일링: 빠르게 어려워짐
+  const count = 3 + Math.floor(stage * 1.8) + Math.floor(waveNumber * .5);
+  const baseHp = 60 + stage*60 + waveNumber*20;
+  const basePwr = 10 + stage*8 + waveNumber*3;
+  const speed = 1.2 + stage*.15 + waveNumber*.05;
+  const interval = Math.max(350, 700 - stage*30);
+ 
   for(let i=0;i<count;i++){
     setTimeout(()=>{
+      if(gameOver)return;
+      const hp=Math.round(baseHp*(0.85+Math.random()*.3));
+      const isBoss=i===count-1&&count>4; // 마지막은 보스
       const m={
-        id:'m_'+Date.now()+'_'+i,heroIdx:-1,
-        pwr:8+stage*4,hp:60+stage*30,curHp:60+stage*30,
-        x:440,y:50+Math.random()*170,
-        side:'enemy',lastAtk:0,col:'#ff3355',poisoned:false,
-        img:'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=150',grade:'COMMON'
+        id:'m'+Date.now()+'_'+i,heroId:-1,
+        pwr:Math.round(basePwr*(isBoss?2:1)),
+        hp:Math.round(hp*(isBoss?3:1)),
+        curHp:Math.round(hp*(isBoss?3:1)),
+        x:490,y:30+Math.random()*190,
+        side:'enemy',lastAtk:0,col:'#ff3355',
+        img:ENEMY_IMGS[i%ENEMY_IMGS.length],
+        poisoned:false,poisonDmg:0,
+        speed:speed*(isBoss?.7:1),
+        isBoss,def:0
       };
       activeUnits.push(m);
       const el=document.createElement('div');
       el.className='unit';el.id=m.id;
-      el.style.cssText=`left:${m.x}px;top:${m.y}px;border-color:#ff3355;filter:hue-rotate(300deg) brightness(1.3);background-image:url(${m.img})`;
-      el.innerHTML=`<div class="unit-hp"><div class="unit-hp-inner" id="hp_${m.id}" style="background:#ff3355"></div></div>`;
-      document.getElementById('def-field').appendChild(el);
-    },i*700);
+      el.style.cssText=`left:${m.x}px;top:${m.y}px;border-color:${isBoss?'#f5a800':'#ff3355'};filter:hue-rotate(${isBoss?40:300}deg) brightness(${isBoss?1.6:1.2});background-image:url(${m.img});${isBoss?'width:58px;height:58px':''}`;
+      el.innerHTML=`<div class="unit-bars">
+        <div class="unit-bar-track hp-track"><div class="unit-bar-fill hp-fill" id="hp_${m.id}" style="width:100%;background:${isBoss?'#f5a800':'#ff3355'}"></div></div>
+      </div>`;
+      document.getElementById('bf').appendChild(el);
+      document.getElementById('enemy-cnt').textContent=activeUnits.filter(u=>u.side==='enemy').length;
+    },i*interval);
   }
+  toast(`👾 웨이브 ${waveNumber}! 적 ${count}마리 (${isBossStr(count)} )`,'#ff3355');
 }
-
-// 전투 루프
+function isBossStr(c){return c>4?'보스 포함':''}
+ 
+// ══════════════════════════════════════════
+//  BATTLE LOOP
+// ══════════════════════════════════════════
 setInterval(()=>{
+  if(gameOver)return;
   const now=Date.now();
+  const heroes=activeUnits.filter(u=>u.side==='hero');
+  const enemies=activeUnits.filter(u=>u.side==='enemy');
+  document.getElementById('enemy-cnt').textContent=enemies.length;
+ 
   activeUnits.forEach(u=>{
-    const el=document.getElementById(u.id);
-    if(!el)return;
-    const enemies=activeUnits.filter(t=>t.side!==u.side);
-    if(enemies.length){
-      let closest=enemies[0],minD=9999;
-      enemies.forEach(t=>{const d=Math.hypot(t.x-u.x,t.y-u.y);if(d<minD){minD=d;closest=t}});
-      if(minD>38){
-        const dx=closest.x-u.x,dy=closest.y-u.y,dist=Math.hypot(dx,dy);
-        const spd=u.side==='hero'?2.2:1.6;
-        u.x+=dx/dist*spd;u.y+=dy/dist*spd*.5;
-        u.x=Math.max(5,Math.min(440,u.x));
-        u.y=Math.max(5,Math.min(220,u.y));
-      } else if(now-u.lastAtk>900){
+    const el=document.getElementById(u.id);if(!el)return;
+    const foes=u.side==='hero'?enemies:heroes;
+ 
+    if(foes.length){
+      let near=foes[0],minD=9999;
+      foes.forEach(t=>{const d=Math.hypot(t.x-u.x,t.y-u.y);if(d<minD){minD=d;near=t}});
+      const range=u.side==='hero'?42:38;
+      if(minD>range){
+        const dx=near.x-u.x,dy=near.y-u.y,dist=Math.hypot(dx,dy);
+        const spd=u.side==='hero'?2.4:(u.speed||1.6);
+        u.x+=dx/dist*spd;u.y+=dy/dist*spd*.6;
+        u.x=Math.max(4,Math.min(490,u.x));
+        u.y=Math.max(4,Math.min(228,u.y));
+      } else if(now-u.lastAtk>850){
         u.lastAtk=now;
         let dmg=u.pwr;
-        const atk=upgVal('uAtk');
-        if(u.side==='hero') dmg=Math.round(dmg*atk);
-        let crit=false;
-        if((u.grade==='EPIC'||u.grade==='LEGENDARY')&&Math.random()>.5){dmg=Math.round(dmg*2.2);crit=true}
-        closest.curHp-=dmg;
-        showDmg(closest.x,closest.y,crit?dmg+' CRIT!':String(dmg),crit?'#f5a800':u.col);
-        const hpEl=document.getElementById('hp_'+closest.id);
-        if(hpEl) hpEl.style.width=Math.max(0,closest.curHp/closest.hp*100)+'%';
+        if(u.side==='hero')dmg=Math.round(dmg*uVal('uAtk'));
+        const crit=(u.grade==='E'||u.grade==='L')&&Math.random()>.55;
+        if(crit)dmg=Math.round(dmg*2.3);
+        const blocked=Math.min(dmg-1,near.def||0);
+        const actual=dmg-blocked;
+        near.curHp-=actual;
+        showDmg(near.x,near.y,crit?actual+' CRIT!':String(actual),crit?'#f5a800':u.col);
+        const hEl=document.getElementById('hp_'+near.id);
+        if(hEl)hEl.style.width=Math.max(0,near.curHp/near.hp*100)+'%';
       }
     } else {
-      u.x+=(u.side==='hero'?1.5:-1.2);
+      // 적 없으면 이동
+      if(u.side==='enemy'){u.x-=(u.speed||1.5);u.y+=Math.sin(Date.now()*.003+u.x*.1)*.3}
     }
-    // 독 데미지
-    if(u.poisoned&&now%1000<100){u.curHp-=5;showDmg(u.x,u.y,'5☠','#44ff00')}
+ 
+    // 독 틱
+    if(u.poisoned){
+      u.poisonTick=(u.poisonTick||0)+1;
+      if(u.poisonTick%12===0){
+        const pd=u.poisonDmg||6;
+        u.curHp-=pd;
+        showDmg(u.x,u.y,'☠'+pd,'#44ff88');
+        const hEl=document.getElementById('hp_'+u.id);
+        if(hEl)hEl.style.width=Math.max(0,u.curHp/u.hp*100)+'%';
+      }
+    }
+ 
     el.style.left=u.x+'px';el.style.top=u.y+'px';
-    // 스킬 쿨다운 바
+ 
+    // 스킬 쿨 바
     if(u.side==='hero'){
-      const h=HEROES[u.heroIdx];
-      if(h&&h.skill){
-        const elapsed=now-(skillCooldowns[u.id]||0);
-        const pct=Math.min(100,elapsed/h.skill.cd*100);
-        const scd=document.getElementById('scd_'+u.id);
-        if(scd) scd.style.width=pct+'%';
+      const h=HEROES[u.heroId];
+      if(h&&h.sk){
+        const e=now-(skCD[u.id]||0);
+        const pct=Math.min(100,e/h.sk.cd*100);
+        const sp=document.getElementById('sp_'+u.id);
+        if(sp)sp.style.width=pct+'%';
       }
     }
   });
-  // 사망 처리
+ 
+  // 사망/통과 처리
   activeUnits=activeUnits.filter(u=>{
-    if(u.curHp<=0||u.x<-15||u.x>470){
-      if(u.side==='enemy'&&u.curHp<=0){gold+=8;updateUI()}
+    if(u.curHp<=0){
+      if(u.side==='enemy'){
+        const reward=u.isBoss?30+stage*5:6+stage*2;
+        gold+=reward;updateUI();
+        addParticles(u.x,u.y,u.isBoss?'#f5a800':'#ff3355',u.isBoss?40:12,u.isBoss?6:3);
+      } else {
+        addParticles(u.x,u.y,'#00d4ff',15,3);
+        buildSkillBar();
+      }
+      document.getElementById(u.id)?.remove();return false;
+    }
+    // 적이 기지 통과
+    if(u.side==='enemy'&&u.x<-10){
+      const dmg=u.isBoss?5:1;
+      lives=Math.max(0,lives-dmg);
+      updateLifeUI();
+      toast(`💥 적 통과! -${dmg} 라이프`,'#ff3355');
+      addParticles(10,u.y,'#ff3355',25,5);
       document.getElementById(u.id)?.remove();
-      if(u.side==='hero') refreshSkillBar();
+      if(lives<=0)triggerGameOver();
       return false;
     }
     return true;
   });
-  // 웨이브 클리어 체크
-  if(waveActive&&activeUnits.length&&!activeUnits.some(u=>u.side==='enemy')){
-    waveActive=false;stage++;gold+=50;
-    const sc=document.getElementById('stage-clear');
-    sc.style.opacity='1';setTimeout(()=>sc.style.opacity='0',2000);
-    spawnParticles(250,document.getElementById('def-field'),'#00ccff',20);
-    toast(`🎉 Stage ${stage-1} 클리어! +50G`,'#00ccff');
-    saveData();updateUI();
+ 
+  // 웨이브 클리어
+  if(waveActive&&activeUnits.every(u=>u.side==='hero')){
+    const hasAny=activeUnits.length>0||true; // 영웅 없어도 클리어
+    const enemyGone=!activeUnits.some(u=>u.side==='enemy');
+    if(enemyGone){
+      waveActive=false;
+      document.getElementById('wave-btn').disabled=false;
+      stage++;
+      const bonus=40+stage*15;
+      gold+=bonus;updateUI();
+      const banner=document.getElementById('stage-banner');
+      banner.textContent=`STAGE ${stage-1} CLEAR! +${bonus}G 🎉`;
+      banner.style.color='#00d4ff';
+      banner.style.opacity='1';
+      setTimeout(()=>banner.style.opacity='0',2200);
+      addParticles(250,120,'#00d4ff',80,6);
+      addParticles(200,100,'#f5a800',50,4);
+      toast(`🎉 Stage ${stage-1} 클리어! +${bonus}G`,'#00d4ff');
+    }
   }
+ 
   refreshSkillBar();
-},100);
-
-function showDmg(x,y,text,col){
-  const f=document.getElementById('def-field');
-  const d=document.createElement('div');
-  d.className='dmg';d.style.cssText=`left:${x}px;top:${y-10}px;color:${col}`;
-  d.textContent=text;f.appendChild(d);
-  setTimeout(()=>d.remove(),700);
-}
-
-// ─── 파티클 ───
-const canvas=document.getElementById('particle-canvas');
-const ctx=canvas.getContext('2d');
-canvas.width=window.innerWidth;canvas.height=window.innerHeight;
-window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight});
-let particles=[];
-function spawnParticles(n,el,col,size){
-  const r=el.getBoundingClientRect();
-  const cx=r.left+r.width/2,cy=r.top+r.height/2;
-  for(let i=0;i<n;i++){
-    const angle=Math.random()*Math.PI*2;
-    const speed=1+Math.random()*4;
-    particles.push({x:cx,y:cy,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-2,life:1,col,size:2+Math.random()*size});
-  }
-}
-function animParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles=particles.filter(p=>{
-    p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.life-=.025;
-    ctx.globalAlpha=p.life;ctx.fillStyle=p.col;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();
-    return p.life>0;
+},95);
+ 
+// ══════════════════════════════════════════
+//  SKILLS
+// ══════════════════════════════════════════
+function buildSkillBar(){
+  const bar=document.getElementById('skill-bar');bar.innerHTML='';
+  const hs=activeUnits.filter(u=>u.side==='hero');
+  if(!hs.length){bar.innerHTML='<div style="font-size:.72rem;color:var(--dim)">영웅 배치 후 스킬 사용 가능</div>';return}
+  hs.forEach(u=>{
+    const h=HEROES[u.heroId];if(!h||!h.sk)return;
+    const now=Date.now(),elapsed=now-(skCD[u.id]||0);
+    const ready=elapsed>=h.sk.cd;
+    const pct=Math.min(100,elapsed/h.sk.cd*100);
+    const btn=document.createElement('div');
+    btn.className='sk-btn'+(ready?' ready':'');btn.id='skb_'+u.id;
+    btn.innerHTML=`<div class="sk-nm">${h.name.slice(0,5)}</div>
+      <div class="sk-nm" style="color:${h.sk.col};margin-top:1px">${h.sk.name}</div>
+      <div class="sk-cd">${ready?'✨ 준비!':Math.ceil((h.sk.cd-elapsed)/1000)+'초'}</div>
+      <div class="sk-cd-bar" style="width:${pct}%;background:${h.sk.col}"></div>`;
+    if(ready)btn.onclick=()=>useSkill(u);
+    bar.appendChild(btn);
   });
-  ctx.globalAlpha=1;
-  requestAnimationFrame(animParticles);
 }
-animParticles();
-
-// ─── 토스트 ───
+function refreshSkillBar(){
+  const hs=activeUnits.filter(u=>u.side==='hero');
+  hs.forEach(u=>{
+    const btn=document.getElementById('skb_'+u.id);if(!btn)return;
+    const h=HEROES[u.heroId];if(!h||!h.sk)return;
+    const now=Date.now(),elapsed=now-(skCD[u.id]||0);
+    const ready=elapsed>=h.sk.cd;
+    const pct=Math.min(100,elapsed/h.sk.cd*100);
+    btn.className='sk-btn'+(ready?' ready':'');
+    const cdEl=btn.querySelector('.sk-cd');
+    if(cdEl)cdEl.textContent=ready?'✨ 준비!':Math.ceil((h.sk.cd-elapsed)/1000)+'초';
+    const barEl=btn.querySelector('.sk-cd-bar');
+    if(barEl)barEl.style.width=pct+'%';
+    if(ready)btn.onclick=()=>useSkill(u);
+    else btn.onclick=null;
+  });
+}
+function useSkill(u){
+  const h=HEROES[u.heroId];if(!h||!h.sk)return;
+  const now=Date.now();
+  if(now-(skCD[u.id]||0)<h.sk.cd){toast('쿨타임 중!','#5a5e7a');return}
+  skCD[u.id]=now;
+  h.sk.run(u);
+  spawnFX(u.x,u.y,h.sk.col);
+  toast(`💥 ${h.name} - ${h.sk.name}!`,h.sk.col);
+}
+ 
+// 스킬 헬퍼
+function hitEnemy(u,mult){
+  const es=activeUnits.filter(t=>t.side==='enemy');
+  if(!es.length)return;
+  const t=es.reduce((a,b)=>b.curHp<a.curHp?b:a,es[0]);
+  const dmg=Math.round(u.pwr*mult*uVal('uAtk'));
+  t.curHp-=dmg;
+  showDmg(t.x,t.y,dmg,'#00d4ff');
+  const hp=document.getElementById('hp_'+t.id);
+  if(hp)hp.style.width=Math.max(0,t.curHp/t.hp*100)+'%';
+  addParticles(t.x+22,t.y+22,u.col,8,3);
+}
+function aoeHit(u,mult){
+  activeUnits.filter(t=>t.side==='enemy').forEach(t=>{
+    const dmg=Math.round(u.pwr*mult*uVal('uAtk'));
+    t.curHp-=dmg;
+    showDmg(t.x,t.y,dmg+'!',u.col);
+    const hp=document.getElementById('hp_'+t.id);
+    if(hp)hp.style.width=Math.max(0,t.curHp/t.hp*100)+'%';
+  });
+  addParticles(250,120,u.col,60,6);
+}
+function poisonAll(u){
+  const es=activeUnits.filter(t=>t.side==='enemy');
+  es.forEach(t=>{t.poisoned=true;t.poisonDmg=Math.round(u.pwr*.08*uVal('uAtk'))});
+  showDmg(u.x,u.y,'☠ 전체 독!','#44ff44');
+  addParticles(250,120,'#44ff44',40,5);
+}
+ 
+function spawnFX(x,y,col,sz=40){
+  const bf=document.getElementById('bf');
+  const fx=document.createElement('div');
+  fx.className='skill-fx';
+  fx.style.cssText=`left:${x+22-sz/2}px;top:${y+22-sz/2}px;width:${sz}px;height:${sz}px;background:${col}`;
+  bf.appendChild(fx);setTimeout(()=>fx.remove(),450);
+  addParticles(x+22,y+22,col,20,5);
+}
+function showDmg(x,y,txt,col){
+  const bf=document.getElementById('bf');
+  const d=document.createElement('div');
+  d.className='dmg-pop';
+  d.style.cssText=`left:${x+8}px;top:${y}px;color:${col}`;
+  d.textContent=txt;bf.appendChild(d);
+  setTimeout(()=>d.remove(),750);
+}
+ 
+// ══════════════════════════════════════════
+//  UI UPDATE
+// ══════════════════════════════════════════
+function updateUI(){
+  document.getElementById('h-gold').textContent=gold;
+  document.getElementById('h-stage').textContent=stage;
+  document.getElementById('h-pity').textContent=pity;
+  const pct=pity/80*100;
+  const pb=document.getElementById('h-pity-bar');
+  pb.style.width=pct+'%';
+  pb.className='pity-fill'+(pity>=60?' near':'');
+  document.getElementById('p-left').textContent=80-pity;
+  document.getElementById('m-base').textContent=Math.round(uVal('mBase'));
+  document.getElementById('m-crit').textContent=Math.round(uVal('mCrit'));
+  document.getElementById('m-spd').textContent=uVal('mSpd').toFixed(1);
+  buildUpgGrid();
+}
+function updateLifeUI(){
+  const pct=lives/20*100;
+  const fill=document.getElementById('h-life');
+  fill.style.width=pct+'%';
+  fill.className='life-fill'+(lives<=10?' warn':'')+(lives<=5?' crit':'');
+  document.getElementById('h-life-n').textContent=lives;
+  const danger=document.getElementById('danger-overlay');
+  if(lives<=5)danger.classList.add('show');else danger.classList.remove('show');
+}
+ 
+// ══════════════════════════════════════════
+//  GAME OVER
+// ══════════════════════════════════════════
+function triggerGameOver(){
+  gameOver=true;
+  document.getElementById('go-info').textContent=`최고 스테이지: ${stage} | 웨이브: ${waveNumber}`;
+  document.getElementById('gameover').classList.add('show');
+}
+ 
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+let toastQ=[];let toastBusy=false;
 function toast(msg,col='#fff'){
+  toastQ.push({msg,col});
+  if(!toastBusy)nextToast();
+}
+function nextToast(){
+  if(!toastQ.length){toastBusy=false;return}
+  toastBusy=true;
+  const {msg,col}=toastQ.shift();
   const t=document.getElementById('toast');
   t.textContent=msg;t.style.color=col;t.style.borderColor=col;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),1800);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(nextToast,200)},1500);
 }
-
-// ─── 채팅 ───
-function sendChat(){
-  const inp=document.getElementById('chat-in');
-  if(!inp.value.trim())return;
-  const name=document.getElementById('uname').textContent;
-  if(!isGuest&&userId){db.ref('world_chat').push({name,msg:inp.value})}
-  else{addChatLine(name,inp.value)} // 게스트는 로컬만
-  inp.value='';
-}
-function listenChat(){
-  db.ref('world_chat').limitToLast(30).on('child_added',s=>{
-    const d=s.val();addChatLine(d.name,d.msg);
-  });
-}
-function addChatLine(name,msg){
-  const log=document.getElementById('chat-log');
-  const div=document.createElement('div');div.className='chat-row';
-  div.innerHTML=`<span style="color:#00ccff;font-weight:700">[${name}]</span> ${msg}`;
-  log.appendChild(div);log.scrollTop=log.scrollHeight;
-}
-
-// ─── 저장/불러오기 ───
-function saveData(){
-  if(!userId||isGuest)return;
-  db.ref('users2/'+userId).set({gold,stage,pity,myArmy,upgLv});
-}
-function loadData(){
-  db.ref('users2/'+userId).once('value',s=>{
-    const d=s.val();
-    if(d){
-      gold=d.gold||50;stage=d.stage||1;pity=d.pity||0;
-      myArmy=d.myArmy||[];upgLv=d.upgLv||{mSpd:0,mBase:0,mCrit:0,uAtk:0};
-    }
-    initGame();
-    listenChat();
-  });
-}
+ 
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+updateUI();renderBench();buildSkillBar();buildUpgGrid();updateLifeUI();
 </script>
 </body>
 </html>
+ 
